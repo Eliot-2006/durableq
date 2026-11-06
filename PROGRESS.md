@@ -52,5 +52,10 @@ Self-review plus an independent Codex review found no critical issues and 8 majo
 - **M8:** the race test could pass with completion broken. It now asserts every job succeeds with exactly one effect, and that both sides of the race won.
 - Minor: claims aren't cancelled by shutdown; README says "at most one terminal transition"; the shutdown bound with the DB down is documented. Added `--grace`, `--tag`, `--restarts` flags.
 
+## Postgres-restart chaos (2026-11-06)
+- New fault: restart the Postgres server mid-run (`DBRestarts` / `DBRestartCmd`). The harness reconnects and verifies the restart via `pg_postmaster_start_time()`. A no-op command fails the run.
+- `TestPostgresRestart`: 3,000 jobs, 4 workers, 10 SIGKILLs, 3 crash-restarts (`docker restart -t 0`). 6/6 local runs passed I1–I7. Runs in CI against the service container.
+- README: headline results, CI badge, port note. MIT LICENSE.
+
 ## Next
-- Stretch items (PRD §14) only if asked: LISTEN/NOTIFY, River comparison, `dead retry`, retention, Postgres-restart chaos.
+- Stretch items (PRD §14) only if asked: LISTEN/NOTIFY, River comparison, `dead retry`, retention.

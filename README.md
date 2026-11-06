@@ -1,6 +1,10 @@
 # durableq
 
+[![ci](https://github.com/Eliot-2006/durableq/actions/workflows/ci.yml/badge.svg)](https://github.com/Eliot-2006/durableq/actions/workflows/ci.yml)
+
 A durable job queue in Go with PostgreSQL as its only dependency. Workers claim jobs with `FOR UPDATE SKIP LOCKED` and hold leases timed on the database clock, renewing them with heartbeats. When a worker crashes, its leases expire and other workers reclaim the jobs. Every state transition is fenced by an attempt number, so a stale or partitioned worker cannot complete a job it no longer owns. Correctness is demonstrated rather than asserted: chaos tests SIGKILL real worker processes, restart them gracefully mid-run, terminate their database connections and freeze them past their leases. Then seven invariants are checked directly in SQL.
+
+**Results** (laptop, [details](docs/results.md)): about 11,000 jobs/s at peak. A crashed worker's jobs are back in about 2s, one lease. 20 of 20 chaos runs over 200,000 jobs (100 SIGKILLs each, plus connection kills, stalls and restarts) passed with 0 lost jobs and 0 duplicate effects. Postgres crash-restarts mid-run pass too.
 
 ## Guarantees
 
@@ -18,6 +22,7 @@ Requires Go 1.27+ and PostgreSQL 17 (Docker Compose, or a local install).
 
 ```sh
 make up                                   # Postgres 17 in Docker (or use your own and set DATABASE_URL)
+                                          # 5432 taken? DURABLEQ_PG_PORT=55432 make up, and use :55432 below
 export DATABASE_URL=postgres://durableq:durableq@localhost:5432/durableq?sslmode=disable
 go run ./cmd/durableq migrate
 go run ./cmd/durableq enqueue --kind demo.effect --payload '{"sleep_ms":100,"fail_rate":0.2}' --count 1000
@@ -90,6 +95,8 @@ All 7 invariants PASSED
 ```sh
 go test -race ./...                       # unit + integration (real Postgres via DATABASE_URL)
 go test -tags chaos ./chaos/...           # chaos: SIGKILL, SIGTERM restarts, pg_terminate_backend, SIGSTOP, all failpoints
+DURABLEQ_PG_RESTART_CMD='docker restart -t 0 <postgres-container>' \
+  go test -tags chaos ./chaos/ -run TestPostgresRestart   # also crash-restart Postgres mid-run
 ```
 
 ## Docs
@@ -97,3 +104,7 @@ go test -tags chaos ./chaos/...           # chaos: SIGKILL, SIGTERM restarts, pg
 - [docs/PRD.md](docs/PRD.md): requirements and decisions
 - [docs/design.md](docs/design.md): state machine, SQL contracts, lease and fencing reasoning, failure model, limitations
 - [docs/results.md](docs/results.md): benchmarks and chaos results, with hardware and reproduction commands
+
+## License
+
+MIT. See [LICENSE](LICENSE).

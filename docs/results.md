@@ -69,6 +69,7 @@ Recovery is bounded by the lease, as designed: the lease runs from the last succ
 |---|---:|---|---|
 | `bench` (seeds 1–5), pre-audit harness | 1,000 | 20 SIGKILL, 5 conn-kill rounds, 2 stalls, all failpoints at 0.2% | **5/5 passed** I1–I7 |
 | Acceptance, post-audit harness (seeds 1000–1019) | 10,000 | 100 SIGKILL, 90–125 failpoint self-kills, 20 conn-kill rounds (227–323 connections), 5 stalls, 10 graceful restarts (67–87 jobs released) | **20/20 passed** I1–I7 |
+| `TestPostgresRestart`, 6 local runs (Docker PG 17) | 3,000 | 3 Postgres crash-restarts (`docker restart -t 0`), 10 SIGKILL; 179–209 attempts abandoned per run | **6/6 passed** I1–I7, 0 dead |
 | `durableq demo --seed 7` (README), post-audit | 10,000 | 120 SIGKILL, 103 self-kills, 30 conn-kill rounds, 5 stalls, 10 restarts | passed |
 
 The *post-audit harness* (see "Audit" below) counts a fault only when it took effect on a live worker, scopes faults to the run's own workers, and stops every worker before checking the invariants. The `bench` reliability figure predates it.

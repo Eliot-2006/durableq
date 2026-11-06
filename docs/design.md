@@ -113,7 +113,7 @@ This has a consequence worth stating plainly: **infrastructure faults alone can 
 | Connection terminated (`pg_terminate_backend`) | The in-flight statement fails. A failed heartbeat retries on a new pooled connection. A failed transition is fenced, so retrying or reclaiming is safe. |
 | Worker stalls past its lease (SIGSTOP, GC pause, network stall) | Another worker reclaims. On resume, the stalled worker either sees its local deadline passed and drops the job, or attempts a completion that the fence rejects. |
 | SIGTERM | The worker stops claiming, waits up to the grace period, releases unfinished jobs (immediately claimable), and exits. |
-| Postgres down | Nothing progresses. Workers keep retrying. Committed state is durable. |
+| Postgres down or restarted (crash restart included) | Nothing progresses. Claims, heartbeats and transitions fail and retry on fresh connections. Leases that ran out during the outage are reclaimed afterwards. A commit in flight when the server died is either durable or rolled back, and the fence makes either outcome safe. |
 
 ## 7. Verification
 
@@ -126,6 +126,7 @@ This has a consequence worth stating plainly: **infrastructure faults alone can 
   - `pg_terminate_backend`;
   - SIGSTOP stalls past the lease;
   - graceful SIGTERM restarts in the middle of a run;
+  - Postgres server crash-restarts (`docker restart -t 0`), opt-in via `DURABLEQ_PG_RESTART_CMD` and run in CI. A restart counts only if `pg_postmaster_start_time()` changed;
   - five in-process failpoints (`after_claim`, `during_run`, `before_complete`, `in_complete_tx`, `after_commit`). Each is also run in isolation at high probability.
 
   Faults fire at seeded points of queue progress, so they land however fast the machine is. They are aimed only at live workers, are counted only when the signal took effect, and are scoped by a per-run `application_name` tag, so they never touch another run's workers. When the queue drains, every worker is resumed, stopped and reaped *before* invariants I1–I7 are checked in SQL. A stalled worker's late completion attempt therefore always happens, and is judged, before the verdict.
