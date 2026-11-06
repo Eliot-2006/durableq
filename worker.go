@@ -30,7 +30,9 @@ type Job struct {
 }
 
 // CommitFunc runs inside the fenced completion transaction. Writes made with tx
-// commit if and only if the job is marked succeeded by this attempt.
+// commit if and only if the job is marked succeeded by this attempt. It holds
+// the job's row lock while it runs, so it must be short and honor ctx (bounded
+// by the lease); a CommitFunc that blocks indefinitely blocks that job.
 type CommitFunc func(ctx context.Context, tx pgx.Tx) error
 
 // HandlerFunc does the job's work outside any transaction. A nil error
@@ -63,6 +65,7 @@ type Worker struct {
 	pool     *pgxpool.Pool
 	cfg      WorkerConfig
 	handlers map[string]HandlerFunc
+	kinds    []string // registered kinds, passed to the claim query
 	log      *slog.Logger
 
 	succeeded, failed, dead, released, leaseLost, staleRejected atomic.Int64
@@ -110,8 +113,14 @@ func NewWorker(pool *pgxpool.Pool, cfg WorkerConfig) *Worker {
 	return &Worker{pool: pool, cfg: cfg, handlers: map[string]HandlerFunc{}, log: cfg.Logger.With("worker", cfg.ID)}
 }
 
-// Handle registers h for kind. Call before Run.
-func (w *Worker) Handle(kind string, h HandlerFunc) { w.handlers[kind] = h }
+// Handle registers h for kind. Call before Run; the worker claims only
+// registered kinds.
+func (w *Worker) Handle(kind string, h HandlerFunc) {
+	if _, ok := w.handlers[kind]; !ok {
+		w.kinds = append(w.kinds, kind)
+	}
+	w.handlers[kind] = h
+}
 
 func (w *Worker) ID() string { return w.cfg.ID }
 
@@ -134,7 +143,7 @@ func (w *Worker) Run(ctx context.Context) error {
 		claimed := 0
 		if want > 0 {
 			sent := time.Now()
-			jobs, err := w.claim(ctx, want)
+			jobs, err := w.claim(want)
 			if err != nil && ctx.Err() == nil {
 				w.log.Warn("claim failed", "err", err)
 			}
@@ -184,8 +193,13 @@ func (w *Worker) Run(ctx context.Context) error {
 	return nil
 }
 
-func (w *Worker) claim(ctx context.Context, n int) ([]Job, error) {
-	rows, err := w.pool.Query(ctx, qClaim, n, w.cfg.ID, w.cfg.Lease.Microseconds())
+// claim is not cancelled by shutdown: a claim that commits on the server but
+// is abandoned by the client would strand its jobs until lease expiry and
+// spend an attempt. Shutdown waits for at most one claim instead.
+func (w *Worker) claim(n int) ([]Job, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), w.cfg.Lease)
+	defer cancel()
+	rows, err := w.pool.Query(ctx, qClaim, n, w.cfg.ID, w.cfg.Lease.Microseconds(), w.kinds)
 	if err != nil {
 		return nil, err
 	}
@@ -206,11 +220,7 @@ func (w *Worker) run(shutdown context.Context, j Job, claimSent time.Time) {
 		w.fail(j, Permanent(errors.New("attempt budget exhausted")), log)
 		return
 	}
-	h, ok := w.handlers[j.Kind]
-	if !ok {
-		w.fail(j, fmt.Errorf("no handler registered for kind %q", j.Kind), log)
-		return
-	}
+	h := w.handlers[j.Kind] // claim only returns registered kinds
 
 	ctx, cancel := context.WithTimeout(shutdown, w.cfg.JobTimeout)
 	defer cancel()
@@ -309,6 +319,17 @@ func safeCall(ctx context.Context, h HandlerFunc, j Job) (c CommitFunc, err erro
 	return h(ctx, j)
 }
 
+// safeCommit turns a CommitFunc panic into an error, so the transaction rolls
+// back and the job retries instead of the panic killing the worker process.
+func safeCommit(ctx context.Context, c CommitFunc, tx pgx.Tx) (err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			err = fmt.Errorf("commit func panic: %v", r)
+		}
+	}()
+	return c(ctx, tx)
+}
+
 var errStale = errors.New("stale transition rejected")
 
 // transition runs fn in a short transaction on a fresh context: the job's own
@@ -339,7 +360,7 @@ func (w *Worker) complete(j Job, commit CommitFunc, log *slog.Logger) {
 			return err
 		}
 		if commit != nil {
-			if err := commit(ctx, tx); err != nil {
+			if err := safeCommit(ctx, commit, tx); err != nil {
 				return fmt.Errorf("commit func: %w", err)
 			}
 		}

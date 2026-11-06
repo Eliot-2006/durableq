@@ -236,3 +236,33 @@ func TestCommitFuncAtomicWithCompletion(t *testing.T) {
 		t.Fatalf("effects = %d, want 20", n)
 	}
 }
+
+// Workers only claim kinds they handle: services sharing the table (or a
+// deploy that enqueues a new kind early) must not dead-letter each other's jobs.
+func TestWorkersClaimOnlyRegisteredKinds(t *testing.T) {
+	pool := testdb.New(t, durableq.Migrations)
+	c := durableq.NewClient(pool)
+	for _, k := range []string{"a", "b", "orphan"} {
+		for range 20 {
+			if _, err := c.Enqueue(context.Background(), durableq.EnqueueParams{Kind: k}); err != nil {
+				t.Fatal(err)
+			}
+		}
+	}
+	startWorkers(t, pool, 2, durableq.WorkerConfig{}, "a", noop)
+	startWorkers(t, pool, 2, durableq.WorkerConfig{}, "b", noop)
+	deadline := time.Now().Add(10 * time.Second)
+	for count(t, pool, `SELECT count(*) FROM jobs WHERE kind IN ('a','b') AND state <> 'succeeded'`) > 0 {
+		if time.Now().After(deadline) {
+			t.Fatal("a/b jobs not drained")
+		}
+		time.Sleep(20 * time.Millisecond)
+	}
+	time.Sleep(200 * time.Millisecond) // give workers more polls at the orphan jobs
+	if n := count(t, pool, `SELECT count(*) FROM jobs WHERE kind IN ('a','b') AND attempt <> 1`); n != 0 {
+		t.Fatalf("%d a/b jobs took more than one attempt (claimed by a worker without the handler?)", n)
+	}
+	if n := count(t, pool, `SELECT count(*) FROM jobs WHERE kind = 'orphan' AND state = 'queued' AND attempt = 0`); n != 20 {
+		t.Fatalf("orphan jobs untouched = %d, want 20", n)
+	}
+}

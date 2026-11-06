@@ -14,11 +14,14 @@ RETURNING id`
 const qByKey = `SELECT id FROM jobs WHERE idempotency_key = $1`
 
 // qClaim also reclaims running jobs whose lease expired (no separate reaper).
+// $4 is the kinds this worker handles: a worker never claims (and so never
+// burns attempts on) a kind it cannot run.
 const qClaim = `
 WITH next AS (
   SELECT id FROM jobs
-  WHERE (state = 'queued'  AND run_at <= clock_timestamp())
-     OR (state = 'running' AND lease_expires_at < clock_timestamp())
+  WHERE kind = ANY($4)
+    AND ((state = 'queued'  AND run_at <= clock_timestamp())
+      OR (state = 'running' AND lease_expires_at < clock_timestamp()))
   ORDER BY run_at, id
   LIMIT $1
   FOR UPDATE SKIP LOCKED
@@ -55,9 +58,11 @@ UPDATE jobs SET
   lease_owner = NULL, lease_expires_at = NULL, last_error = $5, updated_at = clock_timestamp()` + fenced + `
 RETURNING state`
 
-// qRelease returns the job to the queue immediately; the attempt stays consumed.
+// qRelease returns the job to the queue immediately. The attempt number stays
+// consumed (it is the fencing token and never decreases, D11), so the budget is
+// raised by one instead: a graceful shutdown must not push a job toward dead.
 const qRelease = `
-UPDATE jobs SET state = 'queued', run_at = clock_timestamp(),
+UPDATE jobs SET state = 'queued', run_at = clock_timestamp(), max_attempts = max_attempts + 1,
                 lease_owner = NULL, lease_expires_at = NULL, updated_at = clock_timestamp()` + fenced
 
 const qFinishAttempt = `

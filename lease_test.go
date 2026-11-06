@@ -29,7 +29,9 @@ func newTestWorker(pool *pgxpool.Pool, cfg WorkerConfig) *Worker {
 	if cfg.Poll == 0 {
 		cfg.Poll = 20 * time.Millisecond
 	}
-	return NewWorker(pool, cfg)
+	w := NewWorker(pool, cfg)
+	w.Handle("k", func(context.Context, Job) (CommitFunc, error) { return nil, nil }) // tests override as needed
+	return w
 }
 
 func mustExec(t *testing.T, pool *pgxpool.Pool, sql string, args ...any) {
@@ -50,7 +52,7 @@ func scalar[T any](t *testing.T, pool *pgxpool.Pool, sql string, args ...any) T 
 
 func claimOne(t *testing.T, w *Worker) Job {
 	t.Helper()
-	jobs, err := w.claim(context.Background(), 1)
+	jobs, err := w.claim(1)
 	if err != nil || len(jobs) != 1 {
 		t.Fatalf("claim: got %d jobs, err %v", len(jobs), err)
 	}
@@ -310,7 +312,7 @@ func TestShutdownReleasesInFlightJobs(t *testing.T) {
 		t.Fatalf("released attempts = %d", n)
 	}
 	other := newTestWorker(pool, WorkerConfig{})
-	if jobs, err := other.claim(context.Background(), 10); err != nil || len(jobs) != 3 {
+	if jobs, err := other.claim(10); err != nil || len(jobs) != 3 {
 		t.Fatalf("released jobs not claimable: %d, %v", len(jobs), err)
 	}
 }
@@ -333,17 +335,44 @@ func TestHeartbeatVsReclaimRace(t *testing.T) {
 			// handler and completes, racing the lease expiry either way.
 			time.Sleep(time.Duration(rand.Int64N(3000)) * time.Microsecond)
 			if rand.IntN(2) == 0 {
-				pool.Exec(context.Background(), qHeartbeat, j.ID, j.Attempt, int64(1e6))
+				if _, err := pool.Exec(context.Background(), qHeartbeat, j.ID, j.Attempt, int64(1e6)); err != nil {
+					t.Error(err)
+				}
 			}
 			a.complete(j, effectCommit(j), quietLog)
 		})
 		wg.Go(func() {
 			time.Sleep(time.Duration(rand.Int64N(3000)) * time.Microsecond)
-			if jobs, err := b.claim(context.Background(), 1); err == nil && len(jobs) == 1 {
+			jobs, err := b.claim(1)
+			if err != nil {
+				t.Error(err)
+			}
+			if len(jobs) == 1 {
 				b.complete(jobs[0], effectCommit(jobs[0]), quietLog)
 			}
 		})
 		wg.Wait()
+	}
+	racedA, racedB := a.Stats(), b.Stats()
+	// Iterations where neither side won leave a running job with an expired
+	// lease; finish them so every job's outcome can be asserted.
+	for scalar[int](t, pool, `SELECT count(*) FROM jobs WHERE state <> 'succeeded'`) > 0 {
+		expireLeases(t, pool)
+		jobs, err := b.claim(10)
+		if err != nil {
+			t.Fatal(err)
+		}
+		for _, j := range jobs {
+			b.complete(j, effectCommit(j), quietLog)
+		}
+	}
+	if n := scalar[int](t, pool, `SELECT count(*) FROM effects`); n != iterations {
+		t.Fatalf("effects = %d, want exactly one per job (%d)", n, iterations)
+	}
+	// The race must actually have been contested in both directions.
+	if racedA.Succeeded == 0 || racedB.Succeeded == 0 || racedA.StaleRejected == 0 {
+		t.Fatalf("race not exercised: owner won %d, reclaimer won %d, stale owner completions rejected %d",
+			racedA.Succeeded, racedB.Succeeded, racedA.StaleRejected)
 	}
 	if n := scalar[int](t, pool, `SELECT count(*) FROM (SELECT job_id FROM job_attempts WHERE outcome = 'succeeded' GROUP BY 1 HAVING count(*) > 1) x`); n != 0 {
 		t.Fatalf("%d jobs have two successful terminal transitions", n)
@@ -354,9 +383,8 @@ func TestHeartbeatVsReclaimRace(t *testing.T) {
 	if n := scalar[int](t, pool, `SELECT count(*) FROM effects e JOIN jobs j ON j.id = e.job_id WHERE j.state <> 'succeeded' OR j.attempt <> e.attempt`); n != 0 {
 		t.Fatalf("%d effects not written by the final owner", n)
 	}
-	t.Logf("succeeded=%d (by a=%d, b=%d), stale rejected a=%d b=%d",
-		scalar[int](t, pool, `SELECT count(*) FROM jobs WHERE state = 'succeeded'`),
-		a.Stats().Succeeded, b.Stats().Succeeded, a.Stats().StaleRejected, b.Stats().StaleRejected)
+	t.Logf("during the race: owner won %d, reclaimer won %d, stale owner completions rejected %d",
+		racedA.Succeeded, racedB.Succeeded, racedA.StaleRejected)
 }
 
 func TestHeartbeatMustBeUnderHalfLease(t *testing.T) {
@@ -392,5 +420,28 @@ func TestShutdownBoundedWithUncooperativeHandler(t *testing.T) {
 	}
 	if s := scalar[string](t, pool, `SELECT state::text FROM jobs WHERE id = $1`, id); s != "queued" {
 		t.Fatalf("state = %s, want released to queued", s)
+	}
+}
+
+// A graceful release must not spend the job's budget: a job released on its
+// last attempt still runs again (and I6 still holds).
+func TestReleaseOnLastAttemptDoesNotDeadLetter(t *testing.T) {
+	pool := testdb.New(t, Migrations)
+	id := enqueueOne(t, pool, 1)
+	w := newTestWorker(pool, WorkerConfig{})
+	ran := false
+	w.Handle("k", func(context.Context, Job) (CommitFunc, error) { ran = true; return nil, nil })
+
+	w.release(claimOne(t, w), quietLog) // e.g. SIGTERM during a deploy
+	j := claimOne(t, w)
+	w.run(context.Background(), j, time.Now())
+	if !ran {
+		t.Fatal("job released on its last attempt was dead-lettered without running")
+	}
+	if s := scalar[string](t, pool, `SELECT state::text FROM jobs WHERE id = $1`, id); s != "succeeded" {
+		t.Fatalf("state = %s, want succeeded", s)
+	}
+	if n := scalar[int](t, pool, `SELECT count(*) FROM job_attempts WHERE outcome IS NOT NULL`); n > scalar[int](t, pool, `SELECT max_attempts FROM jobs`) {
+		t.Fatalf("I6 violated: %d recorded outcomes exceed max_attempts", n)
 	}
 }
