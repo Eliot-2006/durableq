@@ -139,6 +139,8 @@ func runWorker(ctx context.Context, args []string) error {
 	fs.DurationVar(&cfg.Lease, "lease", 30*time.Second, "lease duration")
 	fs.DurationVar(&cfg.Heartbeat, "heartbeat", 10*time.Second, "heartbeat interval (< lease/2)")
 	fs.DurationVar(&cfg.Poll, "poll", time.Second, "idle poll interval")
+	fs.DurationVar(&cfg.ShutdownGrace, "grace", 10*time.Second, "on SIGTERM, wait this long for in-flight jobs before releasing them")
+	tag := fs.String("tag", "", "extra worker-id segment (durableq-worker-<tag>-…), so tools can target one group's connections")
 	maxConns := fs.Int("max-conns", 0, "connection pool size (default concurrency+2); jobs hold a connection only while claiming, heartbeating, or transitioning")
 	fs.Parse(args)
 	if 2*cfg.Heartbeat >= cfg.Lease {
@@ -154,6 +156,9 @@ func runWorker(ctx context.Context, args []string) error {
 		return err
 	}
 	cfg.ID = durableq.WorkerID()
+	if *tag != "" {
+		cfg.ID = strings.Replace(cfg.ID, "durableq-worker-", "durableq-worker-"+*tag+"-", 1)
+	}
 	pcfg.ConnConfig.RuntimeParams["application_name"] = cfg.ID // lets chaos tests target this worker's connections
 	pcfg.MaxConns = int32(cfg.Concurrency + 2)
 	if *maxConns > 0 {
@@ -261,6 +266,7 @@ func runDemo(ctx context.Context, args []string) error {
 	fs.IntVar(&cfg.Kills, "kills", 120, "worker SIGKILLs to inject")
 	fs.IntVar(&cfg.ConnKills, "conn-kills", 30, "pg_terminate_backend rounds to inject")
 	fs.IntVar(&cfg.Stalls, "stalls", 5, "worker SIGSTOPs past the lease")
+	fs.IntVar(&cfg.Restarts, "restarts", 10, "graceful SIGTERM restarts (in-flight jobs released)")
 	seed := fs.Uint64("seed", 0, "fault schedule seed (0 = random)")
 	fs.IntVar(&cfg.SleepMS, "sleep-ms", 100, "demo.effect work time")
 	fs.Float64Var(&cfg.FailRate, "fail-rate", 0.05, "demo.effect retryable failure probability")

@@ -26,6 +26,7 @@ var (
 	kills     = flag.Int("kills", 20, "SIGKILLs per run")
 	connKills = flag.Int("conn-kills", 5, "connection-kill rounds per run")
 	stalls    = flag.Int("stalls", 2, "SIGSTOP stalls per run")
+	restarts  = flag.Int("restarts", 3, "graceful SIGTERM restarts per run")
 	seeds     = flag.Int("seeds", 1, "consecutive seeds to run")
 	seed      = flag.Uint64("seed", 0, "first seed (0 = time-based)")
 	sleepMS   = flag.Int("sleep-ms", 20, "demo.effect work time")
@@ -83,12 +84,15 @@ func TestChaos(t *testing.T) {
 	}
 	for i := range *seeds {
 		cfg := base(dbURL, bin, first+uint64(i))
-		cfg.Kills, cfg.ConnKills, cfg.Stalls, cfg.Failpoints = *kills, *connKills, *stalls, allFailpoints
+		cfg.Kills, cfg.ConnKills, cfg.Stalls, cfg.Restarts, cfg.Failpoints = *kills, *connKills, *stalls, *restarts, allFailpoints
 		rep := run(t, cfg)
 		// The run must actually have injected what it claims.
-		if rep.Kills != cfg.Kills || rep.ConnKills != cfg.ConnKills || rep.Stalls != cfg.Stalls {
-			t.Fatalf("seed %d: harness injected kills %d/%d, conn kills %d/%d, stalls %d/%d",
-				cfg.Seed, rep.Kills, cfg.Kills, rep.ConnKills, cfg.ConnKills, rep.Stalls, cfg.Stalls)
+		if rep.Shortfall != 0 {
+			t.Fatalf("seed %d: %d scheduled faults never landed (kills %d/%d, conn kills %d/%d, stalls %d/%d, restarts %d/%d)",
+				cfg.Seed, rep.Shortfall, rep.Kills, cfg.Kills, rep.ConnKills, cfg.ConnKills, rep.Stalls, cfg.Stalls, rep.Restarts, cfg.Restarts)
+		}
+		if cfg.Restarts > 0 && rep.Metrics.Released == 0 {
+			t.Fatalf("seed %d: graceful restarts released no jobs; the release path was not exercised", cfg.Seed)
 		}
 	}
 }
@@ -127,4 +131,22 @@ func TestStalledWorkerFenced(t *testing.T) {
 		t.Fatal("stalled workers neither abandoned nor were fenced out of any job; the stall exercised nothing")
 	}
 	t.Logf("leases lost: %d, stale transitions rejected: %d", rep.LeaseLost, rep.StaleRejected)
+}
+
+// TestGracefulRestartsKeepBudget: SIGTERM releases in-flight jobs. With a
+// budget of one attempt, every released job must still run and succeed (a
+// release must not push a job toward dead; I6 must hold).
+func TestGracefulRestartsKeepBudget(t *testing.T) {
+	dbURL, bin := setup(t)
+	cfg := base(dbURL, bin, uint64(time.Now().UnixNano()))
+	cfg.Jobs, cfg.Workers, cfg.MaxAttempts, cfg.FailRate, cfg.SleepMS = 1500, 4, 1, 0, 100
+	cfg.Restarts = 20
+	rep := run(t, cfg)
+	if rep.Metrics.Released == 0 {
+		t.Fatal("no job was released; the restarts exercised nothing")
+	}
+	if rep.Metrics.Dead != 0 {
+		t.Fatalf("%d jobs dead-lettered by graceful restarts", rep.Metrics.Dead)
+	}
+	t.Logf("jobs released by graceful restarts: %d, all succeeded", rep.Metrics.Released)
 }

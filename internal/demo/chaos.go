@@ -11,14 +11,15 @@ import (
 	"slices"
 	"strconv"
 	"strings"
+	"sync"
 	"sync/atomic"
 	"syscall"
 	"time"
 )
 
 // ChaosConfig drives one chaos run. Exactly Kills SIGKILLs, ConnKills
-// connection-kill rounds, and Stalls SIGSTOPs are injected at seeded random
-// points of queue progress.
+// connection-kill rounds, Stalls SIGSTOPs, and Restarts graceful SIGTERM
+// restarts are injected at seeded random points of queue progress.
 type ChaosConfig struct {
 	DatabaseURL string // URL form; the run uses its own fresh schema
 	WorkerBin   string // durableq binary used to spawn worker processes
@@ -30,10 +31,10 @@ type ChaosConfig struct {
 	Lease, Heartbeat           time.Duration
 	Failpoints                 string // DURABLEQ_FAILPOINTS for workers
 
-	Kills, ConnKills, Stalls int
-	DrainTimeout             time.Duration
-	KeepSchema               bool
-	Out                      io.Writer // progress output
+	Kills, ConnKills, Stalls, Restarts int
+	DrainTimeout                       time.Duration
+	KeepSchema                         bool
+	Out                                io.Writer // progress output
 }
 
 type ChaosReport struct {
@@ -41,7 +42,8 @@ type ChaosReport struct {
 	Schema                                   string
 	Elapsed                                  time.Duration
 	Kills, SelfKills, ConnKills, ConnsKilled int
-	Stalls                                   int
+	Stalls, Restarts                         int
+	Shortfall                                int // scheduled faults that never landed before drain
 	StaleRejected, LeaseLost                 int64
 	Metrics                                  Metrics
 	Checks                                   []CheckResult
@@ -59,10 +61,11 @@ func (r ChaosReport) Passed() bool {
 func (r ChaosReport) Print(w io.Writer) {
 	m := r.Metrics
 	fmt.Fprintf(w, "Drained in %.1fs (seed %d, schema %s)\n", r.Elapsed.Seconds(), r.Seed, r.Schema)
-	fmt.Fprintf(w, "  Jobs succeeded       %-8d dead %d\n", m.Succeeded, m.Dead)
+	fmt.Fprintf(w, "  Jobs succeeded       %-8d dead %d (%d after a failed final attempt, %d with the budget exhausted by abandoned attempts)\n",
+		m.Succeeded, m.Dead, m.Dead-m.DeadByBudget, m.DeadByBudget)
 	fmt.Fprintf(w, "  Worker kills         %-8d self-kills (failpoints) %d\n", r.Kills, r.SelfKills)
 	fmt.Fprintf(w, "  Connection kills     %-8d (%d connections terminated)\n", r.ConnKills, r.ConnsKilled)
-	fmt.Fprintf(w, "  Worker stalls        %d\n", r.Stalls)
+	fmt.Fprintf(w, "  Worker stalls        %-8d graceful restarts %d (jobs released %d)\n", r.Stalls, r.Restarts, m.Released)
 	fmt.Fprintf(w, "  Abandoned attempts   %-8d jobs possibly executed more than once %d\n", m.Abandoned, m.DuplicateExecutions)
 	fmt.Fprintf(w, "  Retries              %-8d stale transitions rejected %d\n", m.Retries, r.StaleRejected)
 	fmt.Fprintf(w, "  Leases lost (worker abandoned job on its local deadline) %d\n", r.LeaseLost)
@@ -75,10 +78,20 @@ func (r ChaosReport) Print(w io.Writer) {
 }
 
 type proc struct {
-	slot   int
-	cmd    *exec.Cmd
-	killed bool          // SIGKILLed by the harness (vs. a failpoint self-kill)
-	done   chan struct{} // closed when the process has exited
+	slot    int
+	cmd     *exec.Cmd
+	stopped bool          // SIGKILLed or SIGTERMed by the harness (vs. a failpoint self-kill)
+	stalled atomic.Bool   // SIGSTOPped, not yet resumed
+	done    chan struct{} // closed when the process has exited
+}
+
+func (p *proc) live() bool {
+	select {
+	case <-p.done:
+		return false
+	default:
+		return !p.stopped && !p.stalled.Load()
+	}
 }
 
 type exit struct{ p *proc }
@@ -115,13 +128,16 @@ func RunChaos(ctx context.Context, cfg ChaosConfig) (rep ChaosReport, err error)
 		e := time.Since(start).Round(time.Second)
 		return fmt.Sprintf("[%02d:%02d]", int(e.Minutes()), int(e.Seconds())%60)
 	}
+	// Each run tags its workers' application_name so connection kills and
+	// sampling never touch another run's (or a real deployment's) workers.
+	tag := fmt.Sprintf("%08x", rng.Uint32())
 	var stale, leaseLost atomic.Int64
 	exits := make(chan exit)
-	stopped := make(chan struct{})
+	stopping := make(chan struct{})
 	procs := make([]*proc, cfg.Workers)
 	spawn := func(slot int) error {
-		cmd := exec.Command(cfg.WorkerBin, "worker",
-			"--concurrency", strconv.Itoa(cfg.Concurrency),
+		cmd := exec.Command(cfg.WorkerBin, "worker", "--tag", tag,
+			"--concurrency", strconv.Itoa(cfg.Concurrency), "--grace", "20ms",
 			"--lease", cfg.Lease.String(), "--heartbeat", cfg.Heartbeat.String(), "--poll", "100ms")
 		cmd.Env = append(os.Environ(), "DATABASE_URL="+dbURL, "DURABLEQ_FAILPOINTS="+cfg.Failpoints)
 		stderr, err := cmd.StderrPipe()
@@ -143,11 +159,11 @@ func RunChaos(ctx context.Context, cfg ChaosConfig) (rep ChaosReport, err error)
 					leaseLost.Add(1)
 				}
 			}
-			cmd.Wait()
+			cmd.Wait() // after stderr is fully read, so counters are complete
 			close(p.done)
 			select {
 			case exits <- exit{p}:
-			case <-stopped:
+			case <-stopping:
 			}
 		}()
 		return nil
@@ -157,66 +173,109 @@ func RunChaos(ctx context.Context, cfg ChaosConfig) (rep ChaosReport, err error)
 			return rep, err
 		}
 	}
-	defer func() { // stop every worker, even on error
-		close(stopped)
-		for _, p := range procs {
-			p.cmd.Process.Signal(syscall.SIGCONT)
-			p.cmd.Process.Signal(syscall.SIGTERM)
-		}
-		deadline := time.Now().Add(cfg.Lease + 15*time.Second)
-		for _, p := range procs {
-			select {
-			case <-p.done:
-			case <-time.After(time.Until(deadline)):
-				p.cmd.Process.Kill()
-				<-p.done
+	// stopAll resumes, stops, and reaps every worker. It runs before the
+	// invariant checks, so every late transition attempt (e.g. a stalled
+	// worker's stale completion) has happened and been judged by then.
+	var stopOnce sync.Once
+	stopAll := func() {
+		stopOnce.Do(func() {
+			close(stopping)
+			for _, p := range procs {
+				p.cmd.Process.Signal(syscall.SIGCONT)
+				p.cmd.Process.Signal(syscall.SIGTERM)
 			}
-		}
-	}()
+			deadline := time.Now().Add(cfg.Lease + 15*time.Second)
+			for _, p := range procs {
+				select {
+				case <-p.done:
+				case <-time.After(time.Until(deadline)):
+					p.cmd.Process.Kill()
+					<-p.done
+				}
+			}
+		})
+	}
+	defer stopAll()
 
 	pending := func() (int64, error) {
 		var n int64
 		err := pool.QueryRow(ctx, `SELECT count(*) FROM jobs WHERE state IN ('queued', 'running')`).Scan(&n)
 		return n, err
 	}
-	// Faults are scheduled by queue progress, not wall time, so every fault
-	// lands before the queue drains however fast the machine is: fault i fires
-	// once the completed fraction passes at[i], a seeded random point in
-	// [2%, 95%]. The fault kinds are shuffled with the same seed.
-	kinds := slices.Repeat([]int{0}, cfg.Kills)
-	kinds = append(kinds, slices.Repeat([]int{1}, cfg.ConnKills)...)
-	kinds = append(kinds, slices.Repeat([]int{2}, cfg.Stalls)...)
+	// Faults are scheduled by queue progress, not wall time, so they land
+	// before the queue drains however fast the machine is: fault i is due once
+	// the completed fraction passes at[i], a seeded random point in [2%, 95%].
+	// The fault kinds are shuffled with the same seed.
+	const (
+		kill = iota
+		connKill
+		stall
+		restart
+	)
+	kinds := slices.Repeat([]int{kill}, cfg.Kills)
+	kinds = append(kinds, slices.Repeat([]int{connKill}, cfg.ConnKills)...)
+	kinds = append(kinds, slices.Repeat([]int{stall}, cfg.Stalls)...)
+	kinds = append(kinds, slices.Repeat([]int{restart}, cfg.Restarts)...)
 	rng.Shuffle(len(kinds), func(i, j int) { kinds[i], kinds[j] = kinds[j], kinds[i] })
 	at := make([]float64, len(kinds))
 	for i := range at {
 		at[i] = 0.02 + 0.93*rng.Float64()
 	}
 	slices.Sort(at)
-	inject := func(kind int) error {
-		p := procs[rng.IntN(len(procs))]
-		switch kind {
-		case 0:
-			p.killed = true
-			p.cmd.Process.Kill()
-			rep.Kills++
-			fmt.Fprintf(out, "%s SIGKILL worker-%d (pid %d) … respawned\n", stamp(), p.slot, p.cmd.Process.Pid)
-		case 1:
+	// inject reports whether the fault landed. Faults are only aimed at live
+	// workers and only counted when the signal (or termination) took effect;
+	// otherwise the fault stays due and is retried on the next tick.
+	inject := func(kind int) (bool, error) {
+		if kind == connKill {
 			var n int
 			if err := admin.QueryRow(ctx, `SELECT count(pg_terminate_backend(pid)) FROM pg_stat_activity
-				WHERE application_name LIKE 'durableq-worker-%' AND datname = current_database()`).Scan(&n); err != nil {
-				return err
+				WHERE application_name LIKE $1 AND datname = current_database()`, "durableq-worker-"+tag+"-%").Scan(&n); err != nil {
+				return false, err
+			}
+			if n == 0 {
+				return false, nil
 			}
 			rep.ConnKills++
 			rep.ConnsKilled += n
 			fmt.Fprintf(out, "%s terminated %d worker connections\n", stamp(), n)
-		default:
-			stall := cfg.Lease + cfg.Lease/2
-			p.cmd.Process.Signal(syscall.SIGSTOP)
-			time.AfterFunc(stall, func() { p.cmd.Process.Signal(syscall.SIGCONT) })
-			rep.Stalls++
-			fmt.Fprintf(out, "%s SIGSTOP worker-%d for %v (past its lease)\n", stamp(), p.slot, stall)
+			return true, nil
 		}
-		return nil
+		var live []*proc
+		for _, p := range procs {
+			if p.live() {
+				live = append(live, p)
+			}
+		}
+		if len(live) == 0 {
+			return false, nil
+		}
+		p := live[rng.IntN(len(live))]
+		switch kind {
+		case kill:
+			if p.cmd.Process.Kill() != nil {
+				return false, nil
+			}
+			p.stopped = true
+			rep.Kills++
+			fmt.Fprintf(out, "%s SIGKILL worker-%d (pid %d) … respawned\n", stamp(), p.slot, p.cmd.Process.Pid)
+		case restart:
+			if p.cmd.Process.Signal(syscall.SIGTERM) != nil {
+				return false, nil
+			}
+			p.stopped = true
+			rep.Restarts++
+			fmt.Fprintf(out, "%s SIGTERM worker-%d (graceful restart: in-flight jobs released)\n", stamp(), p.slot)
+		default:
+			d := cfg.Lease + cfg.Lease/2
+			if p.cmd.Process.Signal(syscall.SIGSTOP) != nil {
+				return false, nil
+			}
+			p.stalled.Store(true)
+			time.AfterFunc(d, func() { p.cmd.Process.Signal(syscall.SIGCONT); p.stalled.Store(false) })
+			rep.Stalls++
+			fmt.Fprintf(out, "%s SIGSTOP worker-%d for %v (past its lease)\n", stamp(), p.slot, d)
+		}
+		return true, nil
 	}
 	next := 0
 	poll := time.NewTicker(20 * time.Millisecond)
@@ -231,7 +290,7 @@ func RunChaos(ctx context.Context, cfg ChaosConfig) (rep ChaosReport, err error)
 			if procs[e.p.slot] != e.p {
 				continue
 			}
-			if !e.p.killed {
+			if !e.p.stopped {
 				rep.SelfKills++
 			}
 			if err := spawn(e.p.slot); err != nil {
@@ -242,15 +301,23 @@ func RunChaos(ctx context.Context, cfg ChaosConfig) (rep ChaosReport, err error)
 			if err != nil {
 				return rep, err
 			}
-			// At most one fault per tick, so faults due together still spread out.
-			if next < len(at) && float64(int64(cfg.Jobs)-n) >= at[next]*float64(cfg.Jobs) {
-				if err := inject(kinds[next]); err != nil {
+			for next < len(at) && float64(int64(cfg.Jobs)-n) >= at[next]*float64(cfg.Jobs) {
+				ok, err := inject(kinds[next])
+				if err != nil {
 					return rep, err
+				}
+				if !ok {
+					break // no live target right now; retry next tick
 				}
 				next++
 			}
 			if n == 0 {
 				rep.Elapsed = time.Since(start)
+				rep.Shortfall = len(at) - next
+				stopAll()
+				if n, err = pending(); err != nil || n != 0 {
+					return rep, fmt.Errorf("%d jobs became pending after workers stopped (err %v)", n, err)
+				}
 				rep.StaleRejected, rep.LeaseLost = stale.Load(), leaseLost.Load()
 				if rep.Metrics, err = ReadMetrics(ctx, pool); err != nil {
 					return rep, err
