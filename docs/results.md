@@ -80,7 +80,7 @@ Reproduce with:
 
 ```sh
 go test -tags chaos ./chaos/ -run 'TestChaos$' -timeout 0 -v -args \
-  -jobs 10000 -kills 100 -conn-kills 20 -stalls 5 -sleep-ms 100 -fault-every 100ms -seeds 20 -seed 1000
+  -jobs 10000 -kills 100 -conn-kills 20 -stalls 5 -sleep-ms 100 -seeds 20 -seed 1000
 ```
 
 The seed fixes the harness's fault schedule. Worker-side randomness (failure rate, failpoints, jitter) is not seeded.

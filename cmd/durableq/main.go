@@ -261,9 +261,8 @@ func runDemo(ctx context.Context, args []string) error {
 	fs.IntVar(&cfg.Kills, "kills", 120, "worker SIGKILLs to inject")
 	fs.IntVar(&cfg.ConnKills, "conn-kills", 30, "pg_terminate_backend rounds to inject")
 	fs.IntVar(&cfg.Stalls, "stalls", 5, "worker SIGSTOPs past the lease")
-	fs.DurationVar(&cfg.FaultEvery, "fault-every", 100*time.Millisecond, "mean interval between faults")
 	seed := fs.Uint64("seed", 0, "fault schedule seed (0 = random)")
-	fs.IntVar(&cfg.SleepMS, "sleep-ms", 100, "demo.effect work time (jobs must outlast the fault schedule)")
+	fs.IntVar(&cfg.SleepMS, "sleep-ms", 100, "demo.effect work time")
 	fs.Float64Var(&cfg.FailRate, "fail-rate", 0.05, "demo.effect retryable failure probability")
 	fs.IntVar(&cfg.MaxAttempts, "max-attempts", 5, "attempt budget per job")
 	fs.DurationVar(&cfg.Lease, "lease", 2*time.Second, "worker lease")
@@ -290,9 +289,6 @@ func runDemo(ctx context.Context, args []string) error {
 		return err
 	}
 	rep.Print(os.Stdout)
-	if rep.Kills < cfg.Kills || rep.ConnKills < cfg.ConnKills || rep.Stalls < cfg.Stalls {
-		fmt.Printf("note: queue drained before all faults were injected; raise --jobs or --sleep-ms, or lower --fault-every\n")
-	}
 	if !rep.Passed() {
 		return fmt.Errorf("invariant violations (seed %d)", rep.Seed)
 	}

@@ -4,7 +4,7 @@
 // pg_terminate_backend. Run with:
 //
 //	go test -tags chaos ./chaos/...                                  # short (CI)
-//	go test -tags chaos ./chaos/ -run TestChaos -timeout 0 -v -args -jobs 10000 -kills 100 -conn-kills 20 -sleep-ms 100 -fault-every 100ms -seeds 20
+//	go test -tags chaos ./chaos/ -run TestChaos -timeout 0 -v -args -jobs 10000 -kills 100 -conn-kills 20 -sleep-ms 100 -seeds 20
 package chaos
 
 import (
@@ -29,7 +29,6 @@ var (
 	seeds     = flag.Int("seeds", 1, "consecutive seeds to run")
 	seed      = flag.Uint64("seed", 0, "first seed (0 = time-based)")
 	sleepMS   = flag.Int("sleep-ms", 20, "demo.effect work time")
-	every     = flag.Duration("fault-every", 150*time.Millisecond, "mean interval between faults")
 )
 
 const allFailpoints = "after_claim=0.002,during_run=0.002,before_complete=0.002,in_complete_tx=0.002,after_commit=0.002"
@@ -52,7 +51,7 @@ func base(dbURL, bin string, s uint64) demo.ChaosConfig {
 		Jobs: *jobs, Workers: *workers, Concurrency: 10,
 		SleepMS: *sleepMS, FailRate: 0.05, MaxAttempts: 5,
 		Lease: 2 * time.Second, Heartbeat: 500 * time.Millisecond,
-		FaultEvery: *every, DrainTimeout: 10 * time.Minute,
+		DrainTimeout: 10 * time.Minute,
 	}
 }
 
@@ -87,9 +86,9 @@ func TestChaos(t *testing.T) {
 		cfg.Kills, cfg.ConnKills, cfg.Stalls, cfg.Failpoints = *kills, *connKills, *stalls, allFailpoints
 		rep := run(t, cfg)
 		// The run must actually have injected what it claims.
-		if rep.Kills < cfg.Kills || rep.ConnKills < cfg.ConnKills {
-			t.Fatalf("seed %d: queue drained before faults were injected (kills %d/%d, conn kills %d/%d); lower -fault-every or raise -jobs",
-				cfg.Seed, rep.Kills, cfg.Kills, rep.ConnKills, cfg.ConnKills)
+		if rep.Kills != cfg.Kills || rep.ConnKills != cfg.ConnKills || rep.Stalls != cfg.Stalls {
+			t.Fatalf("seed %d: harness injected kills %d/%d, conn kills %d/%d, stalls %d/%d",
+				cfg.Seed, rep.Kills, cfg.Kills, rep.ConnKills, cfg.ConnKills, rep.Stalls, cfg.Stalls)
 		}
 	}
 }
@@ -122,7 +121,7 @@ func TestStalledWorkerFenced(t *testing.T) {
 	// to complete while the new owner is still running: the window where a
 	// missing attempt check would commit a stale effect (caught by I5).
 	cfg.Jobs, cfg.Workers, cfg.SleepMS, cfg.FailRate = 600, 4, 2000, 0
-	cfg.Stalls, cfg.FaultEvery = 15, 400*time.Millisecond
+	cfg.Stalls = 15
 	rep := run(t, cfg)
 	if rep.LeaseLost+rep.StaleRejected == 0 {
 		t.Fatal("stalled workers neither abandoned nor were fenced out of any job; the stall exercised nothing")

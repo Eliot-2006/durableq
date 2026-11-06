@@ -27,4 +27,4 @@ jobs:
       - name: long chaos run (10,000 jobs, 20 seeds)
         run: >-
           go test -tags chaos -timeout 0 -v -run 'TestChaos$' ./chaos/
-          -args -jobs 10000 -kills 100 -conn-kills 20 -stalls 5 -sleep-ms 100 -fault-every 100ms -seeds 20
+          -args -jobs 10000 -kills 100 -conn-kills 20 -stalls 5 -sleep-ms 100 -seeds 20

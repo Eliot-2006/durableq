@@ -135,7 +135,7 @@ func RunBench(ctx context.Context, cfg BenchConfig) error {
 			Jobs: 1000, Workers: 4, Concurrency: 10, SleepMS: 20, FailRate: 0.05, MaxAttempts: 5,
 			Lease: 2 * time.Second, Heartbeat: 500 * time.Millisecond,
 			Failpoints: "after_claim=0.002,during_run=0.002,before_complete=0.002,in_complete_tx=0.002,after_commit=0.002",
-			Kills:      20, ConnKills: 5, Stalls: 2, FaultEvery: 150 * time.Millisecond, DrainTimeout: 5 * time.Minute,
+			Kills:      20, ConnKills: 5, Stalls: 2, DrainTimeout: 5 * time.Minute,
 		})
 		if err != nil {
 			return fmt.Errorf("chaos seed %d: %w", i+1, err)

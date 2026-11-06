@@ -8,6 +8,7 @@ import (
 	"math/rand/v2"
 	"os"
 	"os/exec"
+	"slices"
 	"strconv"
 	"strings"
 	"sync/atomic"
@@ -15,9 +16,9 @@ import (
 	"time"
 )
 
-// ChaosConfig drives one chaos run. Targets (Kills, ConnKills, Stalls) are
-// injected at random intervals averaging FaultEvery, until met or the queue
-// drains.
+// ChaosConfig drives one chaos run. Exactly Kills SIGKILLs, ConnKills
+// connection-kill rounds, and Stalls SIGSTOPs are injected at seeded random
+// points of queue progress.
 type ChaosConfig struct {
 	DatabaseURL string // URL form; the run uses its own fresh schema
 	WorkerBin   string // durableq binary used to spawn worker processes
@@ -30,7 +31,6 @@ type ChaosConfig struct {
 	Failpoints                 string // DURABLEQ_FAILPOINTS for workers
 
 	Kills, ConnKills, Stalls int
-	FaultEvery               time.Duration
 	DrainTimeout             time.Duration
 	KeepSchema               bool
 	Out                      io.Writer // progress output
@@ -179,17 +179,47 @@ func RunChaos(ctx context.Context, cfg ChaosConfig) (rep ChaosReport, err error)
 		err := pool.QueryRow(ctx, `SELECT count(*) FROM jobs WHERE state IN ('queued', 'running')`).Scan(&n)
 		return n, err
 	}
-	faultsDone := func() bool {
-		return rep.Kills >= cfg.Kills && rep.ConnKills >= cfg.ConnKills && rep.Stalls >= cfg.Stalls
+	// Faults are scheduled by queue progress, not wall time, so every fault
+	// lands before the queue drains however fast the machine is: fault i fires
+	// once the completed fraction passes at[i], a seeded random point in
+	// [2%, 95%]. The fault kinds are shuffled with the same seed.
+	kinds := slices.Repeat([]int{0}, cfg.Kills)
+	kinds = append(kinds, slices.Repeat([]int{1}, cfg.ConnKills)...)
+	kinds = append(kinds, slices.Repeat([]int{2}, cfg.Stalls)...)
+	rng.Shuffle(len(kinds), func(i, j int) { kinds[i], kinds[j] = kinds[j], kinds[i] })
+	at := make([]float64, len(kinds))
+	for i := range at {
+		at[i] = 0.02 + 0.93*rng.Float64()
 	}
-	nextFault := func() <-chan time.Time {
-		if faultsDone() || cfg.FaultEvery <= 0 {
-			return nil
+	slices.Sort(at)
+	inject := func(kind int) error {
+		p := procs[rng.IntN(len(procs))]
+		switch kind {
+		case 0:
+			p.killed = true
+			p.cmd.Process.Kill()
+			rep.Kills++
+			fmt.Fprintf(out, "%s SIGKILL worker-%d (pid %d) … respawned\n", stamp(), p.slot, p.cmd.Process.Pid)
+		case 1:
+			var n int
+			if err := admin.QueryRow(ctx, `SELECT count(pg_terminate_backend(pid)) FROM pg_stat_activity
+				WHERE application_name LIKE 'durableq-worker-%' AND datname = current_database()`).Scan(&n); err != nil {
+				return err
+			}
+			rep.ConnKills++
+			rep.ConnsKilled += n
+			fmt.Fprintf(out, "%s terminated %d worker connections\n", stamp(), n)
+		default:
+			stall := cfg.Lease + cfg.Lease/2
+			p.cmd.Process.Signal(syscall.SIGSTOP)
+			time.AfterFunc(stall, func() { p.cmd.Process.Signal(syscall.SIGCONT) })
+			rep.Stalls++
+			fmt.Fprintf(out, "%s SIGSTOP worker-%d for %v (past its lease)\n", stamp(), p.slot, stall)
 		}
-		return time.After(time.Duration(rng.Float64() * 2 * float64(cfg.FaultEvery)))
+		return nil
 	}
-	fault := nextFault()
-	poll := time.NewTicker(250 * time.Millisecond)
+	next := 0
+	poll := time.NewTicker(20 * time.Millisecond)
 	defer poll.Stop()
 	drainBy := time.Now().Add(cfg.DrainTimeout)
 
@@ -207,43 +237,17 @@ func RunChaos(ctx context.Context, cfg ChaosConfig) (rep ChaosReport, err error)
 			if err := spawn(e.p.slot); err != nil {
 				return rep, err
 			}
-		case <-fault:
-			// Pick among the faults whose target isn't met yet, weighted by what's left.
-			left := []int{cfg.Kills - rep.Kills, cfg.ConnKills - rep.ConnKills, cfg.Stalls - rep.Stalls}
-			total := 0
-			for i := range left {
-				left[i] = max(left[i], 0)
-				total += left[i]
-			}
-			pick := rng.IntN(total)
-			p := procs[rng.IntN(len(procs))]
-			switch {
-			case pick < left[0]:
-				p.killed = true
-				p.cmd.Process.Kill()
-				rep.Kills++
-				fmt.Fprintf(out, "%s SIGKILL worker-%d (pid %d) … respawned\n", stamp(), p.slot, p.cmd.Process.Pid)
-			case pick < left[0]+left[1]:
-				var n int
-				if err := admin.QueryRow(ctx, `SELECT count(pg_terminate_backend(pid)) FROM pg_stat_activity
-					WHERE application_name LIKE 'durableq-worker-%' AND datname = current_database()`).Scan(&n); err != nil {
-					return rep, err
-				}
-				rep.ConnKills++
-				rep.ConnsKilled += n
-				fmt.Fprintf(out, "%s terminated %d worker connections\n", stamp(), n)
-			default:
-				stall := cfg.Lease + cfg.Lease/2
-				p.cmd.Process.Signal(syscall.SIGSTOP)
-				time.AfterFunc(stall, func() { p.cmd.Process.Signal(syscall.SIGCONT) })
-				rep.Stalls++
-				fmt.Fprintf(out, "%s SIGSTOP worker-%d for %v (past its lease)\n", stamp(), p.slot, stall)
-			}
-			fault = nextFault()
 		case <-poll.C:
 			n, err := pending()
 			if err != nil {
 				return rep, err
+			}
+			// At most one fault per tick, so faults due together still spread out.
+			if next < len(at) && float64(int64(cfg.Jobs)-n) >= at[next]*float64(cfg.Jobs) {
+				if err := inject(kinds[next]); err != nil {
+					return rep, err
+				}
+				next++
 			}
 			if n == 0 {
 				rep.Elapsed = time.Since(start)
