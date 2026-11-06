@@ -11,6 +11,7 @@ import (
 	"github.com/jackc/pgx/v5"
 
 	"github.com/Eliot-2006/durableq"
+	"github.com/Eliot-2006/durableq/internal/failpoint"
 )
 
 // EffectPayload configures a demo.effect job.
@@ -44,6 +45,7 @@ func Effect(ctx context.Context, j durableq.Job) (durableq.CommitFunc, error) {
 		case <-time.After(d):
 		}
 	}
+	failpoint.Hit("during_run")
 	if rand.Float64() < p.FailRate {
 		return nil, errors.New("injected failure")
 	}

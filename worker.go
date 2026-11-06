@@ -16,6 +16,8 @@ import (
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
+
+	"github.com/Eliot-2006/durableq/internal/failpoint"
 )
 
 // Job is what a handler receives. Attempt is the fencing token (1-based).
@@ -198,6 +200,7 @@ func (w *Worker) claim(ctx context.Context, n int) ([]Job, error) {
 // the lease cannot have started earlier, so it anchors the local deadline.
 func (w *Worker) run(shutdown context.Context, j Job, claimSent time.Time) {
 	log := w.log.With("job", j.ID, "attempt", j.Attempt)
+	failpoint.Hit("after_claim")
 	if j.Attempt > j.MaxAttempts {
 		// Reclaimed after its last allowed attempt was abandoned: dead-letter without running.
 		w.fail(j, Permanent(errors.New("attempt budget exhausted")), log)
@@ -253,6 +256,7 @@ func (w *Worker) run(shutdown context.Context, j Job, claimSent time.Time) {
 	case err != nil:
 		w.fail(j, err, log)
 	default:
+		failpoint.Hit("before_complete")
 		w.complete(j, commit, log)
 	}
 }
@@ -339,9 +343,14 @@ func (w *Worker) complete(j Job, commit CommitFunc, log *slog.Logger) {
 				return fmt.Errorf("commit func: %w", err)
 			}
 		}
-		return exec1(ctx, tx, qFinishAttempt, j.ID, j.Attempt, "succeeded", nil)
+		if err := exec1(ctx, tx, qFinishAttempt, j.ID, j.Attempt, "succeeded", nil); err != nil {
+			return err
+		}
+		failpoint.Hit("in_complete_tx") // fenced update and effect written, not committed
+		return nil
 	})
 	if err == nil {
+		failpoint.Hit("after_commit")
 		w.succeeded.Add(1)
 		return
 	}

@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/signal"
 	"strconv"
+	"strings"
 	"syscall"
 	"time"
 
@@ -26,7 +27,10 @@ commands:
   migrate    apply embedded migrations
   enqueue    submit jobs
   worker     run a worker with the demo handlers
-  status     job counts by state, or one job with its attempts`
+  status     job counts by state, or one job with its attempts
+  check      run invariant checks (exit 1 on violation)
+  demo       chaos demo: kill workers and connections, then check invariants
+  bench      benchmarks: throughput sweep, latency, crash recovery, chaos reliability`
 
 func main() {
 	if len(os.Args) < 2 {
@@ -46,6 +50,12 @@ func main() {
 		err = runWorker(ctx, os.Args[2:])
 	case "status":
 		err = runStatus(ctx, os.Args[2:])
+	case "check":
+		err = runCheck(ctx)
+	case "demo":
+		err = runDemo(ctx, os.Args[2:])
+	case "bench":
+		err = runBench(ctx, os.Args[2:])
 	default:
 		fmt.Fprintf(os.Stderr, "unknown command %q\n%s\n", os.Args[1], usage)
 		os.Exit(2)
@@ -129,6 +139,7 @@ func runWorker(ctx context.Context, args []string) error {
 	fs.DurationVar(&cfg.Lease, "lease", 30*time.Second, "lease duration")
 	fs.DurationVar(&cfg.Heartbeat, "heartbeat", 10*time.Second, "heartbeat interval (< lease/2)")
 	fs.DurationVar(&cfg.Poll, "poll", time.Second, "idle poll interval")
+	maxConns := fs.Int("max-conns", 0, "connection pool size (default concurrency+2); jobs hold a connection only while claiming, heartbeating, or transitioning")
 	fs.Parse(args)
 	if 2*cfg.Heartbeat >= cfg.Lease {
 		return errors.New("--heartbeat must be less than half of --lease")
@@ -145,6 +156,9 @@ func runWorker(ctx context.Context, args []string) error {
 	cfg.ID = durableq.WorkerID()
 	pcfg.ConnConfig.RuntimeParams["application_name"] = cfg.ID // lets chaos tests target this worker's connections
 	pcfg.MaxConns = int32(cfg.Concurrency + 2)
+	if *maxConns > 0 {
+		pcfg.MaxConns = int32(*maxConns)
+	}
 	pool, err := pgxpool.NewWithConfig(ctx, pcfg)
 	if err != nil {
 		return err
@@ -212,4 +226,118 @@ func runStatus(ctx context.Context, args []string) error {
 		return nil
 	})
 	return err
+}
+
+func runCheck(ctx context.Context) error {
+	pool, err := connect(ctx)
+	if err != nil {
+		return err
+	}
+	defer pool.Close()
+	var pending int
+	if err := pool.QueryRow(ctx, `SELECT count(*) FROM jobs WHERE state IN ('queued','running')`).Scan(&pending); err != nil {
+		return err
+	}
+	if pending > 0 {
+		fmt.Printf("warning: %d jobs still queued or running; I1 will fail until the queue drains\n", pending)
+	}
+	rs, err := demo.Check(ctx, pool)
+	if err != nil {
+		return err
+	}
+	if !demo.PrintChecks(os.Stdout, rs) {
+		return errors.New("invariant violations")
+	}
+	fmt.Println("all invariants passed")
+	return nil
+}
+
+func runDemo(ctx context.Context, args []string) error {
+	fs := flag.NewFlagSet("demo", flag.ExitOnError)
+	cfg := demo.ChaosConfig{DatabaseURL: os.Getenv("DATABASE_URL"), Out: os.Stdout}
+	fs.IntVar(&cfg.Jobs, "jobs", 10000, "jobs to enqueue")
+	fs.IntVar(&cfg.Workers, "workers", 6, "worker processes")
+	fs.IntVar(&cfg.Concurrency, "concurrency", 10, "jobs per worker")
+	fs.IntVar(&cfg.Kills, "kills", 120, "worker SIGKILLs to inject")
+	fs.IntVar(&cfg.ConnKills, "conn-kills", 30, "pg_terminate_backend rounds to inject")
+	fs.IntVar(&cfg.Stalls, "stalls", 5, "worker SIGSTOPs past the lease")
+	fs.DurationVar(&cfg.FaultEvery, "fault-every", 100*time.Millisecond, "mean interval between faults")
+	seed := fs.Uint64("seed", 0, "fault schedule seed (0 = random)")
+	fs.IntVar(&cfg.SleepMS, "sleep-ms", 100, "demo.effect work time (jobs must outlast the fault schedule)")
+	fs.Float64Var(&cfg.FailRate, "fail-rate", 0.05, "demo.effect retryable failure probability")
+	fs.IntVar(&cfg.MaxAttempts, "max-attempts", 5, "attempt budget per job")
+	fs.DurationVar(&cfg.Lease, "lease", 2*time.Second, "worker lease")
+	fs.DurationVar(&cfg.Heartbeat, "heartbeat", 500*time.Millisecond, "worker heartbeat")
+	fs.StringVar(&cfg.Failpoints, "failpoints", defaultFailpoints, "DURABLEQ_FAILPOINTS for workers")
+	fs.DurationVar(&cfg.DrainTimeout, "drain-timeout", 10*time.Minute, "give up if not drained by then")
+	fs.BoolVar(&cfg.KeepSchema, "keep-schema", false, "keep the run's schema even when it passes")
+	fs.Parse(args)
+	if cfg.DatabaseURL == "" {
+		return errors.New("DATABASE_URL is not set")
+	}
+	cfg.Seed = *seed
+	if cfg.Seed == 0 {
+		cfg.Seed = uint64(time.Now().UnixNano())
+	}
+	bin, err := os.Executable()
+	if err != nil {
+		return err
+	}
+	cfg.WorkerBin = bin
+
+	rep, err := demo.RunChaos(ctx, cfg)
+	if err != nil {
+		return err
+	}
+	rep.Print(os.Stdout)
+	if rep.Kills < cfg.Kills || rep.ConnKills < cfg.ConnKills || rep.Stalls < cfg.Stalls {
+		fmt.Printf("note: queue drained before all faults were injected; raise --jobs or --sleep-ms, or lower --fault-every\n")
+	}
+	if !rep.Passed() {
+		return fmt.Errorf("invariant violations (seed %d)", rep.Seed)
+	}
+	return nil
+}
+
+const defaultFailpoints = "after_claim=0.002,during_run=0.002,before_complete=0.002,in_complete_tx=0.002,after_commit=0.002"
+
+func runBench(ctx context.Context, args []string) error {
+	fs := flag.NewFlagSet("bench", flag.ExitOnError)
+	cfg := demo.BenchConfig{DatabaseURL: os.Getenv("DATABASE_URL"), Out: os.Stdout}
+	fs.StringVar(&cfg.OutDir, "out", "bench/results", "results directory")
+	fs.IntVar(&cfg.Jobs, "jobs", 20000, "demo.noop jobs per throughput cell")
+	procs := fs.String("procs", "1,2,4,8", "worker process counts to sweep")
+	conc := fs.String("concurrency", "1,10,50", "per-process concurrency values to sweep")
+	fs.IntVar(&cfg.LatencyRate, "latency-rate", 200, "jobs/s enqueued in the latency run")
+	fs.DurationVar(&cfg.LatencyFor, "latency-for", 10*time.Second, "latency run duration")
+	fs.IntVar(&cfg.RecoveryJobs, "recovery-jobs", 20, "jobs held by the killed worker")
+	fs.DurationVar(&cfg.Lease, "lease", 2*time.Second, "lease in the recovery run")
+	fs.IntVar(&cfg.ChaosRuns, "chaos-runs", 5, "seeded chaos runs for the reliability figure")
+	fs.Parse(args)
+	if cfg.DatabaseURL == "" {
+		return errors.New("DATABASE_URL is not set")
+	}
+	var err error
+	if cfg.Procs, err = ints(*procs); err != nil {
+		return err
+	}
+	if cfg.Concurrency, err = ints(*conc); err != nil {
+		return err
+	}
+	if cfg.WorkerBin, err = os.Executable(); err != nil {
+		return err
+	}
+	return demo.RunBench(ctx, cfg)
+}
+
+func ints(csv string) ([]int, error) {
+	var out []int
+	for _, f := range strings.Split(csv, ",") {
+		n, err := strconv.Atoi(strings.TrimSpace(f))
+		if err != nil || n <= 0 {
+			return nil, fmt.Errorf("bad list %q", csv)
+		}
+		out = append(out, n)
+	}
+	return out, nil
 }
