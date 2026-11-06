@@ -5,7 +5,7 @@ services:
       POSTGRES_USER: durableq
       POSTGRES_PASSWORD: durableq
       POSTGRES_DB: durableq
-    ports: ["5432:5432"]
+    ports: ["${DURABLEQ_PG_PORT:-5432}:5432"]  # override if 5432 is taken, e.g. by a local Postgres
     healthcheck:
       test: ["CMD", "pg_isready", "-U", "durableq"]
       interval: 1s

@@ -49,7 +49,8 @@ w.Run(ctx) // until ctx is cancelled; then drains for ShutdownGrace and releases
 ## Chaos demo
 
 ```sh
-docker compose run --rm demo            # Postgres + 10,000 jobs, 6 workers, ~120 SIGKILLs
+docker compose run --rm demo            # Postgres + 10,000 jobs, 6 workers, 120 SIGKILLs
+# port 5432 already taken by a local Postgres?  DURABLEQ_PG_PORT=55432 docker compose run --rm demo
 # or, against your own Postgres:
 go run ./cmd/durableq demo --jobs 10000 --workers 6 --kills 120 --seed 7
 ```

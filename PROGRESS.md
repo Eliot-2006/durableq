@@ -30,12 +30,15 @@ M2 (same setup), all pass under `-race`, full suite at `-count=2`: expired lease
 ## Known issues / notes
 - A handler that ignores cancellation keeps running in its goroutine after the worker gives up on it. Its result is discarded and it no longer occupies a slot. External side effects from it can still happen (at-least-once).
 - Unknown job kind = retryable failure (not permanent), so a rolling deploy doesn't dead-letter jobs.
-- Not yet run: CI (never pushed), Docker Compose (Docker not installed). staticcheck is clean.
 - Run benchmarks on an otherwise idle database: wait-event and connection sampling, and the chaos connection kills, match every `durableq-worker-%` session in the database.
 
 ## M4
 - `durableq bench` run at `8fa4341` (clean tree). Results are in `bench/results/20261106T050117Z/`, written up in `docs/results.md`: peak about 10.9k jobs/s (8 × 50, 80 conns), queue latency p50/p95/p99 21/70/83ms at 200 jobs/s, crash recovery about 1.99s with a 2s lease, chaos 5/5.
 
+## CI fix (after first push)
+- The first GitHub CI run failed in `TestChaos`: the runner drained 1,000 jobs in 4.6s, before 27 time-scheduled faults landed. Root cause: faults were scheduled on wall time while throughput depends on the machine. Fix: faults now fire at seeded random points of queue progress (2–95% complete), so the configured counts always land. The `-fault-every` flag is removed. Verified with a zero-sleep workload draining in 4.2s: exact fault counts, all invariants pass.
+- `TestLocalDeadlineCancelsJobWhenDatabaseUnreachable` failed 11/30 locally: the test read `LeaseLost` before the runner recorded it. That's a test race, not a worker bug. The test now waits up to 1s for the counter; 30/30 pass.
+- `docker compose run --rm demo` verified (Docker 29.9.2): 10,000 jobs, 120 SIGKILLs, 30 conn-kill rounds, 5 stalls, all invariants pass. The compose host port is overridable via `DURABLEQ_PG_PORT`.
+
 ## Next
-- Unverified: CI on GitHub (branch not pushed since the PRD commit), `docker compose run --rm demo` (needs Docker).
 - Stretch items (PRD §14) only if asked: LISTEN/NOTIFY, River comparison, `dead retry`, retention, Postgres-restart chaos.
