@@ -348,7 +348,7 @@ func ram() string {
 
 func gitSHA() string {
 	sha := cmdOut("git", "rev-parse", "--short", "HEAD")
-	if cmdOut("git", "status", "--porcelain") != "" {
+	if cmdOut("git", "status", "--porcelain", "--untracked-files=no") != "" { // results files are untracked
 		sha += "-dirty"
 	}
 	return sha
