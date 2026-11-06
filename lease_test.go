@@ -237,8 +237,12 @@ func TestLocalDeadlineCancelsJobWhenDatabaseUnreachable(t *testing.T) {
 	case <-time.After(3 * lease):
 		t.Fatal("job context not cancelled while database unreachable")
 	}
-	if w.Stats().LeaseLost != 1 {
-		t.Fatalf("lease lost = %d, want 1", w.Stats().LeaseLost)
+	// The handler sees cancellation before the runner records the lease loss.
+	for deadline := time.Now().Add(time.Second); w.Stats().LeaseLost == 0 && time.Now().Before(deadline); {
+		time.Sleep(5 * time.Millisecond)
+	}
+	if got := w.Stats().LeaseLost; got != 1 {
+		t.Fatalf("lease lost = %d, want 1", got)
 	}
 }
 
