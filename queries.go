@@ -1,0 +1,65 @@
+package durableq
+
+// All SQL lives here. Every lease check uses clock_timestamp() (the database
+// clock at statement time), never now(), which is frozen at transaction start.
+// $attempt is the fencing token: a transition commits only if it still matches
+// the row and the lease is unexpired at the moment the row is locked.
+
+const qEnqueue = `
+INSERT INTO jobs (kind, payload, max_attempts, run_at, idempotency_key)
+VALUES ($1, $2, $3, clock_timestamp() + $4 * interval '1 microsecond', $5)
+ON CONFLICT (idempotency_key) WHERE idempotency_key IS NOT NULL DO NOTHING
+RETURNING id`
+
+const qByKey = `SELECT id FROM jobs WHERE idempotency_key = $1`
+
+// qClaim also reclaims running jobs whose lease expired (no separate reaper).
+const qClaim = `
+WITH next AS (
+  SELECT id FROM jobs
+  WHERE (state = 'queued'  AND run_at <= clock_timestamp())
+     OR (state = 'running' AND lease_expires_at < clock_timestamp())
+  ORDER BY run_at, id
+  LIMIT $1
+  FOR UPDATE SKIP LOCKED
+), claimed AS (
+  UPDATE jobs j
+  SET state = 'running', attempt = j.attempt + 1, lease_owner = $2,
+      lease_expires_at = clock_timestamp() + $3 * interval '1 microsecond',
+      updated_at = clock_timestamp()
+  FROM next WHERE j.id = next.id
+  RETURNING j.id, j.kind, j.payload, j.attempt, j.max_attempts
+), hist AS (
+  INSERT INTO job_attempts (job_id, attempt, worker_id, claimed_at)
+  SELECT id, attempt, $2, clock_timestamp() FROM claimed
+)
+SELECT id, kind, payload, attempt, max_attempts FROM claimed`
+
+const fenced = ` WHERE id = $1 AND attempt = $2 AND state = 'running' AND lease_expires_at > clock_timestamp()`
+
+const qHeartbeat = `
+UPDATE jobs SET lease_expires_at = clock_timestamp() + $3 * interval '1 microsecond',
+                updated_at = clock_timestamp()` + fenced
+
+const qComplete = `
+UPDATE jobs SET state = 'succeeded', lease_owner = NULL, lease_expires_at = NULL,
+                finished_at = clock_timestamp(), updated_at = clock_timestamp()` + fenced
+
+// qFail: $3 = permanent, $4 = backoff (µs), $5 = error. Returns the new state.
+const qFail = `
+UPDATE jobs SET
+  state = CASE WHEN $3 OR attempt >= max_attempts THEN 'dead'::job_state ELSE 'queued'::job_state END,
+  run_at = CASE WHEN $3 OR attempt >= max_attempts THEN run_at
+                ELSE clock_timestamp() + $4 * interval '1 microsecond' END,
+  finished_at = CASE WHEN $3 OR attempt >= max_attempts THEN clock_timestamp() END,
+  lease_owner = NULL, lease_expires_at = NULL, last_error = $5, updated_at = clock_timestamp()` + fenced + `
+RETURNING state`
+
+// qRelease returns the job to the queue immediately; the attempt stays consumed.
+const qRelease = `
+UPDATE jobs SET state = 'queued', run_at = clock_timestamp(),
+                lease_owner = NULL, lease_expires_at = NULL, updated_at = clock_timestamp()` + fenced
+
+const qFinishAttempt = `
+UPDATE job_attempts SET outcome = $3, error = $4, finished_at = clock_timestamp()
+WHERE job_id = $1 AND attempt = $2`
