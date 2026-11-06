@@ -1,14 +1,14 @@
 # durableq
 
-A durable job queue in Go with PostgreSQL as its only dependency. Workers claim jobs with `FOR UPDATE SKIP LOCKED` and hold leases timed on the database clock, renewing them with heartbeats. When a worker crashes, its leases expire and other workers reclaim the jobs. Every state transition is fenced by an attempt number, so a stale or partitioned worker cannot complete a job it no longer owns. Correctness is demonstrated rather than asserted: chaos tests SIGKILL real worker processes, terminate their database connections and freeze them past their leases. Then seven invariants are checked directly in SQL.
+A durable job queue in Go with PostgreSQL as its only dependency. Workers claim jobs with `FOR UPDATE SKIP LOCKED` and hold leases timed on the database clock, renewing them with heartbeats. When a worker crashes, its leases expire and other workers reclaim the jobs. Every state transition is fenced by an attempt number, so a stale or partitioned worker cannot complete a job it no longer owns. Correctness is demonstrated rather than asserted: chaos tests SIGKILL real worker processes, restart them gracefully mid-run, terminate their database connections and freeze them past their leases. Then seven invariants are checked directly in SQL.
 
 ## Guarantees
 
 - **At-least-once execution.** Every committed job runs until it succeeds or is dead-lettered.
-- **Exactly one terminal transition per job.** A job reaches `succeeded` or `dead` once, never both and never twice.
+- **At most one terminal transition per job.** A job reaches `succeeded` or `dead` at most once, never both and never twice.
 - **Fenced transitions.** Heartbeat, complete, fail and release succeed only for the current attempt, with a lease that is unexpired by the database clock.
 - **Exactly-once transactional effects.** Writes made in a handler's `CommitFunc` commit if and only if that attempt's completion commits.
-- **Bounded attempts.** No job is executed more than `max_attempts` times. A job that keeps crashing its worker still ends up `dead`.
+- **Bounded attempts.** A job's handler runs at most `max_attempts` times, plus once per graceful release (a deploy never dead-letters a job). A job that keeps crashing its worker still ends up `dead`. So, by design, can a healthy job whose workers crash `max_attempts` times in a row.
 
 **Not guaranteed:** exactly-once *external* side effects. HTTP calls and emails may happen more than once, so handlers must make them idempotent. Ordering is also not guaranteed. See [docs/design.md](docs/design.md) for the reasoning behind each guarantee and its limits.
 
@@ -59,20 +59,20 @@ Real output (`durableq demo --seed 7`, Apple M3 Pro, PostgreSQL 17.11):
 
 ```
 Enqueued 10000 jobs · 6 workers × 10 · lease 2s · failpoints "after_claim=0.002,during_run=0.002,before_complete=0.002,in_complete_tx=0.002,after_commit=0.002"
-[00:00] SIGKILL worker-2 (pid 22508) … respawned
-[00:00] terminated 13 worker connections
-[00:00] SIGKILL worker-4 (pid 22510) … respawned
-[00:00] SIGKILL worker-0 (pid 22506) … respawned
-[00:01] terminated 11 worker connections
+[00:01] SIGKILL worker-4 (pid 66498) … respawned
+[00:01] SIGKILL worker-5 (pid 66441) … respawned
+[00:01] SIGKILL worker-5 (pid 66548) … respawned
+[00:01] SIGKILL worker-3 (pid 66500) … respawned
+[00:01] SIGKILL worker-2 (pid 66438) … respawned
 …
-Drained in 26.8s (seed 7, schema chaos_7_1793941113254641000)
-  Jobs succeeded       9994     dead 6
-  Worker kills         120      self-kills (failpoints) 109
-  Connection kills     30       (357 connections terminated)
-  Worker stalls        5
-  Abandoned attempts   2248     jobs possibly executed more than once 1832
-  Retries              551      stale transitions rejected 4
-  Leases lost (worker abandoned job on its local deadline) 6
+Drained in 40.4s (seed 7, schema chaos_7_1793947041373928000)
+  Jobs succeeded       9996     dead 4 (2 after a failed final attempt, 2 with the budget exhausted by abandoned attempts)
+  Worker kills         120      self-kills (failpoints) 103
+  Connection kills     30       (578 connections terminated)
+  Worker stalls        5        graceful restarts 10 (jobs released 74)
+  Abandoned attempts   2346     jobs possibly executed more than once 1941
+  Retries              622      stale transitions rejected 24
+  Leases lost (worker abandoned job on its local deadline) 23
   I1 PASS no lost jobs: every job is terminal
   I2 PASS no duplicate effects
   I3 PASS every succeeded demo.effect job has exactly one effect, and every effect's job succeeded
@@ -89,7 +89,7 @@ All 7 invariants PASSED
 
 ```sh
 go test -race ./...                       # unit + integration (real Postgres via DATABASE_URL)
-go test -tags chaos ./chaos/...           # chaos: SIGKILL, pg_terminate_backend, SIGSTOP, all failpoints
+go test -tags chaos ./chaos/...           # chaos: SIGKILL, SIGTERM restarts, pg_terminate_backend, SIGSTOP, all failpoints
 ```
 
 ## Docs
