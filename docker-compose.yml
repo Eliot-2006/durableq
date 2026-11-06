@@ -1,0 +1,12 @@
+services:
+  postgres:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: durableq
+      POSTGRES_PASSWORD: durableq
+      POSTGRES_DB: durableq
+    ports: ["5432:5432"]
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "durableq"]
+      interval: 1s
+      retries: 30
