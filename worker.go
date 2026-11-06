@@ -94,8 +94,10 @@ func NewWorker(pool *pgxpool.Pool, cfg WorkerConfig) *Worker {
 	def(&cfg.Poll, time.Second)
 	def(&cfg.JobTimeout, 5*time.Minute)
 	def(&cfg.ShutdownGrace, 10*time.Second)
-	if cfg.Heartbeat >= cfg.Lease {
-		panic("durableq: heartbeat must be shorter than lease")
+	// The local deadline is lease-heartbeat after a renewal is sent, and the
+	// next renewal is sent heartbeat later; it must land before the deadline.
+	if 2*cfg.Heartbeat >= cfg.Lease {
+		panic("durableq: heartbeat must be less than half the lease")
 	}
 	if cfg.Backoff == nil {
 		cfg.Backoff = func(a int) time.Duration { return FullJitter(a, time.Second, 10*time.Minute) }
@@ -220,7 +222,25 @@ func (w *Worker) run(shutdown context.Context, j Job, claimSent time.Time) {
 		}
 	}()
 
-	commit, err := safeCall(ctx, h, j)
+	// Don't wait on a handler that ignores cancellation: once ctx is done
+	// (timeout, shutdown, lease loss), proceed without it and discard its
+	// result, so shutdown stays bounded and the lease isn't renewed for it.
+	type result struct {
+		commit CommitFunc
+		err    error
+	}
+	res := make(chan result, 1)
+	go func() {
+		c, err := safeCall(ctx, h, j)
+		res <- result{c, err}
+	}()
+	var r result
+	select {
+	case r = <-res:
+	case <-ctx.Done():
+		r.err = ctx.Err()
+	}
+	commit, err := r.commit, r.err
 	stopHB()
 	<-hbDone
 

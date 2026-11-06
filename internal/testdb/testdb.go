@@ -4,6 +4,7 @@ package testdb
 import (
 	"context"
 	"fmt"
+	"io/fs"
 	"os"
 	"strings"
 	"testing"
@@ -12,14 +13,19 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"github.com/Eliot-2006/durableq"
 	"github.com/Eliot-2006/durableq/internal/migrate"
 )
 
-// New returns a pool whose search_path is a fresh schema, migrated unless
-// raw is true. The schema is dropped when the test ends. Tests are skipped
-// when DATABASE_URL is unset.
-func New(t testing.TB, raw ...bool) *pgxpool.Pool {
+// New returns a pool whose search_path is a fresh schema, migrated with
+// migrations (pass nil for an empty schema). The schema is dropped when the
+// test ends. Tests are skipped when DATABASE_URL is unset. It takes the
+// migrations as a parameter so package durableq's own tests can use it.
+func New(t testing.TB, migrations fs.FS) *pgxpool.Pool {
+	return NewWithConfig(t, migrations, nil)
+}
+
+// NewWithConfig is New with a hook to adjust the pool config (e.g. dial through a proxy).
+func NewWithConfig(t testing.TB, migrations fs.FS, adjust func(*pgxpool.Config)) *pgxpool.Pool {
 	t.Helper()
 	url := os.Getenv("DATABASE_URL")
 	if url == "" {
@@ -42,6 +48,9 @@ func New(t testing.TB, raw ...bool) *pgxpool.Pool {
 		t.Fatal(err)
 	}
 	cfg.ConnConfig.RuntimeParams["search_path"] = schema
+	if adjust != nil {
+		adjust(cfg)
+	}
 	pool, err := pgxpool.NewWithConfig(ctx, cfg)
 	if err != nil {
 		t.Fatal(err)
@@ -58,8 +67,8 @@ func New(t testing.TB, raw ...bool) *pgxpool.Pool {
 			t.Error(err)
 		}
 	})
-	if len(raw) == 0 || !raw[0] {
-		if _, err := migrate.Up(ctx, pool, durableq.Migrations, "migrations"); err != nil {
+	if migrations != nil {
+		if _, err := migrate.Up(ctx, pool, migrations, "migrations"); err != nil {
 			t.Fatal(err)
 		}
 	}

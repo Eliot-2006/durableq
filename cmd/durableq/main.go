@@ -127,11 +127,11 @@ func runWorker(ctx context.Context, args []string) error {
 	cfg := durableq.WorkerConfig{}
 	fs.IntVar(&cfg.Concurrency, "concurrency", 10, "max concurrent jobs")
 	fs.DurationVar(&cfg.Lease, "lease", 30*time.Second, "lease duration")
-	fs.DurationVar(&cfg.Heartbeat, "heartbeat", 10*time.Second, "heartbeat interval (< lease)")
+	fs.DurationVar(&cfg.Heartbeat, "heartbeat", 10*time.Second, "heartbeat interval (< lease/2)")
 	fs.DurationVar(&cfg.Poll, "poll", time.Second, "idle poll interval")
 	fs.Parse(args)
-	if cfg.Heartbeat >= cfg.Lease {
-		return errors.New("--heartbeat must be shorter than --lease")
+	if 2*cfg.Heartbeat >= cfg.Lease {
+		return errors.New("--heartbeat must be less than half of --lease")
 	}
 
 	url := os.Getenv("DATABASE_URL")

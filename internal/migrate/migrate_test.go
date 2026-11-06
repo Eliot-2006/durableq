@@ -11,7 +11,7 @@ import (
 )
 
 func TestUpIsIdempotentAndConcurrencySafe(t *testing.T) {
-	pool := testdb.New(t, true)
+	pool := testdb.New(t, nil)
 	ctx := context.Background()
 
 	var wg sync.WaitGroup

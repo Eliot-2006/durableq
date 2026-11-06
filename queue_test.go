@@ -82,7 +82,7 @@ func TestEnqueueValidation(t *testing.T) {
 }
 
 func TestIdempotencyKeyConcurrent(t *testing.T) {
-	pool := testdb.New(t)
+	pool := testdb.New(t, durableq.Migrations)
 	c := durableq.NewClient(pool)
 	var wg sync.WaitGroup
 	ids := make(chan int64, 20)
@@ -112,7 +112,7 @@ func TestIdempotencyKeyConcurrent(t *testing.T) {
 }
 
 func TestEnqueueTxRollbackNeverRuns(t *testing.T) {
-	pool := testdb.New(t)
+	pool := testdb.New(t, durableq.Migrations)
 	ctx := context.Background()
 	tx, err := pool.Begin(ctx)
 	if err != nil {
@@ -134,7 +134,7 @@ func TestEnqueueTxRollbackNeverRuns(t *testing.T) {
 }
 
 func TestEveryJobClaimedExactlyOnce(t *testing.T) {
-	pool := testdb.New(t)
+	pool := testdb.New(t, durableq.Migrations)
 	ctx := context.Background()
 	const n = 10_000
 	if _, err := pool.Exec(ctx, `INSERT INTO jobs (kind) SELECT 'noop' FROM generate_series(1, $1)`, n); err != nil {
@@ -153,7 +153,7 @@ func TestEveryJobClaimedExactlyOnce(t *testing.T) {
 }
 
 func TestAlwaysFailingJobDeadAfterMaxAttempts(t *testing.T) {
-	pool := testdb.New(t)
+	pool := testdb.New(t, durableq.Migrations)
 	const gap = 100 * time.Millisecond
 	r, err := durableq.NewClient(pool).Enqueue(context.Background(), durableq.EnqueueParams{Kind: "fail", MaxAttempts: 3})
 	if err != nil {
@@ -180,7 +180,7 @@ func TestAlwaysFailingJobDeadAfterMaxAttempts(t *testing.T) {
 }
 
 func TestPermanentErrorDeadAfterOneAttempt(t *testing.T) {
-	pool := testdb.New(t)
+	pool := testdb.New(t, durableq.Migrations)
 	if _, err := durableq.NewClient(pool).Enqueue(context.Background(), durableq.EnqueueParams{Kind: "perm"}); err != nil {
 		t.Fatal(err)
 	}
@@ -195,7 +195,7 @@ func TestPermanentErrorDeadAfterOneAttempt(t *testing.T) {
 }
 
 func TestFutureJobNotClaimedEarly(t *testing.T) {
-	pool := testdb.New(t)
+	pool := testdb.New(t, durableq.Migrations)
 	c := durableq.NewClient(pool)
 	if _, err := c.Enqueue(context.Background(), durableq.EnqueueParams{Kind: "noop", Delay: time.Hour}); err != nil {
 		t.Fatal(err)
@@ -218,7 +218,7 @@ func TestFutureJobNotClaimedEarly(t *testing.T) {
 }
 
 func TestCommitFuncAtomicWithCompletion(t *testing.T) {
-	pool := testdb.New(t)
+	pool := testdb.New(t, durableq.Migrations)
 	c := durableq.NewClient(pool)
 	for i := range 20 {
 		if _, err := c.Enqueue(context.Background(), durableq.EnqueueParams{Kind: "eff", Payload: []byte(fmt.Sprint(i))}); err != nil {
