@@ -1,7 +1,7 @@
 //go:build chaos
 
 // Chaos tests: real worker processes, real SIGKILL/SIGSTOP, real
-// pg_terminate_backend. Run with:
+// pg_terminate_backend, and (opt-in) Postgres server restarts. Run with:
 //
 //	go test -tags chaos ./chaos/...                                  # short (CI)
 //	go test -tags chaos ./chaos/ -run TestChaos -timeout 0 -v -args -jobs 10000 -kills 100 -conn-kills 20 -sleep-ms 100 -seeds 20
@@ -149,4 +149,25 @@ func TestGracefulRestartsKeepBudget(t *testing.T) {
 		t.Fatalf("%d jobs dead-lettered by graceful restarts", rep.Metrics.Dead)
 	}
 	t.Logf("jobs released by graceful restarts: %d, all succeeded", rep.Metrics.Released)
+}
+
+// TestPostgresRestart restarts the Postgres server itself mid-run, on top of
+// worker SIGKILLs. Workers must ride out the outage (failed claims,
+// heartbeats and commits) and every invariant must still hold. Needs a
+// command that restarts the server, so it is opt-in:
+//
+//	DURABLEQ_PG_RESTART_CMD='docker restart -t 0 durableq-postgres-1' go test -tags chaos ./chaos/ -run TestPostgresRestart -v
+func TestPostgresRestart(t *testing.T) {
+	cmd := os.Getenv("DURABLEQ_PG_RESTART_CMD")
+	if cmd == "" {
+		t.Skip("DURABLEQ_PG_RESTART_CMD not set")
+	}
+	dbURL, bin := setup(t)
+	cfg := base(dbURL, bin, uint64(time.Now().UnixNano()))
+	cfg.Jobs, cfg.Workers, cfg.SleepMS = 3000, 4, 50
+	cfg.Kills, cfg.DBRestarts, cfg.DBRestartCmd = 10, 3, cmd
+	rep := run(t, cfg)
+	if rep.Shortfall != 0 {
+		t.Fatalf("%d scheduled faults never landed (postgres restarts %d/%d)", rep.Shortfall, rep.DBRestarts, cfg.DBRestarts)
+	}
 }

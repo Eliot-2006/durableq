@@ -18,8 +18,9 @@ import (
 )
 
 // ChaosConfig drives one chaos run. Exactly Kills SIGKILLs, ConnKills
-// connection-kill rounds, Stalls SIGSTOPs, and Restarts graceful SIGTERM
-// restarts are injected at seeded random points of queue progress.
+// connection-kill rounds, Stalls SIGSTOPs, Restarts graceful SIGTERM
+// restarts, and DBRestarts Postgres restarts are injected at seeded random
+// points of queue progress.
 type ChaosConfig struct {
 	DatabaseURL string // URL form; the run uses its own fresh schema
 	WorkerBin   string // durableq binary used to spawn worker processes
@@ -32,6 +33,8 @@ type ChaosConfig struct {
 	Failpoints                 string // DURABLEQ_FAILPOINTS for workers
 
 	Kills, ConnKills, Stalls, Restarts int
+	DBRestarts                         int
+	DBRestartCmd                       string // shell command that restarts Postgres (e.g. docker restart -t 0 <ctr>); required if DBRestarts > 0
 	DrainTimeout                       time.Duration
 	KeepSchema                         bool
 	Out                                io.Writer // progress output
@@ -42,7 +45,7 @@ type ChaosReport struct {
 	Schema                                   string
 	Elapsed                                  time.Duration
 	Kills, SelfKills, ConnKills, ConnsKilled int
-	Stalls, Restarts                         int
+	Stalls, Restarts, DBRestarts             int
 	Shortfall                                int // scheduled faults that never landed before drain
 	StaleRejected, LeaseLost                 int64
 	Metrics                                  Metrics
@@ -66,6 +69,9 @@ func (r ChaosReport) Print(w io.Writer) {
 	fmt.Fprintf(w, "  Worker kills         %-8d self-kills (failpoints) %d\n", r.Kills, r.SelfKills)
 	fmt.Fprintf(w, "  Connection kills     %-8d (%d connections terminated)\n", r.ConnKills, r.ConnsKilled)
 	fmt.Fprintf(w, "  Worker stalls        %-8d graceful restarts %d (jobs released %d)\n", r.Stalls, r.Restarts, m.Released)
+	if r.DBRestarts > 0 {
+		fmt.Fprintf(w, "  Postgres restarts    %d\n", r.DBRestarts)
+	}
 	fmt.Fprintf(w, "  Abandoned attempts   %-8d jobs possibly executed more than once %d\n", m.Abandoned, m.DuplicateExecutions)
 	fmt.Fprintf(w, "  Retries              %-8d stale transitions rejected %d\n", m.Retries, r.StaleRejected)
 	fmt.Fprintf(w, "  Leases lost (worker abandoned job on its local deadline) %d\n", r.LeaseLost)
@@ -114,7 +120,10 @@ func RunChaos(ctx context.Context, cfg ChaosConfig) (rep ChaosReport, err error)
 		return rep, err
 	}
 	defer func() { sc.Close(err == nil && rep.Passed() && !cfg.KeepSchema) }()
-	pool, admin, dbURL := sc.Pool, sc.Admin, sc.URL
+	if cfg.DBRestarts > 0 && cfg.DBRestartCmd == "" {
+		return rep, fmt.Errorf("DBRestarts set without DBRestartCmd")
+	}
+	pool, dbURL := sc.Pool, sc.URL
 	if _, err := pool.Exec(ctx, `INSERT INTO jobs (kind, payload, max_attempts)
 		SELECT 'demo.effect', jsonb_build_object('sleep_ms', $1::int, 'fail_rate', $2::float8), $3
 		FROM generate_series(1, $4)`, cfg.SleepMS, cfg.FailRate, cfg.MaxAttempts, cfg.Jobs); err != nil {
@@ -211,11 +220,13 @@ func RunChaos(ctx context.Context, cfg ChaosConfig) (rep ChaosReport, err error)
 		connKill
 		stall
 		restart
+		dbRestart
 	)
 	kinds := slices.Repeat([]int{kill}, cfg.Kills)
 	kinds = append(kinds, slices.Repeat([]int{connKill}, cfg.ConnKills)...)
 	kinds = append(kinds, slices.Repeat([]int{stall}, cfg.Stalls)...)
 	kinds = append(kinds, slices.Repeat([]int{restart}, cfg.Restarts)...)
+	kinds = append(kinds, slices.Repeat([]int{dbRestart}, cfg.DBRestarts)...)
 	rng.Shuffle(len(kinds), func(i, j int) { kinds[i], kinds[j] = kinds[j], kinds[i] })
 	at := make([]float64, len(kinds))
 	for i := range at {
@@ -228,7 +239,7 @@ func RunChaos(ctx context.Context, cfg ChaosConfig) (rep ChaosReport, err error)
 	inject := func(kind int) (bool, error) {
 		if kind == connKill {
 			var n int
-			if err := admin.QueryRow(ctx, `SELECT count(pg_terminate_backend(pid)) FROM pg_stat_activity
+			if err := sc.Admin.QueryRow(ctx, `SELECT count(pg_terminate_backend(pid)) FROM pg_stat_activity
 				WHERE application_name LIKE $1 AND datname = current_database()`, "durableq-worker-"+tag+"-%").Scan(&n); err != nil {
 				return false, err
 			}
@@ -238,6 +249,32 @@ func RunChaos(ctx context.Context, cfg ChaosConfig) (rep ChaosReport, err error)
 			rep.ConnKills++
 			rep.ConnsKilled += n
 			fmt.Fprintf(out, "%s terminated %d worker connections\n", stamp(), n)
+			return true, nil
+		}
+		if kind == dbRestart {
+			// Restart the whole server under the workers. The harness blocks
+			// until Postgres accepts connections again; workers ride it out on
+			// their own (claims fail and retry, leases may expire and be
+			// reclaimed, in-flight commits may be lost or ambiguous).
+			t0 := time.Now()
+			var before, after time.Time
+			if err := pool.QueryRow(ctx, `SELECT pg_postmaster_start_time()`).Scan(&before); err != nil {
+				return false, err
+			}
+			if out, err := exec.CommandContext(ctx, "sh", "-c", cfg.DBRestartCmd).CombinedOutput(); err != nil {
+				return false, fmt.Errorf("postgres restart command: %v\n%s", err, out)
+			}
+			if err := sc.Reconnect(ctx, time.Minute); err != nil {
+				return false, err
+			}
+			if err := pool.QueryRow(ctx, `SELECT pg_postmaster_start_time()`).Scan(&after); err != nil {
+				return false, err
+			}
+			if !after.After(before) {
+				return false, fmt.Errorf("postgres restart command ran but the server did not restart")
+			}
+			rep.DBRestarts++
+			fmt.Fprintf(out, "%s restarted Postgres (back after %.1fs)\n", stamp(), time.Since(t0).Seconds())
 			return true, nil
 		}
 		var live []*proc

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/url"
+	"time"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -46,6 +47,27 @@ func NewSchema(ctx context.Context, dbURL, name string) (*Schema, error) {
 		return nil, err
 	}
 	return s, nil
+}
+
+// Reconnect waits up to timeout for Postgres to accept connections again
+// (after a server restart), replacing Admin and every pooled connection.
+func (s *Schema) Reconnect(ctx context.Context, timeout time.Duration) error {
+	deadline := time.Now().Add(timeout)
+	for {
+		admin, err := pgx.Connect(ctx, s.URL)
+		if err == nil {
+			s.Admin.Close(ctx)
+			s.Admin = admin
+			s.Pool.Reset()
+			if _, err = s.Pool.Exec(ctx, "SELECT 1"); err == nil {
+				return nil
+			}
+		}
+		if time.Now().After(deadline) {
+			return fmt.Errorf("postgres not back after %v: %w", timeout, err)
+		}
+		time.Sleep(100 * time.Millisecond)
+	}
 }
 
 // Close releases connections, dropping the schema if drop is set.
