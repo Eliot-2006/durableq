@@ -33,6 +33,9 @@ M2 (same setup), all pass under `-race`, full suite at `-count=2`: expired lease
 - Not yet run: CI (never pushed), Docker Compose (Docker not installed). staticcheck is clean.
 - Run benchmarks on an otherwise idle database: wait-event and connection sampling, and the chaos connection kills, match every `durableq-worker-%` session in the database.
 
+## M4
+- `durableq bench` run at `8fa4341` (clean tree). Results are in `bench/results/20261106T050117Z/`, written up in `docs/results.md`: peak about 10.9k jobs/s (8 × 50, 80 conns), queue latency p50/p95/p99 21/70/83ms at 200 jobs/s, crash recovery about 1.99s with a 2s lease, chaos 5/5.
+
 ## Next
-1. Run `durableq bench` on a clean tree; write `docs/results.md` from its CSVs.
-2. Stretch items (PRD §14) only if asked.
+- Unverified: CI on GitHub (branch not pushed since the PRD commit), `docker compose run --rm demo` (needs Docker).
+- Stretch items (PRD §14) only if asked: LISTEN/NOTIFY, River comparison, `dead retry`, retention, Postgres-restart chaos.
