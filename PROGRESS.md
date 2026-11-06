@@ -7,6 +7,15 @@
 - M2: `lease_test.go` covers every PRD M2 criterion. The DB-unreachable test cuts a TCP proxy between the worker and Postgres.
 - M1: `client.go`, `worker.go`, `queries.go`, `backoff.go`, `errors.go`, `internal/demo`, CLI `enqueue`/`worker`/`status`.
 
+- M3: `internal/failpoint`, `internal/demo/{check,chaos,schema}.go`, `chaos/` (build tag `chaos`), CLI `check`/`demo`, Dockerfile + compose `demo` service, CI short chaos run + nightly long run.
+- M4 (partial): `internal/demo/bench.go` + CLI `bench`, `docs/design.md`, README.
+
+## M3 acceptance (2026-11-05, same machine)
+- 20 consecutive seeds (1000–1019) × 10,000 jobs, all failpoints at 0.2%: every run had 100 SIGKILLs, 92–116 failpoint self-kills, 20 connection-kill rounds (205–396 connections), and 5 SIGSTOP stalls. **20/20 passed I1–I7.** Drain time 24.5–34.8s. Command is in `chaos/chaos_test.go`'s header.
+- Each failpoint isolated at 3%: all 5 fire and pass.
+- Injected bug (attempt check removed from complete): I5 fails (8 and 4 violations on seeds 4242/4243, 11 in `TestStalledWorkerFenced`). The correct code passes the same workload. Reverted; `TestStalledWorkerFenced` now uses that workload permanently.
+- Lease stall uses SIGSTOP/SIGCONT of a worker process instead of the PRD's payload flag. A payload flag can't stop heartbeats, which run outside the handler. Resumed workers mostly abandon their jobs on the local deadline; the rest attempt completions that the fence rejects.
+
 ## Test results (2026-11-05, local Homebrew PG 17.11, `go test -race -count=1 ./...`)
 All pass: migrate idempotent + concurrent; backoff bounds/cap/monotone; enqueue validation; idempotency key ×20 concurrent → 1 job; EnqueueTx rollback never runs; 10,000 jobs × 50 concurrent claimers → each claimed exactly once; always-failing → dead after exactly 3 attempts with backoff respected; Permanent → dead after 1; delayed job not claimed early; CommitFunc effects atomic.
 CLI smoke test: 200 demo.effect jobs at 30% fail rate, SIGTERM after 4s → 199 effects = 199 succeeded, 0 mismatches.
@@ -21,8 +30,9 @@ M2 (same setup), all pass under `-race`, full suite at `-count=2`: expired lease
 ## Known issues / notes
 - A handler that ignores cancellation keeps running in its goroutine after the worker gives up on it. Its result is discarded and it no longer occupies a slot. External side effects from it can still happen (at-least-once).
 - Unknown job kind = retryable failure (not permanent), so a rolling deploy doesn't dead-letter jobs.
-- Not yet run: CI, Docker Compose, staticcheck.
+- Not yet run: CI (never pushed), Docker Compose (Docker not installed). staticcheck is clean.
+- Run benchmarks on an otherwise idle database: wait-event and connection sampling, and the chaos connection kills, match every `durableq-worker-%` session in the database.
 
 ## Next
-1. M3: failpoints (`internal/failpoint`), invariant checks (`durableq check`), chaos harness with SIGKILL + `pg_terminate_backend` + lease stalls (`chaos/`, build tag), `durableq demo`, Dockerfile.
-2. M3 injected-bug test (remove the attempt check from complete → I2/I5 must fail).
+1. Run `durableq bench` on a clean tree; write `docs/results.md` from its CSVs.
+2. Stretch items (PRD §14) only if asked.
