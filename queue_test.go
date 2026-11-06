@@ -170,10 +170,15 @@ func TestAlwaysFailingJobDeadAfterMaxAttempts(t *testing.T) {
 		t.Fatalf("attempts = %d, want 3", n)
 	}
 	// Each retry was claimed no earlier than backoff after the previous failure.
+	// The fail transaction sets run_at = clock_timestamp() + backoff in its
+	// first statement and the attempt's finished_at in a later one, so measured
+	// from finished_at the gap can be a few microseconds short (seen on Linux
+	// CI). Allow 1ms; a retry that skipped the backoff would be ~20ms (poll).
+	const slack = time.Millisecond
 	short := count(t, pool, `
 		SELECT count(*) FROM (
 		  SELECT claimed_at - lag(finished_at) OVER (ORDER BY attempt) AS g FROM job_attempts WHERE job_id = $1
-		) x WHERE g < $2 * interval '1 microsecond'`, r.ID, gap.Microseconds())
+		) x WHERE g < $2 * interval '1 microsecond'`, r.ID, (gap - slack).Microseconds())
 	if short != 0 {
 		t.Fatalf("%d retries ran before the backoff elapsed", short)
 	}
