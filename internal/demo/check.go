@@ -67,7 +67,8 @@ func PrintChecks(w io.Writer, rs []CheckResult) bool {
 
 // Metrics are reported alongside the invariants; they are not pass/fail.
 type Metrics struct {
-	Succeeded, Dead, Retries, Abandoned, DuplicateExecutions int64
+	Succeeded, Dead, Retries, Released, Abandoned, DuplicateExecutions int64
+	DeadByBudget                                                       int64 // dead because abandoned attempts (crashes, lost leases) used up the budget, not handler failures
 }
 
 func ReadMetrics(ctx context.Context, pool *pgxpool.Pool) (Metrics, error) {
@@ -76,12 +77,14 @@ func ReadMetrics(ctx context.Context, pool *pgxpool.Pool) (Metrics, error) {
 		(SELECT count(*) FROM jobs WHERE state = 'succeeded'),
 		(SELECT count(*) FROM jobs WHERE state = 'dead'),
 		(SELECT count(*) FROM job_attempts WHERE outcome = 'failed'),
+		(SELECT count(*) FROM job_attempts WHERE outcome = 'released'),
 		-- an attempt with no outcome that is not the job's current one was abandoned
 		(SELECT count(*) FROM job_attempts a JOIN jobs j ON j.id = a.job_id
 		   WHERE a.outcome IS NULL AND a.attempt < j.attempt),
 		-- jobs whose handler may have run more than once: an abandoned attempt, then another attempt
 		(SELECT count(DISTINCT a.job_id) FROM job_attempts a JOIN jobs j ON j.id = a.job_id
-		   WHERE a.outcome IS NULL AND a.attempt < j.attempt)`).
-		Scan(&m.Succeeded, &m.Dead, &m.Retries, &m.Abandoned, &m.DuplicateExecutions)
+		   WHERE a.outcome IS NULL AND a.attempt < j.attempt),
+		(SELECT count(*) FROM jobs WHERE state = 'dead' AND last_error = 'permanent: attempt budget exhausted')`).
+		Scan(&m.Succeeded, &m.Dead, &m.Retries, &m.Released, &m.Abandoned, &m.DuplicateExecutions, &m.DeadByBudget)
 	return m, err
 }

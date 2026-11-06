@@ -7,10 +7,10 @@ DurableQ is a job queue whose only infrastructure is PostgreSQL. This document e
 | Guaranteed | Not guaranteed |
 |---|---|
 | **At-least-once execution.** A committed job runs until it succeeds or is dead-lettered, as long as some worker runs and Postgres is up. | Exactly-once *external* side effects (HTTP calls, emails). The handler may run more than once. |
-| **One terminal transition per job.** `succeeded` or `dead` commits once. | Ordering. Jobs are claimed roughly by `run_at`, with no FIFO under concurrency or retries. |
+| **At most one terminal transition per job.** `succeeded` or `dead` commits at most once. | Ordering. Jobs are claimed roughly by `run_at`, with no FIFO under concurrency or retries. |
 | **Fenced transitions.** Heartbeat/complete/fail/release commit only for the current attempt with an unexpired lease. | Progress while Postgres is down (workers retry; nothing advances). |
 | **Exactly-once transactional effects.** Writes made in a handler's `CommitFunc` commit iff that attempt's completion commits. | Survival of permanent database loss (no replication; out of scope). |
-| **Bounded attempts.** No job is *claimed for execution* more than `max_attempts` times. | |
+| **Bounded attempts.** A job's handler runs at most `max_attempts` times, plus once per graceful release (a release raises the budget by one, §4). | A healthy job surviving unbounded infrastructure faults: crashes count against the budget (§5). |
 
 Three different events are easy to conflate, so the code keeps them separate:
 
@@ -52,7 +52,7 @@ All SQL lives in `queries.go`. Every time comparison uses **`clock_timestamp()`*
 **Enqueue:** `INSERT … ON CONFLICT (idempotency_key) WHERE idempotency_key IS NOT NULL DO NOTHING RETURNING id`. If no row comes back, the key already existed, so the code selects the existing id. When two enqueues with the same key race, the second waits on the unique index until the first commits, then gets its row. Keys deduplicate forever (D7). `EnqueueTx` runs the same statement in the caller's transaction, which gives the transactional-outbox pattern. Each duplicate insert consumes an identity value, so ids can have gaps.
 
 **Claim:** one statement made of three CTEs.
-1. `next` selects due rows, either `queued` with `run_at <= now` or `running` with an expired lease. It locks them with `FOR UPDATE SKIP LOCKED`, so concurrent claimers split the rows instead of queueing behind each other.
+1. `next` selects due rows, either `queued` with `run_at <= now` or `running` with an expired lease. It locks them with `FOR UPDATE SKIP LOCKED`, so concurrent claimers split the rows instead of queueing behind each other. The claim also filters on `kind = ANY(registered kinds)`, so a worker never claims a kind it has no handler for. Without that filter, two services sharing the table, or a deploy that enqueues a new kind before every worker knows it, would fail each other's jobs until they were dead-lettered.
 2. `claimed` sets state `running`, increments `attempt`, and sets the lease.
 3. `hist` inserts one `job_attempts` row per claim.
 
@@ -70,7 +70,7 @@ Zero affected rows means the caller no longer owns the job. The worker then roll
 
 **Fail:** the same fence. In one statement it moves to `dead` if `attempt >= max_attempts` or the error is `Permanent` (D6), and otherwise to `queued` with `run_at = clock_timestamp() + backoff`. Backoff is full jitter, `rand[0, min(cap, base·2^(attempt−1))]` with base 1s and cap 10m. Jitter keeps a batch of failures from all retrying at the same moment.
 
-**Release (graceful shutdown):** the same fence, with `queued` and `run_at = now`. The attempt stays consumed (D5).
+**Release (graceful shutdown):** the same fence, with `queued`, `run_at = now`, and `max_attempts = max_attempts + 1`. The attempt *number* stays consumed, because it is the fencing token and never decreases (D11). The *budget* is raised instead, so a deploy that catches a job on its last attempt doesn't dead-letter it. This deviates from the PRD, which left the attempt consumed by release (D5). That version violated the PRD's own invariant I6 and dead-lettered healthy jobs on rolling restarts; the chaos suite's graceful-restart fault reproduces it (§7).
 
 ### Lock-wait subtlety (from the independent review)
 
@@ -91,9 +91,15 @@ per job:    ctx = timeout(JobTimeout), cancelled on lease loss or shutdown
 
 **Local lease deadline.** A worker that can't reach the database can't read the database clock either. It therefore keeps its own deadline on Go's monotonic clock: `deadline = send time of the last successful heartbeat + Lease − Heartbeat`. The send time is used rather than the reply time because the database extended the lease no earlier than the send. When the deadline passes, the job's context is cancelled. This works even while the database is unreachable, and even right after the process resumes from a stall (a SIGSTOP or GC pause), because the monotonic clock kept advancing. `Heartbeat` must be less than `Lease/2`; otherwise the deadline would pass before the next renewal is even sent. `NewWorker` and the CLI reject such configurations.
 
-**Handlers that ignore cancellation.** The runner waits for whichever comes first: the handler's result or the context finishing. If the context finishes first, the runner stops heartbeating, records the transition (release on shutdown, fail on timeout, nothing on lease loss), and discards the handler's late result. Shutdown therefore finishes within `ShutdownGrace` plus one release round trip, even if a handler never returns. That handler's goroutine keeps running until it returns, and any external effects it produces fall under at-least-once.
+**Handlers that ignore cancellation.** The runner waits for whichever comes first: the handler's result or the context finishing. If the context finishes first, the runner stops heartbeating, records the transition (release on shutdown, fail on timeout, nothing on lease loss), and discards the handler's late result. Shutdown therefore finishes within `ShutdownGrace` plus one release transaction, even if a handler never returns. If the database is unreachable, each release can wait up to one lease before giving up, and the job is then reclaimed after its lease expires.
+
+**CommitFunc contract.** The completion transaction holds the job's row lock while the `CommitFunc` runs, so the callback must be short and honor its context (bounded by the lease). A `CommitFunc` that blocks indefinitely holds that job, and the worker's shutdown, until it returns. A panic inside it is recovered: the transaction rolls back and the job is retried.
+
+**Claims are not cancelled by shutdown.** A claim that commits on the server but is abandoned by the client would leave its jobs stranded until lease expiry, spending an attempt. The claim therefore runs on its own short timeout, and shutdown waits for at most one claim. That handler's goroutine keeps running until it returns, and any external effects it produces fall under at-least-once.
 
 **Attempt budget (D4/D5).** `attempt` increments at claim time, so a job that crashes its worker every time still uses up attempts. When a claim returns `attempt > max_attempts`, the previous attempt was abandoned (a crash or a lost lease). The worker moves the job to `dead` without running the handler. `attempt` is never decremented (D11), because decrementing would make an old fencing token valid again.
+
+This has a consequence worth stating plainly: **infrastructure faults alone can dead-letter a healthy job.** A job whose handler never fails, but whose worker is SIGKILLed or loses its lease `max_attempts` times in a row, ends `dead` with `attempt budget exhausted`. That is the price of bounding poison pills, which crash their worker every time and are indistinguishable from bad luck at claim time. The chaos report separates dead jobs by cause. In the 20 acceptance runs, 17 of 26 dead jobs never failed in their handler, and the other 9 had also lost earlier attempts to faults (see results.md). A deployment that expects crash storms should raise `max_attempts`.
 
 **Identity.** Worker ids look like `durableq-worker-<host>-<pid>-<random>`. The id is also the Postgres `application_name`, which lets the chaos harness find and terminate a worker's connections.
 
@@ -115,10 +121,24 @@ per job:    ctx = timeout(JobTimeout), cancelled on lease loss or shutdown
   - every PRD M1/M2 acceptance criterion;
   - a 1,000-iteration race between an owner completing near expiry and a reclaimer, where most iterations produce a contested completion that gets rejected;
   - a TCP proxy that cuts the database connection, to test the local deadline.
-- **Chaos (`go test -tags chaos ./chaos/...`).** Real worker processes, random SIGKILL, `pg_terminate_backend`, SIGSTOP stalls, and five in-process failpoints (`after_claim`, `during_run`, `before_complete`, `in_complete_tx`, `after_commit`). Each failpoint is also run in isolation at high probability. Once the queue drains, invariants I1–I7 are checked in SQL.
+- **Chaos (`go test -tags chaos ./chaos/...`).** Real worker processes, with these faults:
+  - random SIGKILL;
+  - `pg_terminate_backend`;
+  - SIGSTOP stalls past the lease;
+  - graceful SIGTERM restarts in the middle of a run;
+  - five in-process failpoints (`after_claim`, `during_run`, `before_complete`, `in_complete_tx`, `after_commit`). Each is also run in isolation at high probability.
+
+  Faults fire at seeded points of queue progress, so they land however fast the machine is. They are aimed only at live workers, are counted only when the signal took effect, and are scoped by a per-run `application_name` tag, so they never touch another run's workers. When the queue drains, every worker is resumed, stopped and reaped *before* invariants I1–I7 are checked in SQL. A stalled worker's late completion attempt therefore always happens, and is judged, before the verdict.
 - **The checker can catch real bugs.** Removing the `attempt` check from completion makes I2/I5 fail (see [results.md](results.md)). `effects` deliberately has no unique constraint on `job_id`, because a constraint would hide exactly this kind of bug.
 
-## 8. Known limitations
+## 8. Deviations from the PRD
+
+- **Release raises the budget** instead of leaving the attempt consumed (§4). The PRD version contradicted its own invariant I6.
+- **Claims filter by registered kind** (§4). The PRD's claim query claimed every kind.
+- **Lease stalls use SIGSTOP** of the worker process instead of a payload flag. Heartbeats run outside the handler, so a payload can't stop them; freezing the process is also closer to a real GC pause or network stall.
+- **Guarantee 3's wording** ("lease unexpired when the row is locked") is not enforced literally (§4, lock-wait subtlety). Single ownership is.
+
+## 9. Known limitations
 
 - Idempotency keys never expire. Retention and cleanup of finished jobs are not implemented, so `jobs` and `job_attempts` grow without bound.
 - Workers poll; there is no LISTEN/NOTIFY. Idle queue latency is up to `Poll` (default 1s).

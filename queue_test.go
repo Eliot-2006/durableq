@@ -170,10 +170,15 @@ func TestAlwaysFailingJobDeadAfterMaxAttempts(t *testing.T) {
 		t.Fatalf("attempts = %d, want 3", n)
 	}
 	// Each retry was claimed no earlier than backoff after the previous failure.
+	// The fail transaction sets run_at = clock_timestamp() + backoff in its
+	// first statement and the attempt's finished_at in a later one, so measured
+	// from finished_at the gap can be a few microseconds short (seen on Linux
+	// CI). Allow 1ms; a retry that skipped the backoff would be ~20ms (poll).
+	const slack = time.Millisecond
 	short := count(t, pool, `
 		SELECT count(*) FROM (
 		  SELECT claimed_at - lag(finished_at) OVER (ORDER BY attempt) AS g FROM job_attempts WHERE job_id = $1
-		) x WHERE g < $2 * interval '1 microsecond'`, r.ID, gap.Microseconds())
+		) x WHERE g < $2 * interval '1 microsecond'`, r.ID, (gap - slack).Microseconds())
 	if short != 0 {
 		t.Fatalf("%d retries ran before the backoff elapsed", short)
 	}
@@ -234,5 +239,35 @@ func TestCommitFuncAtomicWithCompletion(t *testing.T) {
 	drain(t, pool, 10*time.Second)
 	if n := count(t, pool, `SELECT count(*) FROM effects e JOIN jobs j ON j.id = e.job_id AND j.attempt = e.attempt AND j.state = 'succeeded'`); n != 20 {
 		t.Fatalf("effects = %d, want 20", n)
+	}
+}
+
+// Workers only claim kinds they handle: services sharing the table (or a
+// deploy that enqueues a new kind early) must not dead-letter each other's jobs.
+func TestWorkersClaimOnlyRegisteredKinds(t *testing.T) {
+	pool := testdb.New(t, durableq.Migrations)
+	c := durableq.NewClient(pool)
+	for _, k := range []string{"a", "b", "orphan"} {
+		for range 20 {
+			if _, err := c.Enqueue(context.Background(), durableq.EnqueueParams{Kind: k}); err != nil {
+				t.Fatal(err)
+			}
+		}
+	}
+	startWorkers(t, pool, 2, durableq.WorkerConfig{}, "a", noop)
+	startWorkers(t, pool, 2, durableq.WorkerConfig{}, "b", noop)
+	deadline := time.Now().Add(10 * time.Second)
+	for count(t, pool, `SELECT count(*) FROM jobs WHERE kind IN ('a','b') AND state <> 'succeeded'`) > 0 {
+		if time.Now().After(deadline) {
+			t.Fatal("a/b jobs not drained")
+		}
+		time.Sleep(20 * time.Millisecond)
+	}
+	time.Sleep(200 * time.Millisecond) // give workers more polls at the orphan jobs
+	if n := count(t, pool, `SELECT count(*) FROM jobs WHERE kind IN ('a','b') AND attempt <> 1`); n != 0 {
+		t.Fatalf("%d a/b jobs took more than one attempt (claimed by a worker without the handler?)", n)
+	}
+	if n := count(t, pool, `SELECT count(*) FROM jobs WHERE kind = 'orphan' AND state = 'queued' AND attempt = 0`); n != 20 {
+		t.Fatalf("orphan jobs untouched = %d, want 20", n)
 	}
 }
