@@ -9,7 +9,8 @@ TIMEOUT=${TIMEOUT:-300}
 PORT=${PORT:-18080}
 k() { kubectl --context "$CTX" -n "$NS" "$@"; }
 
-k port-forward svc/durableq-api "$PORT:8080" >/dev/null &
+# Not via k(): backgrounding a function forks a subshell, and killing it would orphan kubectl.
+kubectl --context "$CTX" -n "$NS" port-forward svc/durableq-api "$PORT:8080" >/dev/null &
 PF=$!
 trap 'kill $PF 2>/dev/null || true' EXIT
 for _ in $(seq 30); do curl -fsS "localhost:$PORT/healthz" >/dev/null 2>&1 && break; sleep 1; done
@@ -22,7 +23,7 @@ echo "waiting for drain (timeout ${TIMEOUT}s)"
 deadline=$((SECONDS + TIMEOUT))
 while :; do
   s=$(curl -fsS "localhost:$PORT/v1/stats")
-  open=$(echo "$s" | sed -E 's/.*"pending":([0-9]+).*"scheduled":([0-9]+).*"running":([0-9]+).*/\1+\2+\3/' | bc)
+  open=$(echo "$s" | sed -E 's/.*"pending":([0-9]+).*"scheduled":([0-9]+).*"running":([0-9]+).*"lease_expired":([0-9]+).*/\1+\2+\3+\4/' | bc)
   echo "  $s"
   [ "$open" -eq 0 ] && break
   [ $SECONDS -ge $deadline ] && { echo "FAIL: queue did not drain" >&2; exit 1; }
@@ -30,6 +31,6 @@ while :; do
 done
 
 echo "durableq check (in-cluster)"
-k run durableq-check --rm -i --restart=Never --image=durableq:dev --image-pull-policy=Never \
-  --overrides='{"spec":{"containers":[{"name":"durableq-check","image":"durableq:dev","imagePullPolicy":"Never","args":["check"],"env":[{"name":"DATABASE_URL","valueFrom":{"secretKeyRef":{"name":"durableq-db","key":"DATABASE_URL"}}}]}]}}'
+# exec into the API pod: it already has DATABASE_URL, and exec reliably returns output and exit code.
+k exec deploy/durableq-api -c api -- /durableq check
 echo "smoke OK"

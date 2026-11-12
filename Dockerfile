@@ -11,7 +11,7 @@ RUN --mount=type=cache,target=/go/pkg/mod --mount=type=cache,target=/root/.cache
 FROM gcr.io/distroless/static-debian12:nonroot
 LABEL org.opencontainers.image.title="durableq" \
       org.opencontainers.image.description="Postgres-backed durable job queue (API + worker)" \
-      org.opencontainers.image.source="https://github.com/eliotboda/durableq" \
+      org.opencontainers.image.source="https://github.com/Eliot-2006/durableq" \
       org.opencontainers.image.licenses="MIT"
 COPY --from=build /durableq /durableq
 USER 65532:65532
