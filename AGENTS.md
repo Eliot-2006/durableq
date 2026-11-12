@@ -14,7 +14,7 @@ Instructions for any agent working on DurableQ. Spec: `docs/PRD.md` (decisions D
 - All SQL in `queries.go`. Lease checks use `clock_timestamp()`, never `now()`.
 - Every state transition is fenced on `(id, attempt, state='running', lease unexpired)`; the fenced UPDATE comes first in its transaction.
 - `attempt` is never decremented. No unique constraint on `effects.job_id`.
-- Dependencies: `pgx/v5` only. CLI uses stdlib `flag`.
+- Dependencies: `pgx/v5`; `prometheus/client_golang` only outside the root package (D12). CLI uses stdlib `flag`.
 
 ## Testing
 - Integration tests hit real Postgres via `internal/testdb.New(t)` (isolated schema per test). No DB mocks.

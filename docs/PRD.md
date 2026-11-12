@@ -19,7 +19,7 @@ A PostgreSQL-backed durable job queue in Go. Workers claim jobs with `FOR UPDATE
 ### Non-goals
 - Exactly-once execution of arbitrary side effects.
 - PostgreSQL high availability, replication, or surviving permanent database loss.
-- Redis, Kafka, gRPC, Kubernetes, a web dashboard, or any infrastructure beyond Postgres.
+- Redis, Kafka, gRPC, a custom web dashboard, or any queue infrastructure beyond Postgres. (Kubernetes deployment, Prometheus metrics, and Grafana dashboards were added in §16.)
 - Named queues, priorities, cron/scheduled recurring jobs, job cancellation, workflows/DAGs (all stretch at most).
 - Multi-tenant auth.
 
@@ -427,3 +427,19 @@ Failpoints, harness, connection kills, lease stalls, `durableq check`, `durableq
 | Dead-tuple bloat on `jobs` under high churn | Measure `n_dead_tup`; tune autovacuum for the table; retention as stretch. |
 | Flaky chaos tests | Seeded randomness, drain timeout with diagnostic dump, deterministic failpoint tests alongside random ones. |
 | Fencing bugs hidden by constraints | No unique constraint on `effects.job_id` (§4); injected-bug test (M3). |
+
+---
+
+## 16. Kubernetes extension (2026-11-12)
+
+Adds a containerized HTTP API, worker health and metrics endpoints, a Helm chart, queue-depth autoscaling, and Kubernetes-level chaos and benchmarks. Plan, interface contract, and delegation: [`docs/kubernetes-plan.md`](kubernetes-plan.md). The queue semantics (D2–D9, D11) are unchanged.
+
+| # | Decision | Rationale |
+|---|----------|-----------|
+| D12 | **Second dependency: `prometheus/client_golang`, used only by `cmd/` and `internal/`.** The root package exposes an optional event callback (`WorkerConfig.OnEvent`) and does not import Prometheus. | `/metrics` in the standard format, while library users don't inherit the dependency. Revises D10. |
+| D13 | **One binary and one image; `durableq serve` is the HTTP API.** API and worker are the same image with different args. | One build, one scan, one tag to roll. |
+| D14 | **Queue-wide gauges (pending, running, dead…) are exported only by the API**, computed with one SQL query per scrape. Workers export per-process counters and histograms. | N workers exporting the same DB-derived gauge would multiply it under `sum()`. |
+| D15 | **Autoscaling: KEDA's PostgreSQL scaler on eligible backlog** (queued and due, plus expired leases), with `AverageValue` semantics (backlog per replica). | Scales on the source of truth, with no Prometheus in the scaling path. Trade-offs are in `docs/kubernetes.md`. |
+| D16 | **In-chart Postgres is a dev-only single-replica StatefulSet on the official `postgres:17` image with a PVC**, switched off when using an external database. | Bitnami images are no longer freely published, and an operator (CloudNativePG) is more than local dev needs. The app stays compatible with any external Postgres through `DATABASE_URL`. |
+| D17 | **Migrations run as an init container** (`durableq migrate`, advisory-locked and idempotent) on API and worker pods, not as a Helm hook. | A pre-install hook would run before the in-chart Postgres exists. |
+
