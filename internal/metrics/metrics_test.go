@@ -1,6 +1,7 @@
 package metrics
 
 import (
+	"context"
 	"github.com/Eliot-2006/durableq"
 	"github.com/prometheus/client_golang/prometheus"
 	"net/http/httptest"
@@ -11,7 +12,12 @@ import (
 
 func TestWorkerMetrics(t *testing.T) {
 	reg := prometheus.NewRegistry()
-	hook := Worker(reg, []string{"known"}, func() int { return 2 }, 3)
+	w := durableq.NewWorker(nil, durableq.WorkerConfig{})
+	handler := func(context.Context, durableq.Job) (durableq.CommitFunc, error) { return nil, nil }
+	w.Handle("known", handler)
+	w.Handle("added", handler)
+	hook := Worker(reg, w.Kinds(), func() int { return 2 }, 3)
+	hook(durableq.Event{Kind: "added", Type: "claimed"})
 	for _, typ := range []string{"claimed", "succeeded", "retried", "dead", "released", "lease_lost", "stale", "error"} {
 		hook(durableq.Event{Kind: "known", Type: typ, Reclaimed: true, Duration: time.Second, QueueWait: time.Second})
 	}
@@ -29,7 +35,7 @@ func TestWorkerMetrics(t *testing.T) {
 			t.Errorf("bad label %s", bad)
 		}
 	}
-	for _, sample := range []string{`durableq_jobs_failed_total{kind="known"} 2`, `durableq_worker_active_jobs 2`, `durableq_worker_concurrency 3`} {
+	for _, sample := range []string{`durableq_job_claims_total{kind="added"} 1`, `durableq_jobs_failed_total{kind="known"} 2`, `durableq_worker_active_jobs 2`, `durableq_worker_concurrency 3`} {
 		if !strings.Contains(body, sample) {
 			t.Errorf("missing %s", sample)
 		}

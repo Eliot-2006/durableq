@@ -139,6 +139,9 @@ func (w *Worker) Handle(kind string, h HandlerFunc) {
 // Active returns the number of attempts currently executing.
 func (w *Worker) Active() int { return int(w.active.Load()) }
 
+// Kinds returns a copy of registered handler kinds. Call before Run, like Handle.
+func (w *Worker) Kinds() []string { return append([]string(nil), w.kinds...) }
+
 func (w *Worker) ID() string { return w.cfg.ID }
 
 func (w *Worker) Stats() Stats {

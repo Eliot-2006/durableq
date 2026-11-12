@@ -187,7 +187,12 @@ func runWorker(ctx context.Context, args []string) error {
 	}
 	defer pool.Close()
 
-	var w *durableq.Worker
+	var onEvent func(durableq.Event)
+	if *httpAddr != "" {
+		cfg.OnEvent = func(e durableq.Event) { onEvent(e) }
+	}
+	w := durableq.NewWorker(pool, cfg)
+	demo.Register(w)
 	var server *http.Server
 	var serverDone <-chan error
 	var health *api.Handler
@@ -197,11 +202,9 @@ func runWorker(ctx context.Context, args []string) error {
 		if concurrency <= 0 {
 			concurrency = 10
 		}
-		cfg.OnEvent = metrics.Worker(reg, []string{"demo.noop", "demo.effect"}, func() int { return w.Active() }, concurrency)
+		onEvent = metrics.Worker(reg, w.Kinds(), w.Active, concurrency)
 		health = api.Health(pool, reg)
 	}
-	w = durableq.NewWorker(pool, cfg)
-	demo.Register(w)
 	runCtx, cancelRun := context.WithCancel(ctx)
 	defer cancelRun()
 	if health != nil {
