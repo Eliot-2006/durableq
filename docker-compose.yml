@@ -5,7 +5,7 @@ services:
       POSTGRES_USER: durableq
       POSTGRES_PASSWORD: durableq
       POSTGRES_DB: durableq
-    ports: ["${DURABLEQ_PG_PORT:-5432}:5432"]  # override if 5432 is taken, e.g. by a local Postgres
+    ports: ["127.0.0.1:${DURABLEQ_PG_PORT:-5432}:5432"]  # override if 5432 is taken, e.g. by a local Postgres
     healthcheck:
       test: ["CMD", "pg_isready", "-U", "durableq"]
       interval: 1s
@@ -29,7 +29,7 @@ services:
         condition: service_completed_successfully
     environment: *dburl
     command: ["serve", "--addr", ":8080"]
-    ports: ["${DURABLEQ_API_PORT:-8080}:8080"]
+    ports: ["127.0.0.1:${DURABLEQ_API_PORT:-8080}:8080"]
 
   # Scale with: docker compose up -d --scale worker=3
   worker:

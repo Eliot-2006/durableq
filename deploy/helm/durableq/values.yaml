@@ -39,6 +39,7 @@ autoscaling:
   cooldownPeriod: 60
   backlogPerReplica: 50
   scaleDownStabilizationSeconds: 120
+  scaleDownMaxPodsPerMinute: 2
 
 metrics:
   podMonitor:       # requires prometheus-operator CRDs

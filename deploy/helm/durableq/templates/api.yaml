@@ -18,6 +18,8 @@ spec:
         checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
     spec:
       automountServiceAccountToken: false
+      # preStop sleep (5s) + serve's --shutdown-timeout (10s) + margin.
+      terminationGracePeriodSeconds: 20
       securityContext:
         {{- include "durableq.podSecurityContext" . | nindent 8 }}
       initContainers:
@@ -33,6 +35,11 @@ spec:
               valueFrom: {configMapKeyRef: {name: {{ include "durableq.fullname" . }}, key: API_MAX_CONNS}}
           ports:
             - {name: http, containerPort: 8080}
+          lifecycle:
+            # Keep serving while the endpoint is removed from Services (readiness alone
+            # lags by up to a probe period), then SIGTERM flips /readyz and drains.
+            preStop:
+              sleep: {seconds: 5}
           startupProbe:
             httpGet: {path: /healthz, port: http}
             periodSeconds: 2
