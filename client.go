@@ -87,14 +87,13 @@ type QueueStats struct {
 	Scheduled    int64 `json:"scheduled"`
 	Running      int64 `json:"running"`
 	LeaseExpired int64 `json:"lease_expired"`
-	Succeeded    int64 `json:"succeeded"`
 	Dead         int64 `json:"dead"`
 }
 
 // Stats reads the queue counts in one query.
 func (c *Client) Stats(ctx context.Context) (QueueStats, error) {
 	var s QueueStats
-	err := c.pool.QueryRow(ctx, qStats).Scan(&s.Pending, &s.Scheduled, &s.Running, &s.LeaseExpired, &s.Succeeded, &s.Dead)
+	err := c.pool.QueryRow(ctx, qStats).Scan(&s.Pending, &s.Scheduled, &s.Running, &s.LeaseExpired, &s.Dead)
 	return s, err
 }
 

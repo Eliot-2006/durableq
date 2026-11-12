@@ -111,11 +111,14 @@ func TestAPI(t *testing.T) {
 		t.Fatal(err)
 	}
 	r = request("GET", "/v1/stats", "", 200)
+	if strings.Contains(r.Body.String(), `"succeeded"`) {
+		t.Fatalf("unbounded history count: %s", r.Body)
+	}
 	var stats durableq.QueueStats
 	if err := json.Unmarshal(r.Body.Bytes(), &stats); err != nil {
 		t.Fatal(err)
 	}
-	if stats != (durableq.QueueStats{Pending: 1, Scheduled: 1, Running: 1, LeaseExpired: 1, Succeeded: 1, Dead: 1}) {
+	if stats != (durableq.QueueStats{Pending: 1, Scheduled: 1, Running: 1, LeaseExpired: 1, Dead: 1}) {
 		t.Fatal(stats)
 	}
 	request("GET", "/readyz", "", 200)
@@ -123,12 +126,15 @@ func TestAPI(t *testing.T) {
 	request("GET", "/readyz", "", 503)
 	request("GET", "/healthz", "", 200)
 	r = request("GET", "/metrics", "", 200)
-	for _, name := range []string{"jobs_enqueued_total counter", "http_requests_total counter", "jobs_pending gauge", "jobs_scheduled gauge", "jobs_running gauge", "jobs_lease_expired gauge", "jobs_dead gauge", "jobs_succeeded gauge"} {
+	for _, name := range []string{"jobs_enqueued_total counter", "http_requests_total counter", "jobs_pending gauge", "jobs_scheduled gauge", "jobs_running gauge", "jobs_lease_expired gauge", "jobs_dead gauge"} {
 		if !strings.Contains(r.Body.String(), "# TYPE durableq_"+name) {
 			t.Errorf("missing %s", name)
 		}
 	}
-	for _, sample := range []string{"durableq_jobs_enqueued_total 1", "durableq_jobs_pending 1", "durableq_jobs_scheduled 1", "durableq_jobs_running 1", "durableq_jobs_lease_expired 1", "durableq_jobs_dead 1", "durableq_jobs_succeeded 1"} {
+	if strings.Contains(r.Body.String(), "durableq_jobs_succeeded") {
+		t.Fatal("succeeded gauge must not be exported")
+	}
+	for _, sample := range []string{"durableq_jobs_enqueued_total 1", "durableq_jobs_pending 1", "durableq_jobs_scheduled 1", "durableq_jobs_running 1", "durableq_jobs_lease_expired 1", "durableq_jobs_dead 1"} {
 		if !strings.Contains(r.Body.String(), sample) {
 			t.Errorf("missing %s", sample)
 		}
