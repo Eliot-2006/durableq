@@ -1,0 +1,24 @@
+# Render/CI: no KEDA or prometheus-operator CRDs, tiny resources.
+api:
+  replicas: 1
+  resources:
+    requests: {cpu: 25m, memory: 32Mi}
+    limits: {memory: 64Mi}
+worker:
+  replicas: 2
+  resources:
+    requests: {cpu: 25m, memory: 32Mi}
+    limits: {memory: 128Mi}
+autoscaling:
+  enabled: false
+metrics:
+  podMonitor:
+    enabled: false
+grafana:
+  dashboards:
+    enabled: false
+postgresql:
+  maxConnections: 100
+  resources:
+    requests: {cpu: 50m, memory: 64Mi}
+    limits: {memory: 256Mi}

@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "durableq.fullname" . }}
+  labels:
+    {{- include "durableq.labels" (dict "ctx" . "component" "config") | nindent 4 }}
+data:
+  API_MAX_CONNS: {{ .Values.api.maxConns | quote }}
+  WORKER_CONCURRENCY: {{ .Values.worker.concurrency | quote }}
+  WORKER_MAX_CONNS: {{ .Values.worker.maxConns | quote }}
+  WORKER_LEASE: {{ .Values.worker.lease | quote }}
+  WORKER_HEARTBEAT: {{ .Values.worker.heartbeat | quote }}
+  WORKER_POLL: {{ .Values.worker.poll | quote }}
+  WORKER_GRACE: {{ .Values.worker.grace | quote }}

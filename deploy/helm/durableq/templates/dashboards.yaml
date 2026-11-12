@@ -1,0 +1,15 @@
+{{- $files := .Files.Glob "dashboards/*.json" }}
+{{- if and .Values.grafana.dashboards.enabled $files }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "durableq.fullname" . }}-dashboards
+  labels:
+    {{- include "durableq.labels" (dict "ctx" . "component" "dashboards") | nindent 4 }}
+    grafana_dashboard: "1"
+data:
+  {{- range $path, $_ := $files }}
+  {{ base $path }}: |-
+    {{- $.Files.Get $path | nindent 4 }}
+  {{- end }}
+{{- end }}

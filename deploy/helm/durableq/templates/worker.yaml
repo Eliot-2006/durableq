@@ -1,0 +1,61 @@
+{{- $c := dict "ctx" . "component" "worker" }}
+{{- $cm := include "durableq.fullname" . }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "durableq.fullname" . }}-worker
+  labels:
+    {{- include "durableq.labels" $c | nindent 4 }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.worker.replicas }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "durableq.selectorLabels" $c | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "durableq.labels" $c | nindent 8 }}
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+    spec:
+      automountServiceAccountToken: false
+      terminationGracePeriodSeconds: {{ .Values.worker.terminationGracePeriodSeconds }}
+      securityContext:
+        {{- include "durableq.podSecurityContext" . | nindent 8 }}
+      initContainers:
+        {{- include "durableq.migrateInit" . | nindent 8 }}
+      containers:
+        - name: worker
+          image: {{ include "durableq.image" . }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          args:
+            - worker
+            - --http-addr=:9090
+            - --concurrency=$(WORKER_CONCURRENCY)
+            - --max-conns=$(WORKER_MAX_CONNS)
+            - --lease=$(WORKER_LEASE)
+            - --heartbeat=$(WORKER_HEARTBEAT)
+            - --poll=$(WORKER_POLL)
+            - --grace=$(WORKER_GRACE)
+          env:
+            {{- include "durableq.dbEnv" . | nindent 12 }}
+          envFrom:
+            - configMapRef: {name: {{ $cm }}}
+          ports:
+            - {name: metrics, containerPort: 9090}
+          startupProbe:
+            httpGet: {path: /healthz, port: metrics}
+            periodSeconds: 2
+            failureThreshold: 30
+          readinessProbe:
+            httpGet: {path: /readyz, port: metrics}
+            periodSeconds: 5
+          livenessProbe:
+            httpGet: {path: /healthz, port: metrics}
+            periodSeconds: 10
+          securityContext:
+            {{- include "durableq.containerSecurityContext" . | nindent 12 }}
+          resources:
+            {{- toYaml .Values.worker.resources | nindent 12 }}

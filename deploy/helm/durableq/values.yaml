@@ -1,0 +1,65 @@
+image:
+  repository: durableq
+  tag: dev            # defaults to .Chart.AppVersion when empty
+  pullPolicy: IfNotPresent
+
+database:
+  # Existing Secret holding the database URL. When empty the chart generates
+  # one, which requires postgresql.enabled=true.
+  existingSecret: ""
+  secretKey: DATABASE_URL
+
+api:
+  replicas: 2
+  maxConns: 5          # pgx pool size per API pod
+  resources:
+    requests: {cpu: 50m, memory: 32Mi}
+    limits: {memory: 128Mi}
+
+worker:
+  replicas: 3          # ignored when autoscaling.enabled
+  concurrency: 10
+  maxConns: 6          # pool size per worker pod (jobs hold a connection only while claiming/heartbeating/transitioning)
+  lease: 30s
+  heartbeat: 10s
+  poll: 1s
+  grace: 10s           # whole seconds; drain time on SIGTERM before in-flight jobs are released
+  # Must exceed worker.grace by at least 5s (enforced by the template).
+  terminationGracePeriodSeconds: 30
+  resources:
+    requests: {cpu: 100m, memory: 64Mi}
+    limits: {memory: 256Mi}
+
+# KEDA ScaledObject on the eligible backlog (requires KEDA CRDs).
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 10
+  pollingInterval: 15
+  cooldownPeriod: 60
+  backlogPerReplica: 50
+  scaleDownStabilizationSeconds: 120
+
+metrics:
+  podMonitor:       # requires prometheus-operator CRDs
+    enabled: false
+
+grafana:
+  dashboards:
+    enabled: false  # ConfigMap labelled grafana_dashboard: "1" from dashboards/*.json
+
+# Dev-only single-replica Postgres. Disable and set database.existingSecret for anything real.
+postgresql:
+  enabled: true
+  image: postgres:17
+  auth:
+    password: ""    # empty = random, kept across upgrades
+  # Connection budget enforced at render time:
+  #   (autoscaling.enabled ? maxReplicas : worker.replicas) * worker.maxConns
+  #   + api.replicas * api.maxConns + 10 <= maxConnections
+  maxConnections: 200
+  persistence:
+    size: 1Gi
+  resources:
+    requests: {cpu: 100m, memory: 128Mi}
+    limits: {memory: 512Mi}
