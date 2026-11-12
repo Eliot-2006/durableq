@@ -92,7 +92,7 @@ func API(reg *prometheus.Registry, c *durableq.Client) *APIMetrics {
 		Requests: prometheus.NewCounterVec(prometheus.CounterOpts{Name: "durableq_http_requests_total", Help: "HTTP requests by matched mux pattern and status."}, []string{"route", "code"}),
 	}
 	q := &queueCollector{client: c}
-	for _, name := range []string{"pending", "scheduled", "running", "lease_expired", "succeeded", "dead"} {
+	for _, name := range []string{"pending", "scheduled", "running", "lease_expired", "dead"} {
 		q.descs = append(q.descs, prometheus.NewDesc("durableq_jobs_"+name, "Queue jobs "+name+".", nil, nil))
 	}
 	reg.MustRegister(m.Enqueued, m.Requests, q)
@@ -117,7 +117,7 @@ func (q *queueCollector) Collect(ch chan<- prometheus.Metric) {
 		ch <- prometheus.NewInvalidMetric(q.descs[0], err)
 		return
 	}
-	for i, v := range []int64{s.Pending, s.Scheduled, s.Running, s.LeaseExpired, s.Succeeded, s.Dead} {
+	for i, v := range []int64{s.Pending, s.Scheduled, s.Running, s.LeaseExpired, s.Dead} {
 		ch <- prometheus.MustNewConstMetric(q.descs[i], prometheus.GaugeValue, float64(v))
 	}
 }

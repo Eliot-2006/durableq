@@ -117,7 +117,7 @@ func TestClaimObservations(t *testing.T) {
 		t.Fatalf("job: %+v %v", info, err)
 	}
 	stats, err := c.Stats(context.Background())
-	if err != nil || stats.Succeeded != 1 {
+	if err != nil || stats != (QueueStats{}) {
 		t.Fatalf("stats: %+v %v", stats, err)
 	}
 	if _, err = c.Job(context.Background(), -1); !errors.Is(err, ErrNotFound) {

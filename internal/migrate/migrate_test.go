@@ -2,6 +2,8 @@ package migrate_test
 
 import (
 	"context"
+	"io/fs"
+	"path"
 	"sync"
 	"testing"
 
@@ -15,24 +17,42 @@ func TestUpIsIdempotentAndConcurrencySafe(t *testing.T) {
 	ctx := context.Background()
 
 	var wg sync.WaitGroup
-	total := make(chan int, 5)
+	total := make(chan []string, 5)
 	for range 5 {
 		wg.Go(func() {
 			applied, err := migrate.Up(ctx, pool, durableq.Migrations, "migrations")
 			if err != nil {
 				t.Error(err)
 			}
-			total <- len(applied)
+			total <- applied
 		})
 	}
 	wg.Wait()
 	close(total)
-	sum := 0
-	for n := range total {
-		sum += n
+	expected, err := fs.Glob(durableq.Migrations, "migrations/*.sql")
+	if err != nil {
+		t.Fatal(err)
 	}
-	if sum != 1 {
-		t.Fatalf("expected 0001_init applied exactly once across migrators, got %d", sum)
+	if len(expected) == 0 {
+		t.Fatal("no embedded migrations")
+	}
+	counts := map[string]int{}
+	for applied := range total {
+		for _, version := range applied {
+			counts[version]++
+		}
+	}
+	if len(counts) != len(expected) {
+		t.Fatalf("expected %d distinct migrations, got %v", len(expected), counts)
+	}
+	for _, file := range expected {
+		if counts[path.Base(file)] != 1 {
+			t.Fatalf("expected %s applied exactly once across migrators, got %v", file, counts)
+		}
+	}
+	applied, err := migrate.Up(ctx, pool, durableq.Migrations, "migrations")
+	if err != nil || len(applied) != 0 {
+		t.Fatalf("repeat migrate: applied=%v err=%v", applied, err)
 	}
 
 	var n int

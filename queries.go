@@ -73,12 +73,12 @@ WHERE job_id = $1 AND attempt = $2`
 // Sample the DB clock once so a job becoming due during the scan is counted once.
 const qStats = `WITH snapshot AS MATERIALIZED (SELECT clock_timestamp() AS at)
  SELECT
- count(*) FILTER (WHERE state='queued' AND run_at <= snapshot.at),
- count(*) FILTER (WHERE state='queued' AND run_at > snapshot.at),
- count(*) FILTER (WHERE state='running' AND lease_expires_at > snapshot.at),
- count(*) FILTER (WHERE state='running' AND lease_expires_at <= snapshot.at),
- count(*) FILTER (WHERE state='succeeded'), count(*) FILTER (WHERE state='dead')
- FROM jobs CROSS JOIN snapshot`
+ (SELECT count(*) FROM jobs WHERE state='queued' AND run_at <= snapshot.at),
+ (SELECT count(*) FROM jobs WHERE state='queued' AND run_at > snapshot.at),
+ (SELECT count(*) FROM jobs WHERE state='running' AND lease_expires_at > snapshot.at),
+ (SELECT count(*) FROM jobs WHERE state='running' AND lease_expires_at <= snapshot.at),
+ (SELECT count(*) FROM jobs WHERE state='dead')
+ FROM snapshot`
 
 const qJob = `SELECT j.id, j.kind, j.state::text, j.attempt, j.max_attempts,
  j.run_at, j.created_at, j.finished_at, j.last_error,

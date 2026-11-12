@@ -24,7 +24,7 @@ func jsonLogger() *slog.Logger {
 }
 
 func runServe(ctx context.Context, args []string) error {
-	log := jsonLogger()
+	jsonLogger()
 	fs := flag.NewFlagSet("serve", flag.ExitOnError)
 	addr := fs.String("addr", ":8080", "HTTP listen address")
 	maxConns := fs.Int("max-conns", 5, "connection pool size")
@@ -47,19 +47,23 @@ func runServe(ctx context.Context, args []string) error {
 		return err
 	}
 	defer pool.Close()
+	return serve(ctx, pool, *addr, *timeout)
+}
+
+func serve(ctx context.Context, pool *pgxpool.Pool, addr string, timeout time.Duration) error {
 	h := api.New(pool, prometheus.NewRegistry())
-	s, done, err := startHTTP(*addr, h)
+	s, done, err := startHTTP(addr, h)
 	if err != nil {
 		return err
 	}
-	log.Info("API started", "addr", *addr)
+	slog.Info("API started", "addr", addr)
 	select {
 	case err = <-done:
 	case <-ctx.Done():
 	}
 	h.BeginShutdown()
-	shutdownErr := shutdownHTTP(s, *timeout)
-	log.Info("API stopped")
+	shutdownErr := shutdownHTTP(s, timeout)
+	slog.Info("API stopped")
 	return errors.Join(err, shutdownErr)
 }
 
