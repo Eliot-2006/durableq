@@ -1,3 +1,13 @@
 .git
+.github
 *.log
-bench/results
+*.md
+bench
+chaos
+docs
+deploy
+scripts
+Makefile
+docker-compose.yml
+Dockerfile
+.dockerignore

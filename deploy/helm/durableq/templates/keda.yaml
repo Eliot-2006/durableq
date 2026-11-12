@@ -1,0 +1,44 @@
+{{- if .Values.autoscaling.enabled }}
+{{- $c := dict "ctx" . "component" "worker" }}
+apiVersion: keda.sh/v1alpha1
+kind: TriggerAuthentication
+metadata:
+  name: {{ include "durableq.fullname" . }}-db
+  labels:
+    {{- include "durableq.labels" $c | nindent 4 }}
+spec:
+  secretTargetRef:
+    - parameter: connection
+      name: {{ include "durableq.secretName" . }}
+      key: {{ .Values.database.secretKey }}
+---
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: {{ include "durableq.fullname" . }}-worker
+  labels:
+    {{- include "durableq.labels" $c | nindent 4 }}
+spec:
+  scaleTargetRef:
+    name: {{ include "durableq.fullname" . }}-worker
+  minReplicaCount: {{ .Values.autoscaling.minReplicas }}
+  maxReplicaCount: {{ .Values.autoscaling.maxReplicas }}
+  pollingInterval: {{ .Values.autoscaling.pollingInterval }}
+  cooldownPeriod: {{ .Values.autoscaling.cooldownPeriod }}
+  advanced:
+    horizontalPodAutoscalerConfig:
+      behavior:
+        scaleDown:
+          stabilizationWindowSeconds: {{ .Values.autoscaling.scaleDownStabilizationSeconds }}
+  triggers:
+    - type: postgresql
+      metricType: AverageValue
+      authenticationRef:
+        name: {{ include "durableq.fullname" . }}-db
+      metadata:
+        targetQueryValue: {{ .Values.autoscaling.backlogPerReplica | quote }}
+        query: |-
+          SELECT count(*) FROM jobs
+          WHERE (state = 'queued' AND run_at <= clock_timestamp())
+             OR (state = 'running' AND lease_expires_at < clock_timestamp())
+{{- end }}

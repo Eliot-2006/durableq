@@ -11,6 +11,40 @@ services:
       interval: 1s
       retries: 30
 
+  # One-shot schema migration; api and worker wait for it.
+  migrate:
+    build: .
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment: &dburl
+      DATABASE_URL: postgres://durableq:durableq@postgres:5432/durableq?sslmode=disable
+    command: ["migrate"]
+
+  # API on http://localhost:8080  (curl -XPOST localhost:8080/v1/jobs -d '{"kind":"demo.effect"}')
+  api:
+    build: .
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    environment: *dburl
+    command: ["serve", "--addr", ":8080"]
+    ports: ["${DURABLEQ_API_PORT:-8080}:8080"]
+
+  # Scale with: docker compose up -d --scale worker=3
+  worker:
+    build: .
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    environment: *dburl
+    command: ["worker", "--http-addr", ":9090"]
+    healthcheck:
+      test: ["CMD", "/durableq", "healthcheck", "--url", "http://127.0.0.1:9090/healthz"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
   # docker compose run --rm demo                          (defaults: 10,000 jobs)
   # docker compose run --rm demo demo --jobs 1000 --kills 20   (override flags)
   demo:

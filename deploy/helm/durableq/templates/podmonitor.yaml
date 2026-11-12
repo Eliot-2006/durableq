@@ -1,0 +1,18 @@
+{{- if .Values.metrics.podMonitor.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: {{ include "durableq.fullname" . }}
+  labels:
+    {{- include "durableq.labels" (dict "ctx" . "component" "metrics") | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ .Chart.Name }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+    matchExpressions:
+      - {key: app.kubernetes.io/component, operator: In, values: [api, worker]}
+  podMetricsEndpoints:
+    - {port: http, path: /metrics}     # api pods
+    - {port: metrics, path: /metrics}  # worker pods
+{{- end }}

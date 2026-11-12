@@ -23,3 +23,32 @@ chaos:
 
 demo:
 	docker compose run --rm demo
+
+KUBECONFORM := github.com/yannh/kubeconform/cmd/kubeconform@v0.6.7
+CHART := deploy/helm/durableq
+
+.PHONY: docker-build helm-lint kind-up kind-deploy kind-down k8s-smoke
+
+docker-build:
+	docker build -t durableq:dev .
+
+helm-lint:
+	@for f in values-kind.yaml values-ci.yaml; do \
+	  helm lint $(CHART) -f $(CHART)/$$f || exit 1; \
+	  helm template durableq $(CHART) -f $(CHART)/$$f | go run $(KUBECONFORM) -strict -ignore-missing-schemas -summary || exit 1; \
+	done
+	helm lint $(CHART)
+	helm template durableq $(CHART) | go run $(KUBECONFORM) -strict -ignore-missing-schemas -summary
+
+kind-up:
+	scripts/kind-up.sh
+
+# Rebuild the image and roll the chart on an existing cluster.
+kind-deploy:
+	DEPLOY_ONLY=1 scripts/kind-up.sh
+
+kind-down:
+	scripts/kind-down.sh
+
+k8s-smoke:
+	scripts/k8s-smoke.sh
