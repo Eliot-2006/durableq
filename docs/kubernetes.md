@@ -48,7 +48,7 @@ kubectl -n durableq port-forward svc/durableq-api 8080:8080
 curl -XPOST localhost:8080/v1/jobs -d '{"kind":"demo.effect","payload":{"sleep_ms":100},"idempotency_key":"order-42"}'
 # {"id":1,"existed":false}      (201; the same key again → 200 with "existed":true)
 curl localhost:8080/v1/jobs/1   # state, attempt, and the full attempt history
-curl localhost:8080/v1/stats    # {"pending":0,"scheduled":0,"running":0,"lease_expired":0,"succeeded":1,"dead":0}
+curl localhost:8080/v1/stats    # {"pending":0,"scheduled":0,"running":0,"lease_expired":0,"dead":0}
 kubectl -n durableq exec deploy/durableq-api -c api -- /durableq check   # invariants, in-cluster
 ```
 
@@ -109,7 +109,7 @@ Worker pods (`:9090/metrics`) export per-process counters and histograms. The AP
 
 | Metric | Type | Meaning |
 |---|---|---|
-| `durableq_jobs_pending` / `_scheduled` / `_running` / `_lease_expired` / `_succeeded` / `_dead` | gauge (API) | Rows by state; pending = queued and due; scheduled = queued with a future `run_at` (delays and retry backoff); `dead` is the dead-letter queue |
+| `durableq_jobs_pending` / `_scheduled` / `_running` / `_lease_expired` / `_dead` | gauge (API) | Rows by state, each counted through a partial index; pending = queued and due; scheduled = queued with a future `run_at` (delays and retry backoff); `dead` is the dead-letter queue |
 | `durableq_job_claims_total{kind}` | counter | Jobs claimed |
 | `durableq_lease_expirations_total{kind}` | counter | Claims that took over an expired lease (a worker died or stalled) |
 | `durableq_jobs_completed_total` / `_failed_total` / `_retried_total` / `_dead_lettered_total` / `_released_total{kind}` | counter | Attempt outcomes; failed = retried + dead-lettered |
@@ -154,7 +154,7 @@ See [results-k8s.md](results-k8s.md) for the commands, methodology, hardware, an
 - **No API authentication or TLS**, by design for a ClusterIP-only demo. Exposing the API needs an authenticating proxy or an Ingress with auth.
 - **The in-chart Postgres is not production Postgres**: one replica, no backups, no HA. Use a managed or operator-run Postgres through `database.existingSecret`.
 - **At-least-once, not exactly-once.** External side effects can repeat (see above). Ordering is not guaranteed.
-- **Queue gauges run a `count(*)` per scrape** on `jobs`. That's fine at demo scale but grows with table size, since nothing deletes finished jobs (retention is a PRD stretch item). The `succeeded`/`dead` counts are full scans.
+- **Queue gauges count rows on every scrape.** Each count uses a partial index, so its cost grows with the live queue and the dead-letter set, not the history. There is no succeeded gauge: counting the unbounded history would be a full scan, so use `rate(durableq_jobs_completed_total)` instead. Nothing deletes finished jobs (retention is a PRD stretch item).
 - **`durableq_queue_wait_seconds`** is measured from `run_at`. A reclaimed job's wait therefore includes its previous attempt's lease.
 - **Lease expiry counts as an attempt (D5)**, so a healthy job whose workers are SIGKILLed `max_attempts` times in a row dead-letters. Graceful terminations never count against the budget.
 - **The worker image runs the demo handlers.** `durableq worker` registers `demo.effect` and `demo.noop`; a real deployment builds its own binary around `durableq.NewWorker`. Jobs of a kind no worker handles are never claimed, but KEDA's backlog query still counts them (it has no kind filter), so they can hold the workers at `maxReplicas`.

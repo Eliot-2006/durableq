@@ -59,7 +59,7 @@ Debt that matters for Kubernetes: worker pool sizing (`concurrency+2` connection
 |---|---|
 | `POST /v1/jobs` | Body `{"kind": string (required, 1–200 chars), "payload": JSON object (default {}), "max_attempts": int 1–100 (default 5), "delay_ms": int ≥ 0, "idempotency_key": string ≤ 200}`. Body limit 1 MiB (413), unknown fields → 400. Returns **201** `{"id":n,"existed":false}`, or **200** `{"id":n,"existed":true}` on an idempotency hit. |
 | `GET /v1/jobs/{id}` | 200 `{"id","kind","state","attempt","max_attempts","run_at","created_at","finished_at","last_error","attempts":[{"attempt","worker_id","claimed_at","finished_at","outcome","error"}]}`, 404 if missing, 400 if the id is not an integer. Timestamps are RFC 3339; nulls stay null. |
-| `GET /v1/stats` | 200 `{"pending":n,"scheduled":n,"running":n,"lease_expired":n,"succeeded":n,"dead":n}` |
+| `GET /v1/stats` | 200 `{"pending":n,"scheduled":n,"running":n,"lease_expired":n,"dead":n}` |
 | `GET /healthz` | 200 `ok` while the process serves. Never checks the database (liveness). |
 | `GET /readyz` | 200 when `pool.Ping` succeeds within 1s and the process is not shutting down, else 503. |
 | `GET /metrics` | Prometheus text format |
@@ -93,7 +93,7 @@ Worker process:
 | `durableq_worker_active_jobs` | gauge | — |
 | `durableq_worker_concurrency` | gauge | — |
 
-API process: the Go/process collectors, `durableq_jobs_enqueued_total` (counter, no labels, new jobs only), `durableq_http_requests_total{route,code}` (route is the mux pattern, never the raw path), and the queue gauges, computed by one query per scrape with `ContinueOnError`: `durableq_jobs_pending`, `durableq_jobs_scheduled`, `durableq_jobs_running`, `durableq_jobs_lease_expired`, `durableq_jobs_dead`, `durableq_jobs_succeeded`.
+API process: the Go/process collectors, `durableq_jobs_enqueued_total` (counter, no labels, new jobs only), `durableq_http_requests_total{route,code}` (route is the mux pattern, never the raw path), and the queue gauges, computed by one query per scrape with `ContinueOnError`: `durableq_jobs_pending`, `durableq_jobs_scheduled`, `durableq_jobs_running`, `durableq_jobs_lease_expired`, `durableq_jobs_dead`. *(Revised after review: `durableq_jobs_succeeded` and the `succeeded` field of `/v1/stats` were dropped. Counting the unbounded history table is a full scan on every scrape. Each remaining count uses a partial index.)*
 
 ### Eligible backlog (KEDA query, D15)
 ```sql
