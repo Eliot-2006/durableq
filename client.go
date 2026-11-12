@@ -78,3 +78,59 @@ func enqueue(ctx context.Context, db queryRower, p EnqueueParams) (EnqueueResult
 	}
 	return r, nil
 }
+
+// ErrNotFound indicates that the requested job does not exist.
+var ErrNotFound = errors.New("durableq: job not found")
+
+type QueueStats struct {
+	Pending      int64 `json:"pending"`
+	Scheduled    int64 `json:"scheduled"`
+	Running      int64 `json:"running"`
+	LeaseExpired int64 `json:"lease_expired"`
+	Succeeded    int64 `json:"succeeded"`
+	Dead         int64 `json:"dead"`
+}
+
+// Stats reads the queue counts in one query.
+func (c *Client) Stats(ctx context.Context) (QueueStats, error) {
+	var s QueueStats
+	err := c.pool.QueryRow(ctx, qStats).Scan(&s.Pending, &s.Scheduled, &s.Running, &s.LeaseExpired, &s.Succeeded, &s.Dead)
+	return s, err
+}
+
+type AttemptInfo struct {
+	Attempt    int        `json:"attempt"`
+	WorkerID   string     `json:"worker_id"`
+	ClaimedAt  time.Time  `json:"claimed_at"`
+	FinishedAt *time.Time `json:"finished_at"`
+	Outcome    *string    `json:"outcome"`
+	Error      *string    `json:"error"`
+}
+
+type JobInfo struct {
+	ID          int64         `json:"id"`
+	Kind        string        `json:"kind"`
+	State       string        `json:"state"`
+	Attempt     int           `json:"attempt"`
+	MaxAttempts int           `json:"max_attempts"`
+	RunAt       time.Time     `json:"run_at"`
+	CreatedAt   time.Time     `json:"created_at"`
+	FinishedAt  *time.Time    `json:"finished_at"`
+	LastError   *string       `json:"last_error"`
+	Attempts    []AttemptInfo `json:"attempts"`
+}
+
+// Job reads a job and its ordered attempt history in one query.
+func (c *Client) Job(ctx context.Context, id int64) (JobInfo, error) {
+	var j JobInfo
+	var attempts []byte
+	err := c.pool.QueryRow(ctx, qJob, id).Scan(&j.ID, &j.Kind, &j.State, &j.Attempt, &j.MaxAttempts, &j.RunAt, &j.CreatedAt, &j.FinishedAt, &j.LastError, &attempts)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return JobInfo{}, ErrNotFound
+	}
+	if err != nil {
+		return JobInfo{}, err
+	}
+	err = json.Unmarshal(attempts, &j.Attempts)
+	return j, err
+}

@@ -27,6 +27,7 @@ type Job struct {
 	Payload     json.RawMessage
 	Attempt     int
 	MaxAttempts int
+	observedAt  time.Time
 }
 
 // CommitFunc runs inside the fenced completion transaction. Writes made with tx
@@ -41,7 +42,19 @@ type CommitFunc func(ctx context.Context, tx pgx.Tx) error
 // Permanent.
 type HandlerFunc func(ctx context.Context, job Job) (CommitFunc, error)
 
+// Event observes a claim or its final attempt outcome. OnEvent is synchronous;
+// callbacks must be fast, must not block, and must be safe for concurrent calls.
+type Event struct {
+	Kind      string
+	Type      string // claimed, succeeded, retried, dead, released, lease_lost, stale, error
+	Attempt   int
+	QueueWait time.Duration
+	Reclaimed bool
+	Duration  time.Duration
+}
+
 type WorkerConfig struct {
+	OnEvent       func(Event)
 	ID            string        // default hostname-pid-random
 	Concurrency   int           // default 10
 	BatchSize     int           // default 10
@@ -68,6 +81,7 @@ type Worker struct {
 	kinds    []string // registered kinds, passed to the claim query
 	log      *slog.Logger
 
+	active                                                      atomic.Int64
 	succeeded, failed, dead, released, leaseLost, staleRejected atomic.Int64
 }
 
@@ -121,6 +135,9 @@ func (w *Worker) Handle(kind string, h HandlerFunc) {
 	}
 	w.handlers[kind] = h
 }
+
+// Active returns the number of attempts currently executing.
+func (w *Worker) Active() int { return int(w.active.Load()) }
 
 func (w *Worker) ID() string { return w.cfg.ID }
 
@@ -203,16 +220,53 @@ func (w *Worker) claim(n int) ([]Job, error) {
 	if err != nil {
 		return nil, err
 	}
-	return pgx.CollectRows(rows, func(r pgx.CollectableRow) (Job, error) {
+	type observation struct {
+		wait      float64
+		reclaimed bool
+	}
+	var observations []observation
+	jobs, err := pgx.CollectRows(rows, func(r pgx.CollectableRow) (Job, error) {
 		var j Job
-		err := r.Scan(&j.ID, &j.Kind, &j.Payload, &j.Attempt, &j.MaxAttempts)
+		var o observation
+		err := r.Scan(&j.ID, &j.Kind, &j.Payload, &j.Attempt, &j.MaxAttempts, &o.wait, &o.reclaimed)
+		if w.cfg.OnEvent != nil {
+			observations = append(observations, o)
+		}
 		return j, err
 	})
+	if err != nil {
+		return nil, err
+	}
+	if w.cfg.OnEvent != nil {
+		for i := range jobs {
+			jobs[i].observedAt = time.Now()
+			w.cfg.OnEvent(Event{Kind: jobs[i].Kind, Type: "claimed", Attempt: jobs[i].Attempt, QueueWait: time.Duration(observations[i].wait * float64(time.Second)), Reclaimed: observations[i].reclaimed})
+		}
+	}
+	return jobs, nil
+}
+
+func (w *Worker) end(j Job, outcome string) {
+	if w.cfg.OnEvent != nil {
+		w.cfg.OnEvent(Event{Kind: j.Kind, Type: outcome, Attempt: j.Attempt, Duration: time.Since(j.observedAt)})
+	}
+}
+
+func (w *Worker) endError(j Job, err error) {
+	if w.cfg.OnEvent != nil {
+		outcome := "error"
+		if errors.Is(err, errStale) {
+			outcome = "stale"
+		}
+		w.end(j, outcome)
+	}
 }
 
 // run executes one claimed job. claimSent is when the claim query was sent;
 // the lease cannot have started earlier, so it anchors the local deadline.
 func (w *Worker) run(shutdown context.Context, j Job, claimSent time.Time) {
+	w.active.Add(1)
+	defer w.active.Add(-1)
 	log := w.log.With("job", j.ID, "attempt", j.Attempt)
 	failpoint.Hit("after_claim")
 	if j.Attempt > j.MaxAttempts {
@@ -260,6 +314,7 @@ func (w *Worker) run(shutdown context.Context, j Job, claimSent time.Time) {
 	switch {
 	case lost.Load():
 		w.leaseLost.Add(1)
+		w.end(j, "lease_lost")
 		log.Warn("lease lost; abandoning job without transition")
 	case err != nil && shutdown.Err() != nil:
 		w.release(j, log)
@@ -373,6 +428,7 @@ func (w *Worker) complete(j Job, commit CommitFunc, log *slog.Logger) {
 	if err == nil {
 		failpoint.Hit("after_commit")
 		w.succeeded.Add(1)
+		w.end(j, "succeeded")
 		return
 	}
 	log.Warn("complete failed", "err", err)
@@ -380,6 +436,8 @@ func (w *Worker) complete(j Job, commit CommitFunc, log *slog.Logger) {
 		// The CommitFunc or the connection failed; record a failure so the job
 		// retries instead of waiting for lease expiry.
 		w.fail(j, err, log)
+	} else {
+		w.end(j, "stale")
 	}
 }
 
@@ -404,11 +462,14 @@ func (w *Worker) fail(j Job, cause error, log *slog.Logger) {
 	switch {
 	case err != nil:
 		log.Warn("fail transition failed", "err", err)
+		w.endError(j, err)
 	case state == "dead":
 		w.dead.Add(1)
+		w.end(j, "dead")
 		log.Info("job dead", "err", cause)
 	default:
 		w.failed.Add(1)
+		w.end(j, "retried")
 		log.Info("job failed; retrying", "err", cause, "backoff", backoff)
 	}
 }
@@ -422,7 +483,9 @@ func (w *Worker) release(j Job, log *slog.Logger) {
 	})
 	if err != nil {
 		log.Warn("release failed", "err", err)
+		w.endError(j, err)
 		return
 	}
 	w.released.Add(1)
+	w.end(j, "released")
 }
