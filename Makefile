@@ -19,7 +19,7 @@ test:
 	go test -race ./...
 
 chaos:
-	go test -tags chaos -timeout 10m ./chaos/...
+	go test -tags chaos -timeout 10m ./test/chaos/...
 
 demo:
 	docker compose run --rm demo
@@ -52,3 +52,11 @@ kind-down:
 
 k8s-smoke:
 	scripts/k8s-smoke.sh
+
+.PHONY: k8s-chaos k8s-bench
+
+k8s-chaos:
+	scripts/k8s-chaos.sh
+
+k8s-bench:
+	scripts/k8s-bench.sh

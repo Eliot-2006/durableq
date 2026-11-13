@@ -1,0 +1,1037 @@
+[
+  {
+    "scenario": "RandomPodKill",
+    "seed": 44,
+    "params": {
+      "enqueued": 1200,
+      "max_attempts": 10,
+      "payload": "{\"sleep_ms\":500,\"fail_rate\":0.0,\"permanent\":false}",
+      "worker_config": {
+        "API_MAX_CONNS": "5",
+        "WORKER_CONCURRENCY": "10",
+        "WORKER_GRACE": "10s",
+        "WORKER_HEARTBEAT": "10s",
+        "WORKER_LEASE": "30s",
+        "WORKER_MAX_CONNS": "6",
+        "WORKER_POLL": "1s"
+      }
+    },
+    "started": "2026-11-13T00:11:49.278117Z",
+    "duration_seconds": 54.968811,
+    "enqueue_seconds": 0.709352667,
+    "drain_seconds": 48.970058333,
+    "faults_applied": {
+      "sigkill": 3
+    },
+    "events": [
+      {
+        "seconds": 13.534613,
+        "type": "sigkill",
+        "target": "durableq-worker-6588cc7fcd-5j87f",
+        "detail": "node=durableq-worker container=de5328251553d796baecd009dde936ce948c78a53c944629bfe78e406aef0148 pid=76203 exit=137 killed_at=2026-11-13T00:12:02.757111052Z"
+      },
+      {
+        "seconds": 17.367747,
+        "type": "sigkill",
+        "target": "durableq-worker-6588cc7fcd-v5pfl",
+        "detail": "node=durableq-worker2 container=04bf98679a5f2fb291855b7b423d6d8a8c60885c555506412830bdccd418ea43 pid=27495 exit=137 killed_at=2026-11-13T00:12:06.596883108Z"
+      },
+      {
+        "seconds": 22.279525,
+        "type": "sigkill",
+        "target": "durableq-worker-6588cc7fcd-5j87f",
+        "detail": "node=durableq-worker container=6d05a1aff69bf7b1ade9a195643e07c6414b856bb3d5a212d5a0a467af39c8cb pid=76560 exit=137 killed_at=2026-11-13T00:12:11.51909088Z"
+      }
+    ],
+    "invariant_violations": {
+      "I1": 0,
+      "I2": 0,
+      "I3": 0,
+      "I4": 0,
+      "I5": 0,
+      "I6": 0,
+      "I7": 0
+    },
+    "metrics": {
+      "abandoned_attempts": 30,
+      "attempts": 1230,
+      "dead": 0,
+      "duplicate_executions": 30,
+      "effects": 1200,
+      "failed_attempts": 0,
+      "released": 0,
+      "retried_attempts": 0,
+      "succeeded": 1200,
+      "total": 1200
+    },
+    "passed": true
+  },
+  {
+    "scenario": "GracefulTermination",
+    "seed": 44,
+    "params": {
+      "enqueued": 90,
+      "max_attempts": 1,
+      "payload": "{\"sleep_ms\":30000,\"fail_rate\":0.0,\"permanent\":false}",
+      "worker_config": {
+        "API_MAX_CONNS": "5",
+        "WORKER_CONCURRENCY": "10",
+        "WORKER_GRACE": "10s",
+        "WORKER_HEARTBEAT": "10s",
+        "WORKER_LEASE": "30s",
+        "WORKER_MAX_CONNS": "6",
+        "WORKER_POLL": "1s"
+      }
+    },
+    "started": "2026-11-13T00:12:44.247336Z",
+    "duration_seconds": 126.472215,
+    "enqueue_seconds": 0.215874,
+    "drain_seconds": 121.006090583,
+    "faults_applied": {
+      "sigterm_delete": 1
+    },
+    "events": [
+      {
+        "seconds": 11.196378,
+        "type": "sigterm_delete",
+        "target": "durableq-worker-6588cc7fcd-8knpq"
+      }
+    ],
+    "invariant_violations": {
+      "I1": 0,
+      "I2": 0,
+      "I3": 0,
+      "I4": 0,
+      "I5": 0,
+      "I6": 0,
+      "I7": 0
+    },
+    "metrics": {
+      "abandoned_attempts": 0,
+      "attempts": 100,
+      "dead": 0,
+      "duplicate_executions": 0,
+      "effects": 90,
+      "failed_attempts": 0,
+      "released": 10,
+      "retried_attempts": 0,
+      "succeeded": 90,
+      "total": 90
+    },
+    "passed": true
+  },
+  {
+    "scenario": "RollingUpdate",
+    "seed": 44,
+    "params": {
+      "enqueued": 2400,
+      "max_attempts": 5,
+      "payload": "{\"sleep_ms\":1000,\"fail_rate\":0.0,\"permanent\":false}",
+      "worker_config": {
+        "API_MAX_CONNS": "5",
+        "WORKER_CONCURRENCY": "10",
+        "WORKER_GRACE": "10s",
+        "WORKER_HEARTBEAT": "10s",
+        "WORKER_LEASE": "30s",
+        "WORKER_MAX_CONNS": "6",
+        "WORKER_POLL": "1s"
+      }
+    },
+    "started": "2026-11-13T00:14:50.722491Z",
+    "duration_seconds": 86.857202,
+    "enqueue_seconds": 1.405130542,
+    "drain_seconds": 79.908481291,
+    "faults_applied": {
+      "rollout_restart": 3
+    },
+    "events": [
+      {
+        "seconds": 22.399272,
+        "type": "rollout_restart",
+        "target": "deploy/durableq-worker",
+        "detail": "1"
+      },
+      {
+        "seconds": 33.675351,
+        "type": "rollout_restart",
+        "target": "deploy/durableq-worker",
+        "detail": "2"
+      },
+      {
+        "seconds": 42.746036,
+        "type": "rollout_restart",
+        "target": "deploy/durableq-worker",
+        "detail": "3"
+      }
+    ],
+    "invariant_violations": {
+      "I1": 0,
+      "I2": 0,
+      "I3": 0,
+      "I4": 0,
+      "I5": 0,
+      "I6": 0,
+      "I7": 0
+    },
+    "metrics": {
+      "abandoned_attempts": 0,
+      "attempts": 2400,
+      "dead": 0,
+      "duplicate_executions": 0,
+      "effects": 2400,
+      "failed_attempts": 0,
+      "released": 0,
+      "retried_attempts": 0,
+      "succeeded": 2400,
+      "total": 2400
+    },
+    "passed": true
+  },
+  {
+    "scenario": "ScaleUpDown",
+    "seed": 44,
+    "params": {
+      "enqueued": 4000,
+      "max_attempts": 5,
+      "payload": "{\"sleep_ms\":1000,\"fail_rate\":0.0,\"permanent\":false}",
+      "worker_config": {
+        "API_MAX_CONNS": "5",
+        "WORKER_CONCURRENCY": "10",
+        "WORKER_GRACE": "10s",
+        "WORKER_HEARTBEAT": "10s",
+        "WORKER_LEASE": "30s",
+        "WORKER_MAX_CONNS": "6",
+        "WORKER_POLL": "1s"
+      }
+    },
+    "started": "2026-11-13T00:16:17.583052Z",
+    "duration_seconds": 347.702341,
+    "enqueue_seconds": 2.654629834,
+    "drain_seconds": 339.40111125,
+    "faults_applied": {
+      "scale": 4
+    },
+    "events": [
+      {
+        "seconds": 22.301638,
+        "type": "scale",
+        "target": "deploy/durableq-worker",
+        "detail": "10"
+      },
+      {
+        "seconds": 22.589512,
+        "type": "scale",
+        "target": "deploy/durableq-worker",
+        "detail": "2"
+      },
+      {
+        "seconds": 27.493757,
+        "type": "scale",
+        "target": "deploy/durableq-worker",
+        "detail": "8"
+      },
+      {
+        "seconds": 28.039003,
+        "type": "scale",
+        "target": "deploy/durableq-worker",
+        "detail": "1"
+      }
+    ],
+    "invariant_violations": {
+      "I1": 0,
+      "I2": 0,
+      "I3": 0,
+      "I4": 0,
+      "I5": 0,
+      "I6": 0,
+      "I7": 0
+    },
+    "metrics": {
+      "abandoned_attempts": 0,
+      "attempts": 4000,
+      "dead": 0,
+      "duplicate_executions": 0,
+      "effects": 4000,
+      "failed_attempts": 0,
+      "released": 0,
+      "retried_attempts": 0,
+      "succeeded": 4000,
+      "total": 4000
+    },
+    "passed": true
+  },
+  {
+    "scenario": "PostgresRestart",
+    "seed": 44,
+    "params": {
+      "enqueued": 900,
+      "jobs_after_restart": 900,
+      "jobs_before_restart": 900,
+      "max_attempts": 10,
+      "payload": "{\"sleep_ms\":500,\"fail_rate\":0.0,\"permanent\":false}",
+      "worker_config": {
+        "API_MAX_CONNS": "5",
+        "WORKER_CONCURRENCY": "10",
+        "WORKER_GRACE": "10s",
+        "WORKER_HEARTBEAT": "10s",
+        "WORKER_LEASE": "30s",
+        "WORKER_MAX_CONNS": "6",
+        "WORKER_POLL": "1s"
+      }
+    },
+    "started": "2026-11-13T00:22:05.287945Z",
+    "duration_seconds": 86.65576,
+    "enqueue_seconds": 0.664816292,
+    "drain_seconds": 80.667936834,
+    "faults_applied": {
+      "postgres_restart": 1
+    },
+    "events": [
+      {
+        "seconds": 15.905238,
+        "type": "postgres_restart",
+        "target": "durableq-postgres-0",
+        "detail": "2026-11-13 00:04:23.39648+00 -\u003e 2026-11-13 00:22:20.479145+00"
+      }
+    ],
+    "invariant_violations": {
+      "I1": 0,
+      "I2": 0,
+      "I3": 0,
+      "I4": 0,
+      "I5": 0,
+      "I6": 0,
+      "I7": 0
+    },
+    "metrics": {
+      "abandoned_attempts": 30,
+      "attempts": 930,
+      "dead": 0,
+      "duplicate_executions": 30,
+      "effects": 900,
+      "failed_attempts": 0,
+      "released": 0,
+      "retried_attempts": 0,
+      "succeeded": 900,
+      "total": 900
+    },
+    "passed": true
+  },
+  {
+    "scenario": "ConnectionKill",
+    "seed": 44,
+    "params": {
+      "enqueued": 900,
+      "max_attempts": 10,
+      "payload": "{\"sleep_ms\":500,\"fail_rate\":0.0,\"permanent\":false}",
+      "worker_config": {
+        "API_MAX_CONNS": "5",
+        "WORKER_CONCURRENCY": "10",
+        "WORKER_GRACE": "10s",
+        "WORKER_HEARTBEAT": "10s",
+        "WORKER_LEASE": "30s",
+        "WORKER_MAX_CONNS": "6",
+        "WORKER_POLL": "1s"
+      }
+    },
+    "started": "2026-11-13T00:23:31.94529Z",
+    "duration_seconds": 69.493713,
+    "enqueue_seconds": 0.815234084,
+    "drain_seconds": 42.850464417,
+    "faults_applied": {
+      "connection_kill_round": 3,
+      "connections_terminated": 23
+    },
+    "events": [
+      {
+        "seconds": 32.318523,
+        "type": "connection_kill_round",
+        "target": "durableq-worker-%",
+        "detail": "terminated=7"
+      },
+      {
+        "seconds": 35.991618,
+        "type": "connection_kill_round",
+        "target": "durableq-worker-%",
+        "detail": "terminated=7"
+      },
+      {
+        "seconds": 38.487274,
+        "type": "connection_kill_round",
+        "target": "durableq-worker-%",
+        "detail": "terminated=9"
+      }
+    ],
+    "invariant_violations": {
+      "I1": 0,
+      "I2": 0,
+      "I3": 0,
+      "I4": 0,
+      "I5": 0,
+      "I6": 0,
+      "I7": 0
+    },
+    "metrics": {
+      "abandoned_attempts": 9,
+      "attempts": 910,
+      "dead": 0,
+      "duplicate_executions": 9,
+      "effects": 900,
+      "failed_attempts": 1,
+      "released": 0,
+      "retried_attempts": 1,
+      "succeeded": 900,
+      "total": 900
+    },
+    "passed": true
+  },
+  {
+    "scenario": "RetryExhaustionDLQ",
+    "seed": 44,
+    "params": {
+      "enqueued": 240,
+      "max_attempts": 3,
+      "payload": "{\"sleep_ms\":0,\"fail_rate\":0.0,\"permanent\":true}",
+      "worker_config": {
+        "API_MAX_CONNS": "5",
+        "WORKER_CONCURRENCY": "10",
+        "WORKER_GRACE": "10s",
+        "WORKER_HEARTBEAT": "10s",
+        "WORKER_LEASE": "30s",
+        "WORKER_MAX_CONNS": "6",
+        "WORKER_POLL": "1s"
+      },
+      "workloads": [
+        {
+          "count": 180,
+          "fail_rate": 1,
+          "max_attempts": 3,
+          "sleep_ms": 200
+        },
+        {
+          "count": 60,
+          "max_attempts": 3,
+          "permanent": true
+        }
+      ]
+    },
+    "started": "2026-11-13T00:24:41.441796Z",
+    "duration_seconds": 48.176155,
+    "enqueue_seconds": 0.470582125,
+    "drain_seconds": 39.637290541,
+    "faults_applied": {
+      "sigkill": 1
+    },
+    "events": [
+      {
+        "seconds": 17.458116,
+        "type": "sigkill",
+        "target": "durableq-worker-5bf8fbbbdf-fb7bt",
+        "detail": "node=durableq-worker2 container=86eff224614dd35fbdbfcfe3b0087b02827d80f9e2acf8f318f49c37c6fb911d pid=35850 exit=137 killed_at=2026-11-13T00:24:57.712885105Z"
+      }
+    ],
+    "invariant_violations": {
+      "I1": 0,
+      "I2": 0,
+      "I3": 0,
+      "I4": 0,
+      "I5": 0,
+      "I6": 0,
+      "I7": 0
+    },
+    "metrics": {
+      "abandoned_attempts": 10,
+      "attempts": 610,
+      "dead": 240,
+      "duplicate_executions": 10,
+      "effects": 0,
+      "failed_attempts": 600,
+      "released": 0,
+      "retried_attempts": 360,
+      "succeeded": 0,
+      "total": 240
+    },
+    "passed": true
+  },
+  {
+    "scenario": "RepeatedCrashRecovery",
+    "seed": 44,
+    "params": {
+      "enqueued": 3600,
+      "max_attempts": 10,
+      "payload": "{\"sleep_ms\":1000,\"fail_rate\":0.0,\"permanent\":false}",
+      "worker_config": {
+        "API_MAX_CONNS": "5",
+        "WORKER_CONCURRENCY": "10",
+        "WORKER_GRACE": "10s",
+        "WORKER_HEARTBEAT": "10s",
+        "WORKER_LEASE": "30s",
+        "WORKER_MAX_CONNS": "6",
+        "WORKER_POLL": "1s"
+      }
+    },
+    "started": "2026-11-13T00:25:29.618809Z",
+    "duration_seconds": 173.897005,
+    "enqueue_seconds": 2.270938834,
+    "drain_seconds": 164.986419542,
+    "faults_applied": {
+      "crash_recovery_cycle": 3,
+      "sigkill": 9
+    },
+    "events": [
+      {
+        "seconds": 14.872301,
+        "type": "sigkill",
+        "target": "durableq-worker-5bf8fbbbdf-ht4sb",
+        "detail": "node=durableq-worker2 container=6b7f709179a0f29bea7561dc3da74633a9d04e09f3df32b942011d0d287d459a pid=36541 exit=137 killed_at=2026-11-13T00:25:43.359713043Z"
+      },
+      {
+        "seconds": 15.285597,
+        "type": "sigkill",
+        "target": "durableq-worker-5bf8fbbbdf-kmz79",
+        "detail": "node=durableq-worker container=c8f6cacb07a45101b884a191a76f224d655a48cae0f08f3963fbfec4cd2054de pid=97255 exit=137 killed_at=2026-11-13T00:25:44.862093302Z"
+      },
+      {
+        "seconds": 15.606009,
+        "type": "sigkill",
+        "target": "durableq-worker-5bf8fbbbdf-x2kbc",
+        "detail": "node=durableq-worker2 container=56f7ca8f51435a9a8d5db6211bdee923ca5ea673e171de6afdf445e03c4ff1da pid=36519 exit=137 killed_at=2026-11-13T00:25:45.165320314Z"
+      },
+      {
+        "seconds": 45.959281,
+        "type": "crash_recovery_cycle",
+        "target": "all workers",
+        "detail": "cycle=1 recovered_jobs=30"
+      },
+      {
+        "seconds": 47.675232,
+        "type": "sigkill",
+        "target": "durableq-worker-5bf8fbbbdf-x2kbc",
+        "detail": "node=durableq-worker2 container=5db84000d88f01152a191dd8bd15f79da94bac2e3cb0564ad6f5909376e1c621 pid=36738 exit=137 killed_at=2026-11-13T00:26:16.103326557Z"
+      },
+      {
+        "seconds": 48.025112,
+        "type": "sigkill",
+        "target": "durableq-worker-5bf8fbbbdf-kmz79",
+        "detail": "node=durableq-worker container=96bdc4540d3439521039cfebbb640aecb43cec7146e18e9e728f85944faed9fc pid=97658 exit=137 killed_at=2026-11-13T00:26:17.597364278Z"
+      },
+      {
+        "seconds": 48.32706,
+        "type": "sigkill",
+        "target": "durableq-worker-5bf8fbbbdf-ht4sb",
+        "detail": "node=durableq-worker2 container=5e8735da6dfd96009edcd889e0b0022b4a074478bd9ca3bd9586fd561d271b86 pid=36642 exit=137 killed_at=2026-11-13T00:26:17.900365871Z"
+      },
+      {
+        "seconds": 78.729511,
+        "type": "crash_recovery_cycle",
+        "target": "all workers",
+        "detail": "cycle=2 recovered_jobs=30"
+      },
+      {
+        "seconds": 80.330343,
+        "type": "sigkill",
+        "target": "durableq-worker-5bf8fbbbdf-ht4sb",
+        "detail": "node=durableq-worker2 container=89cb3fc3e7fd2c07c61ec697fa7a10d2dd7c48b90fa86c5ccfb30b1fd8da212e pid=37029 exit=137 killed_at=2026-11-13T00:26:48.804741798Z"
+      },
+      {
+        "seconds": 80.632616,
+        "type": "sigkill",
+        "target": "durableq-worker-5bf8fbbbdf-x2kbc",
+        "detail": "node=durableq-worker2 container=50b62bb777ae5d146b2e3109d8a02cc60bc548f9387cdd2c928e5e8bb8d2a37f pid=36992 exit=137 killed_at=2026-11-13T00:26:50.212714031Z"
+      },
+      {
+        "seconds": 80.920696,
+        "type": "sigkill",
+        "target": "durableq-worker-5bf8fbbbdf-kmz79",
+        "detail": "node=durableq-worker container=ff19101a98f52ed2f541b7957582d6521ab552be6d5af1a9f1478ce18e7f1712 pid=98874 exit=137 killed_at=2026-11-13T00:26:50.48452793Z"
+      },
+      {
+        "seconds": 110.994513,
+        "type": "crash_recovery_cycle",
+        "target": "all workers",
+        "detail": "cycle=3 recovered_jobs=30"
+      }
+    ],
+    "invariant_violations": {
+      "I1": 0,
+      "I2": 0,
+      "I3": 0,
+      "I4": 0,
+      "I5": 0,
+      "I6": 0,
+      "I7": 0
+    },
+    "metrics": {
+      "abandoned_attempts": 90,
+      "attempts": 3690,
+      "dead": 0,
+      "duplicate_executions": 88,
+      "effects": 3600,
+      "failed_attempts": 0,
+      "released": 0,
+      "retried_attempts": 0,
+      "succeeded": 3600,
+      "total": 3600
+    },
+    "passed": true
+  },
+  {
+    "scenario": "KEDAAutoscale",
+    "seed": 44,
+    "params": {
+      "autoscaling": {
+        "MinReplicaCount": 3,
+        "MaxReplicaCount": 10,
+        "PollingInterval": 15,
+        "CooldownPeriod": 60
+      },
+      "enqueued": 3000,
+      "max_attempts": 10,
+      "payload": "{\"sleep_ms\":2000,\"fail_rate\":0.0,\"permanent\":false}",
+      "worker_config": {
+        "API_MAX_CONNS": "5",
+        "WORKER_CONCURRENCY": "10",
+        "WORKER_GRACE": "10s",
+        "WORKER_HEARTBEAT": "10s",
+        "WORKER_LEASE": "30s",
+        "WORKER_MAX_CONNS": "6",
+        "WORKER_POLL": "1s"
+      }
+    },
+    "started": "2026-11-13T00:28:23.519727Z",
+    "duration_seconds": 185.032145,
+    "enqueue_seconds": 2.189293375,
+    "drain_seconds": 73.480612833,
+    "faults_applied": {},
+    "events": null,
+    "invariant_violations": {
+      "I1": 0,
+      "I2": 0,
+      "I3": 0,
+      "I4": 0,
+      "I5": 0,
+      "I6": 0,
+      "I7": 0
+    },
+    "metrics": {
+      "abandoned_attempts": 0,
+      "attempts": 3000,
+      "dead": 0,
+      "duplicate_executions": 0,
+      "effects": 3000,
+      "failed_attempts": 0,
+      "released": 0,
+      "retried_attempts": 0,
+      "succeeded": 3000,
+      "total": 3000
+    },
+    "samples": [
+      {
+        "at": "2026-11-13T00:28:31.436225Z",
+        "desired": 3,
+        "ready": 3
+      },
+      {
+        "at": "2026-11-13T00:28:33.637193Z",
+        "desired": 3,
+        "ready": 3
+      },
+      {
+        "at": "2026-11-13T00:28:35.905217Z",
+        "desired": 3,
+        "ready": 3
+      },
+      {
+        "at": "2026-11-13T00:28:38.093334Z",
+        "desired": 3,
+        "ready": 3
+      },
+      {
+        "at": "2026-11-13T00:28:40.271914Z",
+        "desired": 7,
+        "ready": 3
+      },
+      {
+        "at": "2026-11-13T00:28:42.456959Z",
+        "desired": 7,
+        "ready": 7
+      },
+      {
+        "at": "2026-11-13T00:28:44.61247Z",
+        "desired": 7,
+        "ready": 7
+      },
+      {
+        "at": "2026-11-13T00:28:46.91699Z",
+        "desired": 7,
+        "ready": 7
+      },
+      {
+        "at": "2026-11-13T00:28:49.155228Z",
+        "desired": 7,
+        "ready": 7
+      },
+      {
+        "at": "2026-11-13T00:28:51.361397Z",
+        "desired": 7,
+        "ready": 7
+      },
+      {
+        "at": "2026-11-13T00:28:53.575039Z",
+        "desired": 7,
+        "ready": 7
+      },
+      {
+        "at": "2026-11-13T00:28:55.797826Z",
+        "desired": 10,
+        "ready": 7
+      },
+      {
+        "at": "2026-11-13T00:28:57.997281Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:29:00.187166Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:29:02.583221Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:29:04.769167Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:29:06.957229Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:29:09.228744Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:29:11.441681Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:29:13.659755Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:29:15.918749Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:29:18.0968Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:29:20.280945Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:29:22.485261Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:29:24.683477Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:29:26.886103Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:29:29.080206Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:29:31.339232Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:29:33.538231Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:29:35.87747Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:29:38.094357Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:29:40.327538Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:29:42.550915Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:29:44.751172Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:29:46.958958Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:29:49.193047Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:29:51.395914Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:29:53.598882Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:29:55.839943Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:29:58.043811Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:30:00.369382Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:30:02.636823Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:30:04.856995Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:30:07.106387Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:30:09.304293Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:30:11.556299Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:30:13.819724Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:30:16.040932Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:30:18.221746Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:30:20.405053Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:30:22.609181Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:30:24.812799Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:30:27.058357Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:30:29.279989Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:30:31.490745Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:30:33.848329Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:30:36.11093Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:30:38.321203Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:30:40.569824Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:30:42.736538Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:30:44.907197Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:30:47.092862Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:30:49.287998Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:30:51.479191Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:30:53.733088Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:30:55.945208Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:30:58.162505Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:31:00.440499Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:31:02.648735Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:31:04.843001Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:31:07.071397Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:31:09.239528Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:31:11.425408Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:31:13.632595Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:31:15.849657Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:31:18.078835Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:31:20.30372Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:31:22.453424Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:31:24.634253Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:31:26.938974Z",
+        "desired": 3,
+        "ready": 3
+      }
+    ],
+    "benchmark": {
+      "drain_to_min_seconds": 102.464562,
+      "first_scale_up_seconds": 8.885552,
+      "max_ready_seconds": 26.610919
+    },
+    "passed": true
+  }
+]

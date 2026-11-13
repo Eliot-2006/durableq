@@ -1,6 +1,6 @@
 # Implementation Plan
 
-Milestones and acceptance criteria are in `docs/PRD.md` §14; this file tracks status.
+Milestones and acceptance criteria are in [PRD.md](PRD.md) §14; this file tracks status.
 
 | Milestone | Scope | Status |
 |-----------|-------|--------|
@@ -9,6 +9,7 @@ Milestones and acceptance criteria are in `docs/PRD.md` §14; this file tracks s
 | M2 Leases & recovery | heartbeat, lease-loss cancel, local deadline, reclaim, budget→dead, SIGTERM release, and their tests | Done; Codex-reviewed, findings fixed |
 | M3 Chaos + demo | failpoints, harness, connection kills, lease stalls, `check`, `demo`, Dockerfile | Done (Docker demo verified, Docker 29.9.2) |
 | M4 Bench + docs | `bench`, `design.md`, `results.md`, README | Done |
+| M5 Kubernetes (PRD §16) | HTTP API, metrics, hardened image, Compose, Helm + KEDA + dashboard, kind, CI, K8s chaos and benchmarks | Done; see [kubernetes-plan.md](kubernetes-plan.md) |
 
 Dependencies: M2 tests → M3 (the harness relies on fenced recovery) → M4 (bench reuses the harness).
 

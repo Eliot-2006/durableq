@@ -3,8 +3,8 @@
 // Chaos tests: real worker processes, real SIGKILL/SIGSTOP, real
 // pg_terminate_backend, and (opt-in) Postgres server restarts. Run with:
 //
-//	go test -tags chaos ./chaos/...                                  # short (CI)
-//	go test -tags chaos ./chaos/ -run TestChaos -timeout 0 -v -args -jobs 10000 -kills 100 -conn-kills 20 -sleep-ms 100 -seeds 20
+//	go test -tags chaos ./test/chaos/...                                  # short (CI)
+//	go test -tags chaos ./test/chaos/ -run TestChaos -timeout 0 -v -args -jobs 10000 -kills 100 -conn-kills 20 -sleep-ms 100 -seeds 20
 package chaos
 
 import (
@@ -40,7 +40,7 @@ func setup(t *testing.T) (dbURL, bin string) {
 		t.Skip("DATABASE_URL not set")
 	}
 	bin = filepath.Join(t.TempDir(), "durableq")
-	if out, err := exec.Command("go", "build", "-o", bin, "../cmd/durableq").CombinedOutput(); err != nil {
+	if out, err := exec.Command("go", "build", "-o", bin, "../../cmd/durableq").CombinedOutput(); err != nil {
 		t.Fatalf("build: %v\n%s", err, out)
 	}
 	return dbURL, bin
@@ -156,7 +156,7 @@ func TestGracefulRestartsKeepBudget(t *testing.T) {
 // heartbeats and commits) and every invariant must still hold. Needs a
 // command that restarts the server, so it is opt-in:
 //
-//	DURABLEQ_PG_RESTART_CMD='docker restart -t 0 durableq-postgres-1' go test -tags chaos ./chaos/ -run TestPostgresRestart -v
+//	DURABLEQ_PG_RESTART_CMD='docker restart -t 0 durableq-postgres-1' go test -tags chaos ./test/chaos/ -run TestPostgresRestart -v
 func TestPostgresRestart(t *testing.T) {
 	cmd := os.Getenv("DURABLEQ_PG_RESTART_CMD")
 	if cmd == "" {

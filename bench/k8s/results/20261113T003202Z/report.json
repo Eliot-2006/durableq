@@ -1,0 +1,2514 @@
+[
+  {
+    "scenario": "BenchMatrix/sleep0/replicas1",
+    "seed": 42,
+    "params": {
+      "enqueued": 40000,
+      "max_attempts": 5,
+      "payload": "{\"sleep_ms\":0,\"fail_rate\":0.0,\"permanent\":false}",
+      "replicas": 1,
+      "sleep_ms": 0,
+      "worker_config": {
+        "API_MAX_CONNS": "5",
+        "WORKER_CONCURRENCY": "10",
+        "WORKER_GRACE": "10s",
+        "WORKER_HEARTBEAT": "10s",
+        "WORKER_LEASE": "30s",
+        "WORKER_MAX_CONNS": "6",
+        "WORKER_POLL": "1s"
+      }
+    },
+    "started": "2026-11-13T00:32:04.690946Z",
+    "duration_seconds": 113.277982,
+    "enqueue_seconds": 24.658053583,
+    "drain_seconds": 62.494743209,
+    "faults_applied": {},
+    "events": null,
+    "invariant_violations": {
+      "I1": 0,
+      "I2": 0,
+      "I3": 0,
+      "I4": 0,
+      "I5": 0,
+      "I6": 0,
+      "I7": 0
+    },
+    "metrics": {
+      "abandoned_attempts": 0,
+      "attempts": 40000,
+      "dead": 0,
+      "duplicate_executions": 0,
+      "effects": 40000,
+      "failed_attempts": 0,
+      "released": 0,
+      "retried_attempts": 0,
+      "succeeded": 40000,
+      "total": 40000
+    },
+    "samples": [
+      {
+        "at": "2026-11-13T00:32:55.406727Z",
+        "desired": 1,
+        "ready": 1,
+        "postgres_connections": 3,
+        "top": "durableq-api-9cfcff549-7wb7l       31m    22Mi   \ndurableq-postgres-0                226m   34Mi   \ndurableq-worker-5bf8fbbbdf-npr7q   1m     5Mi"
+      },
+      {
+        "at": "2026-11-13T00:32:57.704065Z",
+        "desired": 1,
+        "ready": 1,
+        "postgres_connections": 3,
+        "top": "durableq-api-9cfcff549-7wb7l       31m    22Mi   \ndurableq-postgres-0                226m   34Mi   \ndurableq-worker-5bf8fbbbdf-npr7q   1m     5Mi"
+      },
+      {
+        "at": "2026-11-13T00:33:00.062975Z",
+        "desired": 1,
+        "ready": 1,
+        "postgres_connections": 8,
+        "top": "durableq-api-9cfcff549-7wb7l       40m    21Mi   \ndurableq-postgres-0                226m   34Mi   \ndurableq-worker-5bf8fbbbdf-npr7q   1m     6Mi"
+      },
+      {
+        "at": "2026-11-13T00:33:02.345408Z",
+        "desired": 1,
+        "ready": 1,
+        "postgres_connections": 8,
+        "top": "durableq-api-9cfcff549-7wb7l       40m    21Mi   \ndurableq-postgres-0                226m   34Mi   \ndurableq-worker-5bf8fbbbdf-npr7q   1m     6Mi"
+      },
+      {
+        "at": "2026-11-13T00:33:04.675963Z",
+        "desired": 1,
+        "ready": 1,
+        "postgres_connections": 8,
+        "top": "durableq-api-9cfcff549-7wb7l       40m    21Mi   \ndurableq-postgres-0                226m   34Mi   \ndurableq-worker-5bf8fbbbdf-npr7q   1m     6Mi"
+      },
+      {
+        "at": "2026-11-13T00:33:06.976275Z",
+        "desired": 1,
+        "ready": 1,
+        "postgres_connections": 8,
+        "top": "durableq-api-9cfcff549-7wb7l       40m    21Mi   \ndurableq-postgres-0                226m   34Mi   \ndurableq-worker-5bf8fbbbdf-npr7q   1m     6Mi"
+      },
+      {
+        "at": "2026-11-13T00:33:09.241913Z",
+        "desired": 1,
+        "ready": 1,
+        "postgres_connections": 8,
+        "top": "durableq-api-9cfcff549-7wb7l       40m    21Mi   \ndurableq-postgres-0                226m   34Mi   \ndurableq-worker-5bf8fbbbdf-npr7q   1m     6Mi"
+      },
+      {
+        "at": "2026-11-13T00:33:11.594962Z",
+        "desired": 1,
+        "ready": 1,
+        "postgres_connections": 8,
+        "top": "durableq-api-9cfcff549-7wb7l       40m    21Mi   \ndurableq-postgres-0                226m   34Mi   \ndurableq-worker-5bf8fbbbdf-npr7q   1m     6Mi"
+      },
+      {
+        "at": "2026-11-13T00:33:13.890016Z",
+        "desired": 1,
+        "ready": 1,
+        "postgres_connections": 8,
+        "top": "durableq-api-9cfcff549-7wb7l       40m    21Mi   \ndurableq-postgres-0                226m   34Mi   \ndurableq-worker-5bf8fbbbdf-npr7q   1m     6Mi"
+      },
+      {
+        "at": "2026-11-13T00:33:16.14179Z",
+        "desired": 1,
+        "ready": 1,
+        "postgres_connections": 8,
+        "top": "durableq-api-9cfcff549-7wb7l       18m    14Mi   \ndurableq-postgres-0                550m   60Mi   \ndurableq-worker-5bf8fbbbdf-npr7q   34m    10Mi"
+      },
+      {
+        "at": "2026-11-13T00:33:18.392893Z",
+        "desired": 1,
+        "ready": 1,
+        "postgres_connections": 8,
+        "top": "durableq-api-9cfcff549-7wb7l       18m    14Mi   \ndurableq-postgres-0                550m   60Mi   \ndurableq-worker-5bf8fbbbdf-npr7q   34m    10Mi"
+      },
+      {
+        "at": "2026-11-13T00:33:20.69115Z",
+        "desired": 1,
+        "ready": 1,
+        "postgres_connections": 8,
+        "top": "durableq-api-9cfcff549-7wb7l       18m    14Mi   \ndurableq-postgres-0                550m   60Mi   \ndurableq-worker-5bf8fbbbdf-npr7q   34m    10Mi"
+      },
+      {
+        "at": "2026-11-13T00:33:22.958062Z",
+        "desired": 1,
+        "ready": 1,
+        "postgres_connections": 8,
+        "top": "durableq-api-9cfcff549-7wb7l       18m    14Mi   \ndurableq-postgres-0                550m   60Mi   \ndurableq-worker-5bf8fbbbdf-npr7q   34m    10Mi"
+      },
+      {
+        "at": "2026-11-13T00:33:25.230399Z",
+        "desired": 1,
+        "ready": 1,
+        "postgres_connections": 8,
+        "top": "durableq-api-9cfcff549-7wb7l       18m    14Mi   \ndurableq-postgres-0                550m   60Mi   \ndurableq-worker-5bf8fbbbdf-npr7q   34m    10Mi"
+      },
+      {
+        "at": "2026-11-13T00:33:27.532772Z",
+        "desired": 1,
+        "ready": 1,
+        "postgres_connections": 8,
+        "top": "durableq-api-9cfcff549-7wb7l       18m    14Mi   \ndurableq-postgres-0                550m   60Mi   \ndurableq-worker-5bf8fbbbdf-npr7q   34m    10Mi"
+      },
+      {
+        "at": "2026-11-13T00:33:29.792888Z",
+        "desired": 1,
+        "ready": 1,
+        "postgres_connections": 8,
+        "top": "durableq-api-9cfcff549-7wb7l       18m    14Mi   \ndurableq-postgres-0                550m   60Mi   \ndurableq-worker-5bf8fbbbdf-npr7q   34m    10Mi"
+      },
+      {
+        "at": "2026-11-13T00:33:32.077119Z",
+        "desired": 1,
+        "ready": 1,
+        "postgres_connections": 8,
+        "top": "durableq-api-9cfcff549-7wb7l       9m     15Mi   \ndurableq-postgres-0                973m   64Mi   \ndurableq-worker-5bf8fbbbdf-npr7q   62m    11Mi"
+      },
+      {
+        "at": "2026-11-13T00:33:34.354195Z",
+        "desired": 1,
+        "ready": 1,
+        "postgres_connections": 8,
+        "top": "durableq-api-9cfcff549-7wb7l       9m     15Mi   \ndurableq-postgres-0                973m   64Mi   \ndurableq-worker-5bf8fbbbdf-npr7q   62m    11Mi"
+      },
+      {
+        "at": "2026-11-13T00:33:36.651239Z",
+        "desired": 1,
+        "ready": 1,
+        "postgres_connections": 8,
+        "top": "durableq-api-9cfcff549-7wb7l       9m     15Mi   \ndurableq-postgres-0                973m   64Mi   \ndurableq-worker-5bf8fbbbdf-npr7q   62m    11Mi"
+      },
+      {
+        "at": "2026-11-13T00:33:38.91794Z",
+        "desired": 1,
+        "ready": 1,
+        "postgres_connections": 8,
+        "top": "durableq-api-9cfcff549-7wb7l       9m     15Mi   \ndurableq-postgres-0                973m   64Mi   \ndurableq-worker-5bf8fbbbdf-npr7q   62m    11Mi"
+      },
+      {
+        "at": "2026-11-13T00:33:41.191355Z",
+        "desired": 1,
+        "ready": 1,
+        "postgres_connections": 8,
+        "top": "durableq-api-9cfcff549-7wb7l       9m     15Mi   \ndurableq-postgres-0                973m   64Mi   \ndurableq-worker-5bf8fbbbdf-npr7q   62m    11Mi"
+      },
+      {
+        "at": "2026-11-13T00:33:43.499412Z",
+        "desired": 1,
+        "ready": 1,
+        "postgres_connections": 8,
+        "top": "durableq-api-9cfcff549-7wb7l       9m     15Mi   \ndurableq-postgres-0                973m   64Mi   \ndurableq-worker-5bf8fbbbdf-npr7q   62m    11Mi"
+      },
+      {
+        "at": "2026-11-13T00:33:45.775857Z",
+        "desired": 1,
+        "ready": 1,
+        "postgres_connections": 8,
+        "top": "durableq-api-9cfcff549-7wb7l       6m     15Mi   \ndurableq-postgres-0                974m   67Mi   \ndurableq-worker-5bf8fbbbdf-npr7q   74m    11Mi"
+      },
+      {
+        "at": "2026-11-13T00:33:48.063114Z",
+        "desired": 1,
+        "ready": 1,
+        "postgres_connections": 8,
+        "top": "durableq-api-9cfcff549-7wb7l       6m     15Mi   \ndurableq-postgres-0                974m   67Mi   \ndurableq-worker-5bf8fbbbdf-npr7q   74m    11Mi"
+      },
+      {
+        "at": "2026-11-13T00:33:50.355016Z",
+        "desired": 1,
+        "ready": 1,
+        "postgres_connections": 8,
+        "top": "durableq-api-9cfcff549-7wb7l       6m     15Mi   \ndurableq-postgres-0                974m   67Mi   \ndurableq-worker-5bf8fbbbdf-npr7q   74m    11Mi"
+      },
+      {
+        "at": "2026-11-13T00:33:52.638965Z",
+        "desired": 1,
+        "ready": 1,
+        "postgres_connections": 8,
+        "top": "durableq-api-9cfcff549-7wb7l       6m     15Mi   \ndurableq-postgres-0                974m   67Mi   \ndurableq-worker-5bf8fbbbdf-npr7q   74m    11Mi"
+      },
+      {
+        "at": "2026-11-13T00:33:54.956053Z",
+        "desired": 1,
+        "ready": 1,
+        "postgres_connections": 8,
+        "top": "durableq-api-9cfcff549-7wb7l       6m     15Mi   \ndurableq-postgres-0                974m   67Mi   \ndurableq-worker-5bf8fbbbdf-npr7q   74m    11Mi"
+      },
+      {
+        "at": "2026-11-13T00:33:57.243047Z",
+        "desired": 1,
+        "ready": 1,
+        "postgres_connections": 8,
+        "top": "durableq-api-9cfcff549-7wb7l       6m     15Mi   \ndurableq-postgres-0                974m   67Mi   \ndurableq-worker-5bf8fbbbdf-npr7q   74m    11Mi"
+      }
+    ],
+    "benchmark": {
+      "complete_resource_samples": 28,
+      "duration_seconds": 57.764542,
+      "failure_rate": 0,
+      "finished_at": "2026-11-13T00:33:55.977374+00:00",
+      "jobs_per_second": 692.4663230256374,
+      "peak_postgres_connections": 8,
+      "peak_resources": {
+        "worker_cpu_millicores": 74,
+        "worker_memory_mib": 11,
+        "postgres_cpu_millicores": 974,
+        "postgres_memory_mib": 67,
+        "workers_in_sample": 1,
+        "postgres_in_sample": 1
+      },
+      "processing_ms": [
+        1.633,
+        3.7101999999999826,
+        5.876110000000023
+      ],
+      "queue_wait_ms": [
+        32731.900999999998,
+        55697.473,
+        57356.56201
+      ],
+      "retry_rate": 0
+    },
+    "passed": true
+  },
+  {
+    "scenario": "BenchMatrix/sleep0/replicas2",
+    "seed": 42,
+    "params": {
+      "enqueued": 40000,
+      "max_attempts": 5,
+      "payload": "{\"sleep_ms\":0,\"fail_rate\":0.0,\"permanent\":false}",
+      "replicas": 2,
+      "sleep_ms": 0,
+      "worker_config": {
+        "API_MAX_CONNS": "5",
+        "WORKER_CONCURRENCY": "10",
+        "WORKER_GRACE": "10s",
+        "WORKER_HEARTBEAT": "10s",
+        "WORKER_LEASE": "30s",
+        "WORKER_MAX_CONNS": "6",
+        "WORKER_POLL": "1s"
+      }
+    },
+    "started": "2026-11-13T00:33:57.969297Z",
+    "duration_seconds": 81.105867,
+    "enqueue_seconds": 22.847098,
+    "drain_seconds": 40.253732125,
+    "faults_applied": {},
+    "events": null,
+    "invariant_violations": {
+      "I1": 0,
+      "I2": 0,
+      "I3": 0,
+      "I4": 0,
+      "I5": 0,
+      "I6": 0,
+      "I7": 0
+    },
+    "metrics": {
+      "abandoned_attempts": 0,
+      "attempts": 40000,
+      "dead": 0,
+      "duplicate_executions": 0,
+      "effects": 40000,
+      "failed_attempts": 0,
+      "released": 0,
+      "retried_attempts": 0,
+      "succeeded": 40000,
+      "total": 40000
+    },
+    "samples": [
+      {
+        "at": "2026-11-13T00:34:38.435267Z",
+        "desired": 2,
+        "ready": 2,
+        "postgres_connections": 4,
+        "top": "durableq-api-9cfcff549-7wb7l       39m    21Mi   \ndurableq-postgres-0                107m   59Mi   \ndurableq-worker-5bf8fbbbdf-5kzgg   1m     4Mi    \ndurableq-worker-5bf8fbbbdf-qqh8h   2m     5Mi"
+      },
+      {
+        "at": "2026-11-13T00:34:40.752091Z",
+        "desired": 2,
+        "ready": 2,
+        "postgres_connections": 4,
+        "top": "durableq-api-9cfcff549-7wb7l       39m    21Mi   \ndurableq-postgres-0                107m   59Mi   \ndurableq-worker-5bf8fbbbdf-5kzgg   1m     4Mi    \ndurableq-worker-5bf8fbbbdf-qqh8h   2m     5Mi"
+      },
+      {
+        "at": "2026-11-13T00:34:43.122224Z",
+        "desired": 2,
+        "ready": 2,
+        "postgres_connections": 14,
+        "top": "durableq-api-9cfcff549-7wb7l       39m    21Mi   \ndurableq-postgres-0                107m   59Mi   \ndurableq-worker-5bf8fbbbdf-5kzgg   1m     4Mi    \ndurableq-worker-5bf8fbbbdf-qqh8h   2m     5Mi"
+      },
+      {
+        "at": "2026-11-13T00:34:45.4345Z",
+        "desired": 2,
+        "ready": 2,
+        "postgres_connections": 14,
+        "top": "durableq-api-9cfcff549-7wb7l       39m    14Mi   \ndurableq-postgres-0                220m   59Mi   \ndurableq-worker-5bf8fbbbdf-5kzgg   1m     4Mi    \ndurableq-worker-5bf8fbbbdf-qqh8h   1m     5Mi"
+      },
+      {
+        "at": "2026-11-13T00:34:47.724035Z",
+        "desired": 2,
+        "ready": 2,
+        "postgres_connections": 14,
+        "top": "durableq-api-9cfcff549-7wb7l       39m    14Mi   \ndurableq-postgres-0                220m   59Mi   \ndurableq-worker-5bf8fbbbdf-5kzgg   1m     4Mi    \ndurableq-worker-5bf8fbbbdf-qqh8h   1m     5Mi"
+      },
+      {
+        "at": "2026-11-13T00:34:50.011647Z",
+        "desired": 2,
+        "ready": 2,
+        "postgres_connections": 14,
+        "top": "durableq-api-9cfcff549-7wb7l       39m    14Mi   \ndurableq-postgres-0                220m   59Mi   \ndurableq-worker-5bf8fbbbdf-5kzgg   1m     4Mi    \ndurableq-worker-5bf8fbbbdf-qqh8h   1m     5Mi"
+      },
+      {
+        "at": "2026-11-13T00:34:52.353421Z",
+        "desired": 2,
+        "ready": 2,
+        "postgres_connections": 14,
+        "top": "durableq-api-9cfcff549-7wb7l       39m    14Mi   \ndurableq-postgres-0                220m   59Mi   \ndurableq-worker-5bf8fbbbdf-5kzgg   1m     4Mi    \ndurableq-worker-5bf8fbbbdf-qqh8h   1m     5Mi"
+      },
+      {
+        "at": "2026-11-13T00:34:54.685973Z",
+        "desired": 2,
+        "ready": 2,
+        "postgres_connections": 14,
+        "top": "durableq-api-9cfcff549-7wb7l       39m    14Mi   \ndurableq-postgres-0                220m   59Mi   \ndurableq-worker-5bf8fbbbdf-5kzgg   1m     4Mi    \ndurableq-worker-5bf8fbbbdf-qqh8h   1m     5Mi"
+      },
+      {
+        "at": "2026-11-13T00:34:56.979642Z",
+        "desired": 2,
+        "ready": 2,
+        "postgres_connections": 14,
+        "top": "durableq-api-9cfcff549-7wb7l       39m    14Mi   \ndurableq-postgres-0                220m   59Mi   \ndurableq-worker-5bf8fbbbdf-5kzgg   1m     4Mi    \ndurableq-worker-5bf8fbbbdf-qqh8h   1m     5Mi"
+      },
+      {
+        "at": "2026-11-13T00:34:59.307656Z",
+        "desired": 2,
+        "ready": 2,
+        "postgres_connections": 14,
+        "top": "durableq-api-9cfcff549-7wb7l       39m    14Mi   \ndurableq-postgres-0                220m   59Mi   \ndurableq-worker-5bf8fbbbdf-5kzgg   1m     4Mi    \ndurableq-worker-5bf8fbbbdf-qqh8h   1m     5Mi"
+      },
+      {
+        "at": "2026-11-13T00:35:01.652928Z",
+        "desired": 2,
+        "ready": 2,
+        "postgres_connections": 14,
+        "top": "durableq-api-9cfcff549-7wb7l       8m      12Mi   \ndurableq-postgres-0                1032m   84Mi   \ndurableq-worker-5bf8fbbbdf-5kzgg   24m     10Mi   \ndurableq-worker-5bf8fbbbdf-qqh8h   60m     11Mi"
+      },
+      {
+        "at": "2026-11-13T00:35:04.020799Z",
+        "desired": 2,
+        "ready": 2,
+        "postgres_connections": 14,
+        "top": "durableq-api-9cfcff549-7wb7l       8m      12Mi   \ndurableq-postgres-0                1032m   84Mi   \ndurableq-worker-5bf8fbbbdf-5kzgg   24m     10Mi   \ndurableq-worker-5bf8fbbbdf-qqh8h   60m     11Mi"
+      },
+      {
+        "at": "2026-11-13T00:35:06.351707Z",
+        "desired": 2,
+        "ready": 2,
+        "postgres_connections": 14,
+        "top": "durableq-api-9cfcff549-7wb7l       8m      12Mi   \ndurableq-postgres-0                1032m   84Mi   \ndurableq-worker-5bf8fbbbdf-5kzgg   24m     10Mi   \ndurableq-worker-5bf8fbbbdf-qqh8h   60m     11Mi"
+      },
+      {
+        "at": "2026-11-13T00:35:08.629113Z",
+        "desired": 2,
+        "ready": 2,
+        "postgres_connections": 14,
+        "top": "durableq-api-9cfcff549-7wb7l       8m      12Mi   \ndurableq-postgres-0                1032m   84Mi   \ndurableq-worker-5bf8fbbbdf-5kzgg   24m     10Mi   \ndurableq-worker-5bf8fbbbdf-qqh8h   60m     11Mi"
+      },
+      {
+        "at": "2026-11-13T00:35:10.918758Z",
+        "desired": 2,
+        "ready": 2,
+        "postgres_connections": 14,
+        "top": "durableq-api-9cfcff549-7wb7l       8m      12Mi   \ndurableq-postgres-0                1032m   84Mi   \ndurableq-worker-5bf8fbbbdf-5kzgg   24m     10Mi   \ndurableq-worker-5bf8fbbbdf-qqh8h   60m     11Mi"
+      },
+      {
+        "at": "2026-11-13T00:35:13.309937Z",
+        "desired": 2,
+        "ready": 2,
+        "postgres_connections": 14,
+        "top": "durableq-api-9cfcff549-7wb7l       8m      12Mi   \ndurableq-postgres-0                1032m   84Mi   \ndurableq-worker-5bf8fbbbdf-5kzgg   24m     10Mi   \ndurableq-worker-5bf8fbbbdf-qqh8h   60m     11Mi"
+      },
+      {
+        "at": "2026-11-13T00:35:15.606948Z",
+        "desired": 2,
+        "ready": 2,
+        "postgres_connections": 14,
+        "top": "durableq-api-9cfcff549-7wb7l       8m      12Mi   \ndurableq-postgres-0                2131m   94Mi   \ndurableq-worker-5bf8fbbbdf-5kzgg   65m     10Mi   \ndurableq-worker-5bf8fbbbdf-qqh8h   69m     11Mi"
+      },
+      {
+        "at": "2026-11-13T00:35:17.913373Z",
+        "desired": 2,
+        "ready": 2,
+        "postgres_connections": 14,
+        "top": "durableq-api-9cfcff549-7wb7l       8m      12Mi   \ndurableq-postgres-0                2131m   94Mi   \ndurableq-worker-5bf8fbbbdf-5kzgg   65m     10Mi   \ndurableq-worker-5bf8fbbbdf-qqh8h   69m     11Mi"
+      }
+    ],
+    "benchmark": {
+      "complete_resource_samples": 18,
+      "duration_seconds": 34.839464,
+      "failure_rate": 0,
+      "finished_at": "2026-11-13T00:35:16.077402+00:00",
+      "jobs_per_second": 1148.1232891527839,
+      "peak_postgres_connections": 14,
+      "peak_resources": {
+        "worker_cpu_millicores": 134,
+        "worker_memory_mib": 21,
+        "postgres_cpu_millicores": 2131,
+        "postgres_memory_mib": 94,
+        "workers_in_sample": 2,
+        "postgres_in_sample": 1
+      },
+      "processing_ms": [
+        1.9395,
+        5.094049999999996,
+        8.84814000000003
+      ],
+      "queue_wait_ms": [
+        22139.8185,
+        33676.43205,
+        34619.319
+      ],
+      "retry_rate": 0
+    },
+    "passed": true
+  },
+  {
+    "scenario": "BenchMatrix/sleep0/replicas5",
+    "seed": 42,
+    "params": {
+      "enqueued": 40000,
+      "max_attempts": 5,
+      "payload": "{\"sleep_ms\":0,\"fail_rate\":0.0,\"permanent\":false}",
+      "replicas": 5,
+      "sleep_ms": 0,
+      "worker_config": {
+        "API_MAX_CONNS": "5",
+        "WORKER_CONCURRENCY": "10",
+        "WORKER_GRACE": "10s",
+        "WORKER_HEARTBEAT": "10s",
+        "WORKER_LEASE": "30s",
+        "WORKER_MAX_CONNS": "6",
+        "WORKER_POLL": "1s"
+      }
+    },
+    "started": "2026-11-13T00:35:19.076355Z",
+    "duration_seconds": 71.8173,
+    "enqueue_seconds": 21.701290375,
+    "drain_seconds": 21.969810958,
+    "faults_applied": {},
+    "events": null,
+    "invariant_violations": {
+      "I1": 0,
+      "I2": 0,
+      "I3": 0,
+      "I4": 0,
+      "I5": 0,
+      "I6": 0,
+      "I7": 0
+    },
+    "metrics": {
+      "abandoned_attempts": 0,
+      "attempts": 40000,
+      "dead": 0,
+      "duplicate_executions": 0,
+      "effects": 40000,
+      "failed_attempts": 0,
+      "released": 0,
+      "retried_attempts": 0,
+      "succeeded": 40000,
+      "total": 40000
+    },
+    "samples": [
+      {
+        "at": "2026-11-13T00:36:08.210817Z",
+        "desired": 5,
+        "ready": 5,
+        "postgres_connections": 7,
+        "top": "durableq-api-9cfcff549-7wb7l       18m    20Mi   \ndurableq-postgres-0                194m   67Mi   \ndurableq-worker-5bf8fbbbdf-6ks4z   1m     5Mi    \ndurableq-worker-5bf8fbbbdf-8kgm9   2m     5Mi    \ndurableq-worker-5bf8fbbbdf-bbfgn   1m     5Mi    \ndurableq-worker-5bf8fbbbdf-lpn8d   1m     3Mi    \ndurableq-worker-5bf8fbbbdf-nvxjb   1m     5Mi"
+      },
+      {
+        "at": "2026-11-13T00:36:10.505889Z",
+        "desired": 5,
+        "ready": 5,
+        "postgres_connections": 7,
+        "top": "durableq-api-9cfcff549-7wb7l       18m    20Mi   \ndurableq-postgres-0                194m   67Mi   \ndurableq-worker-5bf8fbbbdf-6ks4z   1m     5Mi    \ndurableq-worker-5bf8fbbbdf-8kgm9   2m     5Mi    \ndurableq-worker-5bf8fbbbdf-bbfgn   1m     5Mi    \ndurableq-worker-5bf8fbbbdf-lpn8d   1m     3Mi    \ndurableq-worker-5bf8fbbbdf-nvxjb   1m     5Mi"
+      },
+      {
+        "at": "2026-11-13T00:36:12.824431Z",
+        "desired": 5,
+        "ready": 5,
+        "postgres_connections": 32,
+        "top": "durableq-api-9cfcff549-7wb7l       18m    20Mi   \ndurableq-postgres-0                194m   67Mi   \ndurableq-worker-5bf8fbbbdf-6ks4z   1m     5Mi    \ndurableq-worker-5bf8fbbbdf-8kgm9   2m     5Mi    \ndurableq-worker-5bf8fbbbdf-bbfgn   1m     5Mi    \ndurableq-worker-5bf8fbbbdf-lpn8d   1m     3Mi    \ndurableq-worker-5bf8fbbbdf-nvxjb   1m     5Mi"
+      },
+      {
+        "at": "2026-11-13T00:36:15.21712Z",
+        "desired": 5,
+        "ready": 5,
+        "postgres_connections": 32,
+        "top": "durableq-api-9cfcff549-7wb7l       50m    19Mi   \ndurableq-postgres-0                224m   66Mi   \ndurableq-worker-5bf8fbbbdf-6ks4z   1m     6Mi    \ndurableq-worker-5bf8fbbbdf-8kgm9   4m     8Mi    \ndurableq-worker-5bf8fbbbdf-bbfgn   1m     6Mi    \ndurableq-worker-5bf8fbbbdf-lpn8d   1m     5Mi    \ndurableq-worker-5bf8fbbbdf-nvxjb   2m     7Mi"
+      },
+      {
+        "at": "2026-11-13T00:36:17.594936Z",
+        "desired": 5,
+        "ready": 5,
+        "postgres_connections": 32,
+        "top": "durableq-api-9cfcff549-7wb7l       50m    19Mi   \ndurableq-postgres-0                224m   66Mi   \ndurableq-worker-5bf8fbbbdf-6ks4z   1m     6Mi    \ndurableq-worker-5bf8fbbbdf-8kgm9   4m     8Mi    \ndurableq-worker-5bf8fbbbdf-bbfgn   1m     6Mi    \ndurableq-worker-5bf8fbbbdf-lpn8d   1m     5Mi    \ndurableq-worker-5bf8fbbbdf-nvxjb   2m     7Mi"
+      },
+      {
+        "at": "2026-11-13T00:36:19.942804Z",
+        "desired": 5,
+        "ready": 5,
+        "postgres_connections": 32,
+        "top": "durableq-api-9cfcff549-7wb7l       50m    19Mi   \ndurableq-postgres-0                224m   66Mi   \ndurableq-worker-5bf8fbbbdf-6ks4z   1m     6Mi    \ndurableq-worker-5bf8fbbbdf-8kgm9   4m     8Mi    \ndurableq-worker-5bf8fbbbdf-bbfgn   1m     6Mi    \ndurableq-worker-5bf8fbbbdf-lpn8d   1m     5Mi    \ndurableq-worker-5bf8fbbbdf-nvxjb   2m     7Mi"
+      },
+      {
+        "at": "2026-11-13T00:36:22.388104Z",
+        "desired": 5,
+        "ready": 5,
+        "postgres_connections": 32,
+        "top": "durableq-api-9cfcff549-7wb7l       50m    19Mi   \ndurableq-postgres-0                224m   66Mi   \ndurableq-worker-5bf8fbbbdf-6ks4z   1m     6Mi    \ndurableq-worker-5bf8fbbbdf-8kgm9   4m     8Mi    \ndurableq-worker-5bf8fbbbdf-bbfgn   1m     6Mi    \ndurableq-worker-5bf8fbbbdf-lpn8d   1m     5Mi    \ndurableq-worker-5bf8fbbbdf-nvxjb   2m     7Mi"
+      },
+      {
+        "at": "2026-11-13T00:36:24.787367Z",
+        "desired": 5,
+        "ready": 5,
+        "postgres_connections": 32,
+        "top": "durableq-api-9cfcff549-7wb7l       50m    19Mi   \ndurableq-postgres-0                224m   66Mi   \ndurableq-worker-5bf8fbbbdf-6ks4z   1m     6Mi    \ndurableq-worker-5bf8fbbbdf-8kgm9   4m     8Mi    \ndurableq-worker-5bf8fbbbdf-bbfgn   1m     6Mi    \ndurableq-worker-5bf8fbbbdf-lpn8d   1m     5Mi    \ndurableq-worker-5bf8fbbbdf-nvxjb   2m     7Mi"
+      },
+      {
+        "at": "2026-11-13T00:36:27.145997Z",
+        "desired": 5,
+        "ready": 5,
+        "postgres_connections": 32,
+        "top": "durableq-api-9cfcff549-7wb7l       50m    19Mi   \ndurableq-postgres-0                224m   66Mi   \ndurableq-worker-5bf8fbbbdf-6ks4z   1m     6Mi    \ndurableq-worker-5bf8fbbbdf-8kgm9   4m     8Mi    \ndurableq-worker-5bf8fbbbdf-bbfgn   1m     6Mi    \ndurableq-worker-5bf8fbbbdf-lpn8d   1m     5Mi    \ndurableq-worker-5bf8fbbbdf-nvxjb   2m     7Mi"
+      },
+      {
+        "at": "2026-11-13T00:36:29.529052Z",
+        "desired": 5,
+        "ready": 5,
+        "postgres_connections": 32,
+        "top": "durableq-api-9cfcff549-7wb7l       50m    19Mi   \ndurableq-postgres-0                224m   66Mi   \ndurableq-worker-5bf8fbbbdf-6ks4z   1m     6Mi    \ndurableq-worker-5bf8fbbbdf-8kgm9   4m     8Mi    \ndurableq-worker-5bf8fbbbdf-bbfgn   1m     6Mi    \ndurableq-worker-5bf8fbbbdf-lpn8d   1m     5Mi    \ndurableq-worker-5bf8fbbbdf-nvxjb   2m     7Mi"
+      }
+    ],
+    "benchmark": {
+      "complete_resource_samples": 10,
+      "duration_seconds": 18.018455,
+      "failure_rate": 0,
+      "finished_at": "2026-11-13T00:36:29.058014+00:00",
+      "jobs_per_second": 2219.9461607557364,
+      "peak_postgres_connections": 32,
+      "peak_resources": {
+        "worker_cpu_millicores": 9,
+        "worker_memory_mib": 32,
+        "postgres_cpu_millicores": 224,
+        "postgres_memory_mib": 67,
+        "workers_in_sample": 5,
+        "postgres_in_sample": 1
+      },
+      "processing_ms": [
+        4.271,
+        11.589149999999988,
+        16.259060000000012
+      ],
+      "queue_wait_ms": [
+        9441.9625,
+        17247.546449999998,
+        17852.95101
+      ],
+      "retry_rate": 0
+    },
+    "passed": true
+  },
+  {
+    "scenario": "BenchMatrix/sleep0/replicas10",
+    "seed": 42,
+    "params": {
+      "enqueued": 40000,
+      "max_attempts": 5,
+      "payload": "{\"sleep_ms\":0,\"fail_rate\":0.0,\"permanent\":false}",
+      "replicas": 10,
+      "sleep_ms": 0,
+      "worker_config": {
+        "API_MAX_CONNS": "5",
+        "WORKER_CONCURRENCY": "10",
+        "WORKER_GRACE": "10s",
+        "WORKER_HEARTBEAT": "10s",
+        "WORKER_LEASE": "30s",
+        "WORKER_MAX_CONNS": "6",
+        "WORKER_POLL": "1s"
+      }
+    },
+    "started": "2026-11-13T00:36:30.895833Z",
+    "duration_seconds": 72.315056,
+    "enqueue_seconds": 22.139623709,
+    "drain_seconds": 20.534922625,
+    "faults_applied": {},
+    "events": null,
+    "invariant_violations": {
+      "I1": 0,
+      "I2": 0,
+      "I3": 0,
+      "I4": 0,
+      "I5": 0,
+      "I6": 0,
+      "I7": 0
+    },
+    "metrics": {
+      "abandoned_attempts": 0,
+      "attempts": 40000,
+      "dead": 0,
+      "duplicate_executions": 0,
+      "effects": 40000,
+      "failed_attempts": 0,
+      "released": 0,
+      "retried_attempts": 0,
+      "succeeded": 40000,
+      "total": 40000
+    },
+    "samples": [
+      {
+        "at": "2026-11-13T00:37:23.035133Z",
+        "desired": 10,
+        "ready": 10,
+        "postgres_connections": 13,
+        "top": "durableq-api-9cfcff549-7wb7l       44m   20Mi   \ndurableq-postgres-0                47m   84Mi   \ndurableq-worker-5bf8fbbbdf-6dbw8   2m    5Mi    \ndurableq-worker-5bf8fbbbdf-6r4x5   2m    5Mi    \ndurableq-worker-5bf8fbbbdf-6vw6w   1m    5Mi    \ndurableq-worker-5bf8fbbbdf-9qhfk   1m    6Mi    \ndurableq-worker-5bf8fbbbdf-dbpwc   1m    5Mi    \ndurableq-worker-5bf8fbbbdf-mktfz   1m    5Mi    \ndurableq-worker-5bf8fbbbdf-tl6gz   1m    5Mi    \ndurableq-worker-5bf8fbbbdf-vlpvp   1m    5Mi    \ndurableq-worker-5bf8fbbbdf-wj5rv   0m    3Mi    \ndurableq-worker-5bf8fbbbdf-zspqg   1m    6Mi"
+      },
+      {
+        "at": "2026-11-13T00:37:25.3283Z",
+        "desired": 10,
+        "ready": 10,
+        "postgres_connections": 13,
+        "top": "durableq-api-9cfcff549-7wb7l       44m   20Mi   \ndurableq-postgres-0                47m   84Mi   \ndurableq-worker-5bf8fbbbdf-6dbw8   2m    5Mi    \ndurableq-worker-5bf8fbbbdf-6r4x5   2m    5Mi    \ndurableq-worker-5bf8fbbbdf-6vw6w   1m    5Mi    \ndurableq-worker-5bf8fbbbdf-9qhfk   1m    6Mi    \ndurableq-worker-5bf8fbbbdf-dbpwc   1m    5Mi    \ndurableq-worker-5bf8fbbbdf-mktfz   1m    5Mi    \ndurableq-worker-5bf8fbbbdf-tl6gz   1m    5Mi    \ndurableq-worker-5bf8fbbbdf-vlpvp   1m    5Mi    \ndurableq-worker-5bf8fbbbdf-wj5rv   0m    3Mi    \ndurableq-worker-5bf8fbbbdf-zspqg   1m    6Mi"
+      },
+      {
+        "at": "2026-11-13T00:37:27.677098Z",
+        "desired": 10,
+        "ready": 10,
+        "postgres_connections": 62,
+        "top": "durableq-api-9cfcff549-7wb7l       44m   20Mi   \ndurableq-postgres-0                47m   84Mi   \ndurableq-worker-5bf8fbbbdf-6dbw8   2m    5Mi    \ndurableq-worker-5bf8fbbbdf-6r4x5   2m    5Mi    \ndurableq-worker-5bf8fbbbdf-6vw6w   1m    5Mi    \ndurableq-worker-5bf8fbbbdf-9qhfk   1m    6Mi    \ndurableq-worker-5bf8fbbbdf-dbpwc   1m    5Mi    \ndurableq-worker-5bf8fbbbdf-mktfz   1m    5Mi    \ndurableq-worker-5bf8fbbbdf-tl6gz   1m    5Mi    \ndurableq-worker-5bf8fbbbdf-vlpvp   1m    5Mi    \ndurableq-worker-5bf8fbbbdf-wj5rv   0m    3Mi    \ndurableq-worker-5bf8fbbbdf-zspqg   1m    6Mi"
+      },
+      {
+        "at": "2026-11-13T00:37:30.178704Z",
+        "desired": 10,
+        "ready": 10,
+        "postgres_connections": 62,
+        "top": "durableq-api-9cfcff549-7wb7l       37m    12Mi    \ndurableq-postgres-0                764m   237Mi   \ndurableq-worker-5bf8fbbbdf-6dbw8   2m     8Mi     \ndurableq-worker-5bf8fbbbdf-6r4x5   1m     6Mi     \ndurableq-worker-5bf8fbbbdf-6vw6w   1m     5Mi     \ndurableq-worker-5bf8fbbbdf-9qhfk   1m     6Mi     \ndurableq-worker-5bf8fbbbdf-dbpwc   17m    10Mi    \ndurableq-worker-5bf8fbbbdf-mktfz   16m    9Mi     \ndurableq-worker-5bf8fbbbdf-tl6gz   1m     5Mi     \ndurableq-worker-5bf8fbbbdf-vlpvp   1m     5Mi     \ndurableq-worker-5bf8fbbbdf-wj5rv   1m     5Mi     \ndurableq-worker-5bf8fbbbdf-zspqg   1m     5Mi"
+      },
+      {
+        "at": "2026-11-13T00:37:32.584502Z",
+        "desired": 10,
+        "ready": 10,
+        "postgres_connections": 62,
+        "top": "durableq-api-9cfcff549-7wb7l       37m    12Mi    \ndurableq-postgres-0                764m   237Mi   \ndurableq-worker-5bf8fbbbdf-6dbw8   2m     8Mi     \ndurableq-worker-5bf8fbbbdf-6r4x5   1m     6Mi     \ndurableq-worker-5bf8fbbbdf-6vw6w   1m     5Mi     \ndurableq-worker-5bf8fbbbdf-9qhfk   1m     6Mi     \ndurableq-worker-5bf8fbbbdf-dbpwc   17m    10Mi    \ndurableq-worker-5bf8fbbbdf-mktfz   16m    9Mi     \ndurableq-worker-5bf8fbbbdf-tl6gz   1m     5Mi     \ndurableq-worker-5bf8fbbbdf-vlpvp   1m     5Mi     \ndurableq-worker-5bf8fbbbdf-wj5rv   1m     5Mi     \ndurableq-worker-5bf8fbbbdf-zspqg   1m     5Mi"
+      },
+      {
+        "at": "2026-11-13T00:37:35.100096Z",
+        "desired": 10,
+        "ready": 10,
+        "postgres_connections": 62,
+        "top": "durableq-api-9cfcff549-7wb7l       37m    12Mi    \ndurableq-postgres-0                764m   237Mi   \ndurableq-worker-5bf8fbbbdf-6dbw8   2m     8Mi     \ndurableq-worker-5bf8fbbbdf-6r4x5   1m     6Mi     \ndurableq-worker-5bf8fbbbdf-6vw6w   1m     5Mi     \ndurableq-worker-5bf8fbbbdf-9qhfk   1m     6Mi     \ndurableq-worker-5bf8fbbbdf-dbpwc   17m    10Mi    \ndurableq-worker-5bf8fbbbdf-mktfz   16m    9Mi     \ndurableq-worker-5bf8fbbbdf-tl6gz   1m     5Mi     \ndurableq-worker-5bf8fbbbdf-vlpvp   1m     5Mi     \ndurableq-worker-5bf8fbbbdf-wj5rv   1m     5Mi     \ndurableq-worker-5bf8fbbbdf-zspqg   1m     5Mi"
+      },
+      {
+        "at": "2026-11-13T00:37:37.683704Z",
+        "desired": 10,
+        "ready": 10,
+        "postgres_connections": 62,
+        "top": "durableq-api-9cfcff549-7wb7l       37m    12Mi    \ndurableq-postgres-0                764m   237Mi   \ndurableq-worker-5bf8fbbbdf-6dbw8   2m     8Mi     \ndurableq-worker-5bf8fbbbdf-6r4x5   1m     6Mi     \ndurableq-worker-5bf8fbbbdf-6vw6w   1m     5Mi     \ndurableq-worker-5bf8fbbbdf-9qhfk   1m     6Mi     \ndurableq-worker-5bf8fbbbdf-dbpwc   17m    10Mi    \ndurableq-worker-5bf8fbbbdf-mktfz   16m    9Mi     \ndurableq-worker-5bf8fbbbdf-tl6gz   1m     5Mi     \ndurableq-worker-5bf8fbbbdf-vlpvp   1m     5Mi     \ndurableq-worker-5bf8fbbbdf-wj5rv   1m     5Mi     \ndurableq-worker-5bf8fbbbdf-zspqg   1m     5Mi"
+      },
+      {
+        "at": "2026-11-13T00:37:40.109639Z",
+        "desired": 10,
+        "ready": 10,
+        "postgres_connections": 62,
+        "top": "durableq-api-9cfcff549-7wb7l       37m    12Mi    \ndurableq-postgres-0                764m   237Mi   \ndurableq-worker-5bf8fbbbdf-6dbw8   2m     8Mi     \ndurableq-worker-5bf8fbbbdf-6r4x5   1m     6Mi     \ndurableq-worker-5bf8fbbbdf-6vw6w   1m     5Mi     \ndurableq-worker-5bf8fbbbdf-9qhfk   1m     6Mi     \ndurableq-worker-5bf8fbbbdf-dbpwc   17m    10Mi    \ndurableq-worker-5bf8fbbbdf-mktfz   16m    9Mi     \ndurableq-worker-5bf8fbbbdf-tl6gz   1m     5Mi     \ndurableq-worker-5bf8fbbbdf-vlpvp   1m     5Mi     \ndurableq-worker-5bf8fbbbdf-wj5rv   1m     5Mi     \ndurableq-worker-5bf8fbbbdf-zspqg   1m     5Mi"
+      },
+      {
+        "at": "2026-11-13T00:37:42.560747Z",
+        "desired": 10,
+        "ready": 10,
+        "postgres_connections": 62,
+        "top": "durableq-api-9cfcff549-7wb7l       37m    12Mi    \ndurableq-postgres-0                764m   237Mi   \ndurableq-worker-5bf8fbbbdf-6dbw8   2m     8Mi     \ndurableq-worker-5bf8fbbbdf-6r4x5   1m     6Mi     \ndurableq-worker-5bf8fbbbdf-6vw6w   1m     5Mi     \ndurableq-worker-5bf8fbbbdf-9qhfk   1m     6Mi     \ndurableq-worker-5bf8fbbbdf-dbpwc   17m    10Mi    \ndurableq-worker-5bf8fbbbdf-mktfz   16m    9Mi     \ndurableq-worker-5bf8fbbbdf-tl6gz   1m     5Mi     \ndurableq-worker-5bf8fbbbdf-vlpvp   1m     5Mi     \ndurableq-worker-5bf8fbbbdf-wj5rv   1m     5Mi     \ndurableq-worker-5bf8fbbbdf-zspqg   1m     5Mi"
+      }
+    ],
+    "benchmark": {
+      "complete_resource_samples": 9,
+      "duration_seconds": 16.875194,
+      "failure_rate": 0,
+      "finished_at": "2026-11-13T00:37:42.667913+00:00",
+      "jobs_per_second": 2370.3431202035367,
+      "peak_postgres_connections": 62,
+      "peak_resources": {
+        "worker_cpu_millicores": 42,
+        "worker_memory_mib": 64,
+        "postgres_cpu_millicores": 764,
+        "postgres_memory_mib": 237,
+        "workers_in_sample": 10,
+        "postgres_in_sample": 1
+      },
+      "processing_ms": [
+        10.22,
+        26.513299999999976,
+        39.28730000000006
+      ],
+      "queue_wait_ms": [
+        9022.111499999999,
+        16062.9604,
+        16684.99204
+      ],
+      "retry_rate": 0
+    },
+    "passed": true
+  },
+  {
+    "scenario": "BenchMatrix/sleep50/replicas1",
+    "seed": 42,
+    "params": {
+      "enqueued": 20000,
+      "max_attempts": 5,
+      "payload": "{\"sleep_ms\":50,\"fail_rate\":0.0,\"permanent\":false}",
+      "replicas": 1,
+      "sleep_ms": 50,
+      "worker_config": {
+        "API_MAX_CONNS": "5",
+        "WORKER_CONCURRENCY": "10",
+        "WORKER_GRACE": "10s",
+        "WORKER_HEARTBEAT": "10s",
+        "WORKER_LEASE": "30s",
+        "WORKER_MAX_CONNS": "6",
+        "WORKER_POLL": "1s"
+      }
+    },
+    "started": "2026-11-13T00:37:43.212425Z",
+    "duration_seconds": 152.286245,
+    "enqueue_seconds": 10.86010625,
+    "drain_seconds": 123.794820291,
+    "faults_applied": {},
+    "events": null,
+    "invariant_violations": {
+      "I1": 0,
+      "I2": 0,
+      "I3": 0,
+      "I4": 0,
+      "I5": 0,
+      "I6": 0,
+      "I7": 0
+    },
+    "metrics": {
+      "abandoned_attempts": 0,
+      "attempts": 20000,
+      "dead": 0,
+      "duplicate_executions": 0,
+      "effects": 20000,
+      "failed_attempts": 0,
+      "released": 0,
+      "retried_attempts": 0,
+      "succeeded": 20000,
+      "total": 20000
+    },
+    "samples": [
+      {
+        "at": "2026-11-13T00:38:11.679828Z",
+        "desired": 1,
+        "ready": 1,
+        "postgres_connections": 3,
+        "top": "durableq-api-9cfcff549-7wb7l       4m      12Mi   \ndurableq-postgres-0                4790m   72Mi   \ndurableq-worker-5bf8fbbbdf-bxjf7   4m      5Mi"
+      },
+      {
+        "at": "2026-11-13T00:38:14.024939Z",
+        "desired": 1,
+        "ready": 1,
+        "postgres_connections": 3,
+        "top": "durableq-api-9cfcff549-7wb7l       4m      12Mi   \ndurableq-postgres-0                4790m   72Mi   \ndurableq-worker-5bf8fbbbdf-bxjf7   4m      5Mi"
+      },
+      {
+        "at": "2026-11-13T00:38:16.332423Z",
+        "desired": 1,
+        "ready": 1,
+        "postgres_connections": 6,
+        "top": "durableq-api-9cfcff549-7wb7l       36m    13Mi   \ndurableq-postgres-0                115m   68Mi   \ndurableq-worker-5bf8fbbbdf-bxjf7   4m     5Mi"
+      },
+      {
+        "at": "2026-11-13T00:38:18.622186Z",
+        "desired": 1,
+        "ready": 1,
+        "postgres_connections": 7,
+        "top": "durableq-api-9cfcff549-7wb7l       36m    13Mi   \ndurableq-postgres-0                115m   68Mi   \ndurableq-worker-5bf8fbbbdf-bxjf7   4m     5Mi"
+      },
+      {
+        "at": "2026-11-13T00:38:20.87581Z",
+        "desired": 1,
+        "ready": 1,
+        "postgres_connections": 7,
+        "top": "durableq-api-9cfcff549-7wb7l       36m    13Mi   \ndurableq-postgres-0                115m   68Mi   \ndurableq-worker-5bf8fbbbdf-bxjf7   4m     5Mi"
+      },
+      {
+        "at": "2026-11-13T00:38:23.117775Z",
+        "desired": 1,
+        "ready": 1,
+        "postgres_connections": 7,
+        "top": "durableq-api-9cfcff549-7wb7l       36m    13Mi   \ndurableq-postgres-0                115m   68Mi   \ndurableq-worker-5bf8fbbbdf-bxjf7   4m     5Mi"
+      },
+      {
+        "at": "2026-11-13T00:38:25.419423Z",
+        "desired": 1,
+        "ready": 1,
+        "postgres_connections": 7,
+        "top": "durableq-api-9cfcff549-7wb7l       36m    13Mi   \ndurableq-postgres-0                115m   68Mi   \ndurableq-worker-5bf8fbbbdf-bxjf7   4m     5Mi"
+      },
+      {
+        "at": "2026-11-13T00:38:27.670383Z",
+        "desired": 1,
+        "ready": 1,
+        "postgres_connections": 7,
+        "top": "durableq-api-9cfcff549-7wb7l       36m    13Mi   \ndurableq-postgres-0                115m   68Mi   \ndurableq-worker-5bf8fbbbdf-bxjf7   4m     5Mi"
+      },
+      {
+        "at": "2026-11-13T00:38:29.925961Z",
+        "desired": 1,
+        "ready": 1,
+        "postgres_connections": 7,
+        "top": "durableq-api-9cfcff549-7wb7l       36m    13Mi   \ndurableq-postgres-0                115m   68Mi   \ndurableq-worker-5bf8fbbbdf-bxjf7   4m     5Mi"
+      },
+      {
+        "at": "2026-11-13T00:38:32.213796Z",
+        "desired": 1,
+        "ready": 1,
+        "postgres_connections": 7,
+        "top": "durableq-api-9cfcff549-7wb7l       36m    13Mi   \ndurableq-postgres-0                485m   79Mi   \ndurableq-worker-5bf8fbbbdf-bxjf7   5m     8Mi"
+      },
+      {
+        "at": "2026-11-13T00:38:34.468476Z",
+        "desired": 1,
+        "ready": 1,
+        "postgres_connections": 8,
+        "top": "durableq-api-9cfcff549-7wb7l       36m    13Mi   \ndurableq-postgres-0                485m   79Mi   \ndurableq-worker-5bf8fbbbdf-bxjf7   5m     8Mi"
+      },
+      {
+        "at": "2026-11-13T00:38:36.744957Z",
+        "desired": 1,
+        "ready": 1,
+        "postgres_connections": 8,
+        "top": "durableq-api-9cfcff549-7wb7l       36m    13Mi   \ndurableq-postgres-0                485m   79Mi   \ndurableq-worker-5bf8fbbbdf-bxjf7   5m     8Mi"
+      },
+      {
+        "at": "2026-11-13T00:38:39.040877Z",
+        "desired": 1,
+        "ready": 1,
+        "postgres_connections": 8,
+        "top": "durableq-api-9cfcff549-7wb7l       36m    13Mi   \ndurableq-postgres-0                485m   79Mi   \ndurableq-worker-5bf8fbbbdf-bxjf7   5m     8Mi"
+      },
+      {
+        "at": "2026-11-13T00:38:41.287912Z",
+        "desired": 1,
+        "ready": 1,
+        "postgres_connections": 8,
+        "top": "durableq-api-9cfcff549-7wb7l       36m    13Mi   \ndurableq-postgres-0                485m   79Mi   \ndurableq-worker-5bf8fbbbdf-bxjf7   5m     8Mi"
+      },
+      {
+        "at": "2026-11-13T00:38:43.531463Z",
+        "desired": 1,
+        "ready": 1,
+        "postgres_connections": 8,
+        "top": "durableq-api-9cfcff549-7wb7l       36m    13Mi   \ndurableq-postgres-0                485m   79Mi   \ndurableq-worker-5bf8fbbbdf-bxjf7   5m     8Mi"
+      },
+      {
+        "at": "2026-11-13T00:38:45.834203Z",
+        "desired": 1,
+        "ready": 1,
+        "postgres_connections": 8,
+        "top": "durableq-api-9cfcff549-7wb7l       6m     12Mi   \ndurableq-postgres-0                568m   81Mi   \ndurableq-worker-5bf8fbbbdf-bxjf7   30m    9Mi"
+      },
+      {
+        "at": "2026-11-13T00:38:48.101252Z",
+        "desired": 1,
+        "ready": 1,
+        "postgres_connections": 8,
+        "top": "durableq-api-9cfcff549-7wb7l       6m     12Mi   \ndurableq-postgres-0                568m   81Mi   \ndurableq-worker-5bf8fbbbdf-bxjf7   30m    9Mi"
+      },
+      {
+        "at": "2026-11-13T00:38:50.348313Z",
+        "desired": 1,
+        "ready": 1,
+        "postgres_connections": 8,
+        "top": "durableq-api-9cfcff549-7wb7l       6m     12Mi   \ndurableq-postgres-0                568m   81Mi   \ndurableq-worker-5bf8fbbbdf-bxjf7   30m    9Mi"
+      },
+      {
+        "at": "2026-11-13T00:38:52.632241Z",
+        "desired": 1,
+        "ready": 1,
+        "postgres_connections": 8,
+        "top": "durableq-api-9cfcff549-7wb7l       6m     12Mi   \ndurableq-postgres-0                568m   81Mi   \ndurableq-worker-5bf8fbbbdf-bxjf7   30m    9Mi"
+      },
+      {
+        "at": "2026-11-13T00:38:54.923394Z",
+        "desired": 1,
+        "ready": 1,
+        "postgres_connections": 8,
+        "top": "durableq-api-9cfcff549-7wb7l       6m     12Mi   \ndurableq-postgres-0                568m   81Mi   \ndurableq-worker-5bf8fbbbdf-bxjf7   30m    9Mi"
+      },
+      {
+        "at": "2026-11-13T00:38:57.180691Z",
+        "desired": 1,
+        "ready": 1,
+        "postgres_connections": 8,
+        "top": "durableq-api-9cfcff549-7wb7l       6m     12Mi   \ndurableq-postgres-0                568m   81Mi   \ndurableq-worker-5bf8fbbbdf-bxjf7   30m    9Mi"
+      },
+      {
+        "at": "2026-11-13T00:38:59.479821Z",
+        "desired": 1,
+        "ready": 1,
+        "postgres_connections": 8,
+        "top": "durableq-api-9cfcff549-7wb7l       6m     12Mi   \ndurableq-postgres-0                568m   81Mi   \ndurableq-worker-5bf8fbbbdf-bxjf7   30m    9Mi"
+      },
+      {
+        "at": "2026-11-13T00:39:01.730221Z",
+        "desired": 1,
+        "ready": 1,
+        "postgres_connections": 8,
+        "top": "durableq-api-9cfcff549-7wb7l       6m     12Mi   \ndurableq-postgres-0                568m   81Mi   \ndurableq-worker-5bf8fbbbdf-bxjf7   31m    9Mi"
+      },
+      {
+        "at": "2026-11-13T00:39:03.986055Z",
+        "desired": 1,
+        "ready": 1,
+        "postgres_connections": 8,
+        "top": "durableq-api-9cfcff549-7wb7l       6m     12Mi   \ndurableq-postgres-0                568m   81Mi   \ndurableq-worker-5bf8fbbbdf-bxjf7   31m    9Mi"
+      },
+      {
+        "at": "2026-11-13T00:39:06.263918Z",
+        "desired": 1,
+        "ready": 1,
+        "postgres_connections": 8,
+        "top": "durableq-api-9cfcff549-7wb7l       6m     12Mi   \ndurableq-postgres-0                568m   81Mi   \ndurableq-worker-5bf8fbbbdf-bxjf7   31m    9Mi"
+      },
+      {
+        "at": "2026-11-13T00:39:08.512864Z",
+        "desired": 1,
+        "ready": 1,
+        "postgres_connections": 8,
+        "top": "durableq-api-9cfcff549-7wb7l       6m     12Mi   \ndurableq-postgres-0                568m   81Mi   \ndurableq-worker-5bf8fbbbdf-bxjf7   31m    9Mi"
+      },
+      {
+        "at": "2026-11-13T00:39:10.768453Z",
+        "desired": 1,
+        "ready": 1,
+        "postgres_connections": 8,
+        "top": "durableq-api-9cfcff549-7wb7l       6m     12Mi   \ndurableq-postgres-0                568m   81Mi   \ndurableq-worker-5bf8fbbbdf-bxjf7   31m    9Mi"
+      },
+      {
+        "at": "2026-11-13T00:39:13.070527Z",
+        "desired": 1,
+        "ready": 1,
+        "postgres_connections": 8,
+        "top": "durableq-api-9cfcff549-7wb7l       6m     12Mi   \ndurableq-postgres-0                568m   81Mi   \ndurableq-worker-5bf8fbbbdf-bxjf7   31m    9Mi"
+      },
+      {
+        "at": "2026-11-13T00:39:15.339923Z",
+        "desired": 1,
+        "ready": 1,
+        "postgres_connections": 8,
+        "top": "durableq-api-9cfcff549-7wb7l       6m     12Mi   \ndurableq-postgres-0                529m   86Mi   \ndurableq-worker-5bf8fbbbdf-bxjf7   31m    10Mi"
+      },
+      {
+        "at": "2026-11-13T00:39:17.588711Z",
+        "desired": 1,
+        "ready": 1,
+        "postgres_connections": 8,
+        "top": "durableq-api-9cfcff549-7wb7l       6m     12Mi   \ndurableq-postgres-0                529m   86Mi   \ndurableq-worker-5bf8fbbbdf-bxjf7   31m    10Mi"
+      },
+      {
+        "at": "2026-11-13T00:39:19.896744Z",
+        "desired": 1,
+        "ready": 1,
+        "postgres_connections": 8,
+        "top": "durableq-api-9cfcff549-7wb7l       6m     12Mi   \ndurableq-postgres-0                529m   86Mi   \ndurableq-worker-5bf8fbbbdf-bxjf7   31m    10Mi"
+      },
+      {
+        "at": "2026-11-13T00:39:22.154284Z",
+        "desired": 1,
+        "ready": 1,
+        "postgres_connections": 8,
+        "top": "durableq-api-9cfcff549-7wb7l       6m     12Mi   \ndurableq-postgres-0                529m   86Mi   \ndurableq-worker-5bf8fbbbdf-bxjf7   31m    10Mi"
+      },
+      {
+        "at": "2026-11-13T00:39:24.473781Z",
+        "desired": 1,
+        "ready": 1,
+        "postgres_connections": 8,
+        "top": "durableq-api-9cfcff549-7wb7l       6m     12Mi   \ndurableq-postgres-0                529m   86Mi   \ndurableq-worker-5bf8fbbbdf-bxjf7   31m    10Mi"
+      },
+      {
+        "at": "2026-11-13T00:39:26.776848Z",
+        "desired": 1,
+        "ready": 1,
+        "postgres_connections": 8,
+        "top": "durableq-api-9cfcff549-7wb7l       6m     12Mi   \ndurableq-postgres-0                529m   86Mi   \ndurableq-worker-5bf8fbbbdf-bxjf7   31m    10Mi"
+      },
+      {
+        "at": "2026-11-13T00:39:29.071917Z",
+        "desired": 1,
+        "ready": 1,
+        "postgres_connections": 8,
+        "top": "durableq-api-9cfcff549-7wb7l       6m     12Mi   \ndurableq-postgres-0                529m   86Mi   \ndurableq-worker-5bf8fbbbdf-bxjf7   31m    10Mi"
+      },
+      {
+        "at": "2026-11-13T00:39:31.348465Z",
+        "desired": 1,
+        "ready": 1,
+        "postgres_connections": 8,
+        "top": "durableq-api-9cfcff549-7wb7l       6m     12Mi   \ndurableq-postgres-0                486m   87Mi   \ndurableq-worker-5bf8fbbbdf-bxjf7   31m    10Mi"
+      },
+      {
+        "at": "2026-11-13T00:39:33.757666Z",
+        "desired": 1,
+        "ready": 1,
+        "postgres_connections": 8,
+        "top": "durableq-api-9cfcff549-7wb7l       6m     12Mi   \ndurableq-postgres-0                486m   87Mi   \ndurableq-worker-5bf8fbbbdf-bxjf7   31m    10Mi"
+      },
+      {
+        "at": "2026-11-13T00:39:36.008583Z",
+        "desired": 1,
+        "ready": 1,
+        "postgres_connections": 8,
+        "top": "durableq-api-9cfcff549-7wb7l       6m     12Mi   \ndurableq-postgres-0                486m   87Mi   \ndurableq-worker-5bf8fbbbdf-bxjf7   31m    10Mi"
+      },
+      {
+        "at": "2026-11-13T00:39:38.290557Z",
+        "desired": 1,
+        "ready": 1,
+        "postgres_connections": 8,
+        "top": "durableq-api-9cfcff549-7wb7l       6m     12Mi   \ndurableq-postgres-0                486m   87Mi   \ndurableq-worker-5bf8fbbbdf-bxjf7   31m    10Mi"
+      },
+      {
+        "at": "2026-11-13T00:39:40.60542Z",
+        "desired": 1,
+        "ready": 1,
+        "postgres_connections": 8,
+        "top": "durableq-api-9cfcff549-7wb7l       6m     12Mi   \ndurableq-postgres-0                486m   87Mi   \ndurableq-worker-5bf8fbbbdf-bxjf7   31m    10Mi"
+      },
+      {
+        "at": "2026-11-13T00:39:42.858239Z",
+        "desired": 1,
+        "ready": 1,
+        "postgres_connections": 8,
+        "top": "durableq-api-9cfcff549-7wb7l       6m     12Mi   \ndurableq-postgres-0                486m   87Mi   \ndurableq-worker-5bf8fbbbdf-bxjf7   31m    10Mi"
+      },
+      {
+        "at": "2026-11-13T00:39:45.14705Z",
+        "desired": 1,
+        "ready": 1,
+        "postgres_connections": 8,
+        "top": "durableq-api-9cfcff549-7wb7l       6m     13Mi   \ndurableq-postgres-0                483m   86Mi   \ndurableq-worker-5bf8fbbbdf-bxjf7   33m    10Mi"
+      },
+      {
+        "at": "2026-11-13T00:39:47.461524Z",
+        "desired": 1,
+        "ready": 1,
+        "postgres_connections": 8,
+        "top": "durableq-api-9cfcff549-7wb7l       6m     13Mi   \ndurableq-postgres-0                483m   86Mi   \ndurableq-worker-5bf8fbbbdf-bxjf7   33m    10Mi"
+      },
+      {
+        "at": "2026-11-13T00:39:49.713217Z",
+        "desired": 1,
+        "ready": 1,
+        "postgres_connections": 8,
+        "top": "durableq-api-9cfcff549-7wb7l       6m     13Mi   \ndurableq-postgres-0                483m   86Mi   \ndurableq-worker-5bf8fbbbdf-bxjf7   33m    10Mi"
+      },
+      {
+        "at": "2026-11-13T00:39:51.973141Z",
+        "desired": 1,
+        "ready": 1,
+        "postgres_connections": 8,
+        "top": "durableq-api-9cfcff549-7wb7l       6m     13Mi   \ndurableq-postgres-0                483m   86Mi   \ndurableq-worker-5bf8fbbbdf-bxjf7   33m    10Mi"
+      },
+      {
+        "at": "2026-11-13T00:39:54.293768Z",
+        "desired": 1,
+        "ready": 1,
+        "postgres_connections": 8,
+        "top": "durableq-api-9cfcff549-7wb7l       6m     13Mi   \ndurableq-postgres-0                483m   86Mi   \ndurableq-worker-5bf8fbbbdf-bxjf7   33m    10Mi"
+      },
+      {
+        "at": "2026-11-13T00:39:56.592143Z",
+        "desired": 1,
+        "ready": 1,
+        "postgres_connections": 8,
+        "top": "durableq-api-9cfcff549-7wb7l       6m     13Mi   \ndurableq-postgres-0                483m   86Mi   \ndurableq-worker-5bf8fbbbdf-bxjf7   33m    10Mi"
+      },
+      {
+        "at": "2026-11-13T00:39:58.865257Z",
+        "desired": 1,
+        "ready": 1,
+        "postgres_connections": 8,
+        "top": "durableq-api-9cfcff549-7wb7l       6m     13Mi   \ndurableq-postgres-0                483m   86Mi   \ndurableq-worker-5bf8fbbbdf-bxjf7   33m    10Mi"
+      },
+      {
+        "at": "2026-11-13T00:40:01.164886Z",
+        "desired": 1,
+        "ready": 1,
+        "postgres_connections": 8,
+        "top": "durableq-api-9cfcff549-7wb7l       7m     13Mi   \ndurableq-postgres-0                458m   87Mi   \ndurableq-worker-5bf8fbbbdf-bxjf7   36m    10Mi"
+      },
+      {
+        "at": "2026-11-13T00:40:03.430814Z",
+        "desired": 1,
+        "ready": 1,
+        "postgres_connections": 8,
+        "top": "durableq-api-9cfcff549-7wb7l       7m     13Mi   \ndurableq-postgres-0                458m   87Mi   \ndurableq-worker-5bf8fbbbdf-bxjf7   36m    10Mi"
+      },
+      {
+        "at": "2026-11-13T00:40:05.712279Z",
+        "desired": 1,
+        "ready": 1,
+        "postgres_connections": 8,
+        "top": "durableq-api-9cfcff549-7wb7l       7m     13Mi   \ndurableq-postgres-0                458m   87Mi   \ndurableq-worker-5bf8fbbbdf-bxjf7   36m    10Mi"
+      },
+      {
+        "at": "2026-11-13T00:40:08.042903Z",
+        "desired": 1,
+        "ready": 1,
+        "postgres_connections": 8,
+        "top": "durableq-api-9cfcff549-7wb7l       7m     13Mi   \ndurableq-postgres-0                458m   87Mi   \ndurableq-worker-5bf8fbbbdf-bxjf7   36m    10Mi"
+      },
+      {
+        "at": "2026-11-13T00:40:10.308061Z",
+        "desired": 1,
+        "ready": 1,
+        "postgres_connections": 8,
+        "top": "durableq-api-9cfcff549-7wb7l       7m     13Mi   \ndurableq-postgres-0                458m   87Mi   \ndurableq-worker-5bf8fbbbdf-bxjf7   36m    10Mi"
+      },
+      {
+        "at": "2026-11-13T00:40:12.561564Z",
+        "desired": 1,
+        "ready": 1,
+        "postgres_connections": 8,
+        "top": "durableq-api-9cfcff549-7wb7l       7m     13Mi   \ndurableq-postgres-0                458m   87Mi   \ndurableq-worker-5bf8fbbbdf-bxjf7   36m    10Mi"
+      },
+      {
+        "at": "2026-11-13T00:40:14.867134Z",
+        "desired": 1,
+        "ready": 1,
+        "postgres_connections": 8,
+        "top": "durableq-api-9cfcff549-7wb7l       7m     13Mi   \ndurableq-postgres-0                458m   87Mi   \ndurableq-worker-5bf8fbbbdf-bxjf7   36m    10Mi"
+      }
+    ],
+    "benchmark": {
+      "complete_resource_samples": 55,
+      "duration_seconds": 118.705623,
+      "failure_rate": 0,
+      "finished_at": "2026-11-13T00:40:13.254866+00:00",
+      "jobs_per_second": 168.48401528544272,
+      "peak_postgres_connections": 8,
+      "peak_resources": {
+        "worker_cpu_millicores": 36,
+        "worker_memory_mib": 10,
+        "postgres_cpu_millicores": 4790,
+        "postgres_memory_mib": 87,
+        "workers_in_sample": 1,
+        "postgres_in_sample": 1
+      },
+      "processing_ms": [
+        52.537,
+        74.93615,
+        77.40202
+      ],
+      "queue_wait_ms": [
+        60283.754499999995,
+        112828.49014999998,
+        117499.77548
+      ],
+      "retry_rate": 0
+    },
+    "passed": true
+  },
+  {
+    "scenario": "BenchMatrix/sleep50/replicas2",
+    "seed": 42,
+    "params": {
+      "enqueued": 20000,
+      "max_attempts": 5,
+      "payload": "{\"sleep_ms\":50,\"fail_rate\":0.0,\"permanent\":false}",
+      "replicas": 2,
+      "sleep_ms": 50,
+      "worker_config": {
+        "API_MAX_CONNS": "5",
+        "WORKER_CONCURRENCY": "10",
+        "WORKER_GRACE": "10s",
+        "WORKER_HEARTBEAT": "10s",
+        "WORKER_LEASE": "30s",
+        "WORKER_MAX_CONNS": "6",
+        "WORKER_POLL": "1s"
+      }
+    },
+    "started": "2026-11-13T00:40:15.499032Z",
+    "duration_seconds": 91.586149,
+    "enqueue_seconds": 11.2688825,
+    "drain_seconds": 64.694530666,
+    "faults_applied": {},
+    "events": null,
+    "invariant_violations": {
+      "I1": 0,
+      "I2": 0,
+      "I3": 0,
+      "I4": 0,
+      "I5": 0,
+      "I6": 0,
+      "I7": 0
+    },
+    "metrics": {
+      "abandoned_attempts": 0,
+      "attempts": 20000,
+      "dead": 0,
+      "duplicate_executions": 0,
+      "effects": 20000,
+      "failed_attempts": 0,
+      "released": 0,
+      "retried_attempts": 0,
+      "succeeded": 20000,
+      "total": 20000
+    },
+    "samples": [
+      {
+        "at": "2026-11-13T00:40:42.105558Z",
+        "desired": 2,
+        "ready": 2,
+        "postgres_connections": 4,
+        "top": "durableq-api-9cfcff549-7wb7l       5m     9Mi    \ndurableq-postgres-0                174m   70Mi   \ndurableq-worker-5bf8fbbbdf-nk4fx   4m     3Mi    \ndurableq-worker-5bf8fbbbdf-rd5ch   5m     5Mi"
+      },
+      {
+        "at": "2026-11-13T00:40:44.365988Z",
+        "desired": 2,
+        "ready": 2,
+        "postgres_connections": 4,
+        "top": "durableq-api-9cfcff549-7wb7l       5m     9Mi    \ndurableq-postgres-0                174m   70Mi   \ndurableq-worker-5bf8fbbbdf-nk4fx   4m     3Mi    \ndurableq-worker-5bf8fbbbdf-rd5ch   5m     5Mi"
+      },
+      {
+        "at": "2026-11-13T00:40:46.662049Z",
+        "desired": 2,
+        "ready": 2,
+        "postgres_connections": 12,
+        "top": "durableq-api-9cfcff549-7wb7l       35m    17Mi   \ndurableq-postgres-0                124m   72Mi   \ndurableq-worker-5bf8fbbbdf-nk4fx   2m     5Mi    \ndurableq-worker-5bf8fbbbdf-rd5ch   1m     5Mi"
+      },
+      {
+        "at": "2026-11-13T00:40:48.940167Z",
+        "desired": 2,
+        "ready": 2,
+        "postgres_connections": 13,
+        "top": "durableq-api-9cfcff549-7wb7l       35m    17Mi   \ndurableq-postgres-0                124m   72Mi   \ndurableq-worker-5bf8fbbbdf-nk4fx   2m     5Mi    \ndurableq-worker-5bf8fbbbdf-rd5ch   1m     5Mi"
+      },
+      {
+        "at": "2026-11-13T00:40:51.184712Z",
+        "desired": 2,
+        "ready": 2,
+        "postgres_connections": 13,
+        "top": "durableq-api-9cfcff549-7wb7l       35m    17Mi   \ndurableq-postgres-0                124m   72Mi   \ndurableq-worker-5bf8fbbbdf-nk4fx   2m     5Mi    \ndurableq-worker-5bf8fbbbdf-rd5ch   1m     5Mi"
+      },
+      {
+        "at": "2026-11-13T00:40:53.464186Z",
+        "desired": 2,
+        "ready": 2,
+        "postgres_connections": 13,
+        "top": "durableq-api-9cfcff549-7wb7l       35m    17Mi   \ndurableq-postgres-0                124m   72Mi   \ndurableq-worker-5bf8fbbbdf-nk4fx   2m     5Mi    \ndurableq-worker-5bf8fbbbdf-rd5ch   1m     5Mi"
+      },
+      {
+        "at": "2026-11-13T00:40:55.799772Z",
+        "desired": 2,
+        "ready": 2,
+        "postgres_connections": 13,
+        "top": "durableq-api-9cfcff549-7wb7l       35m    17Mi   \ndurableq-postgres-0                124m   72Mi   \ndurableq-worker-5bf8fbbbdf-nk4fx   2m     5Mi    \ndurableq-worker-5bf8fbbbdf-rd5ch   1m     5Mi"
+      },
+      {
+        "at": "2026-11-13T00:40:58.063804Z",
+        "desired": 2,
+        "ready": 2,
+        "postgres_connections": 14,
+        "top": "durableq-api-9cfcff549-7wb7l       35m    17Mi   \ndurableq-postgres-0                124m   72Mi   \ndurableq-worker-5bf8fbbbdf-nk4fx   2m     5Mi    \ndurableq-worker-5bf8fbbbdf-rd5ch   1m     5Mi"
+      },
+      {
+        "at": "2026-11-13T00:41:00.31585Z",
+        "desired": 2,
+        "ready": 2,
+        "postgres_connections": 14,
+        "top": "durableq-api-9cfcff549-7wb7l       11m    10Mi    \ndurableq-postgres-0                811m   110Mi   \ndurableq-worker-5bf8fbbbdf-nk4fx   18m    9Mi     \ndurableq-worker-5bf8fbbbdf-rd5ch   19m    9Mi"
+      },
+      {
+        "at": "2026-11-13T00:41:02.610728Z",
+        "desired": 2,
+        "ready": 2,
+        "postgres_connections": 14,
+        "top": "durableq-api-9cfcff549-7wb7l       11m    10Mi    \ndurableq-postgres-0                811m   110Mi   \ndurableq-worker-5bf8fbbbdf-nk4fx   18m    9Mi     \ndurableq-worker-5bf8fbbbdf-rd5ch   19m    9Mi"
+      },
+      {
+        "at": "2026-11-13T00:41:04.845408Z",
+        "desired": 2,
+        "ready": 2,
+        "postgres_connections": 14,
+        "top": "durableq-api-9cfcff549-7wb7l       11m    10Mi    \ndurableq-postgres-0                811m   110Mi   \ndurableq-worker-5bf8fbbbdf-nk4fx   18m    9Mi     \ndurableq-worker-5bf8fbbbdf-rd5ch   19m    9Mi"
+      },
+      {
+        "at": "2026-11-13T00:41:07.123021Z",
+        "desired": 2,
+        "ready": 2,
+        "postgres_connections": 14,
+        "top": "durableq-api-9cfcff549-7wb7l       11m    10Mi    \ndurableq-postgres-0                811m   110Mi   \ndurableq-worker-5bf8fbbbdf-nk4fx   18m    9Mi     \ndurableq-worker-5bf8fbbbdf-rd5ch   19m    9Mi"
+      },
+      {
+        "at": "2026-11-13T00:41:09.435558Z",
+        "desired": 2,
+        "ready": 2,
+        "postgres_connections": 14,
+        "top": "durableq-api-9cfcff549-7wb7l       11m    10Mi    \ndurableq-postgres-0                811m   110Mi   \ndurableq-worker-5bf8fbbbdf-nk4fx   18m    9Mi     \ndurableq-worker-5bf8fbbbdf-rd5ch   19m    9Mi"
+      },
+      {
+        "at": "2026-11-13T00:41:11.702498Z",
+        "desired": 2,
+        "ready": 2,
+        "postgres_connections": 14,
+        "top": "durableq-api-9cfcff549-7wb7l       11m    10Mi    \ndurableq-postgres-0                811m   110Mi   \ndurableq-worker-5bf8fbbbdf-nk4fx   18m    9Mi     \ndurableq-worker-5bf8fbbbdf-rd5ch   19m    9Mi"
+      },
+      {
+        "at": "2026-11-13T00:41:13.969005Z",
+        "desired": 2,
+        "ready": 2,
+        "postgres_connections": 14,
+        "top": "durableq-api-9cfcff549-7wb7l       11m    10Mi    \ndurableq-postgres-0                811m   110Mi   \ndurableq-worker-5bf8fbbbdf-nk4fx   18m    9Mi     \ndurableq-worker-5bf8fbbbdf-rd5ch   19m    9Mi"
+      },
+      {
+        "at": "2026-11-13T00:41:16.276667Z",
+        "desired": 2,
+        "ready": 2,
+        "postgres_connections": 14,
+        "top": "durableq-api-9cfcff549-7wb7l       6m     11Mi    \ndurableq-postgres-0                811m   110Mi   \ndurableq-worker-5bf8fbbbdf-nk4fx   35m    10Mi    \ndurableq-worker-5bf8fbbbdf-rd5ch   32m    9Mi"
+      },
+      {
+        "at": "2026-11-13T00:41:18.541895Z",
+        "desired": 2,
+        "ready": 2,
+        "postgres_connections": 14,
+        "top": "durableq-api-9cfcff549-7wb7l       6m     11Mi    \ndurableq-postgres-0                811m   110Mi   \ndurableq-worker-5bf8fbbbdf-nk4fx   35m    10Mi    \ndurableq-worker-5bf8fbbbdf-rd5ch   32m    9Mi"
+      },
+      {
+        "at": "2026-11-13T00:41:20.82123Z",
+        "desired": 2,
+        "ready": 2,
+        "postgres_connections": 14,
+        "top": "durableq-api-9cfcff549-7wb7l       6m     11Mi    \ndurableq-postgres-0                811m   110Mi   \ndurableq-worker-5bf8fbbbdf-nk4fx   35m    10Mi    \ndurableq-worker-5bf8fbbbdf-rd5ch   32m    9Mi"
+      },
+      {
+        "at": "2026-11-13T00:41:23.142386Z",
+        "desired": 2,
+        "ready": 2,
+        "postgres_connections": 14,
+        "top": "durableq-api-9cfcff549-7wb7l       6m     11Mi    \ndurableq-postgres-0                811m   110Mi   \ndurableq-worker-5bf8fbbbdf-nk4fx   35m    10Mi    \ndurableq-worker-5bf8fbbbdf-rd5ch   32m    9Mi"
+      },
+      {
+        "at": "2026-11-13T00:41:25.424702Z",
+        "desired": 2,
+        "ready": 2,
+        "postgres_connections": 14,
+        "top": "durableq-api-9cfcff549-7wb7l       6m     11Mi    \ndurableq-postgres-0                811m   110Mi   \ndurableq-worker-5bf8fbbbdf-nk4fx   35m    10Mi    \ndurableq-worker-5bf8fbbbdf-rd5ch   32m    9Mi"
+      },
+      {
+        "at": "2026-11-13T00:41:27.690667Z",
+        "desired": 2,
+        "ready": 2,
+        "postgres_connections": 14,
+        "top": "durableq-api-9cfcff549-7wb7l       6m     11Mi    \ndurableq-postgres-0                811m   110Mi   \ndurableq-worker-5bf8fbbbdf-nk4fx   35m    10Mi    \ndurableq-worker-5bf8fbbbdf-rd5ch   32m    9Mi"
+      },
+      {
+        "at": "2026-11-13T00:41:29.988573Z",
+        "desired": 2,
+        "ready": 2,
+        "postgres_connections": 14,
+        "top": "durableq-api-9cfcff549-7wb7l       6m     11Mi    \ndurableq-postgres-0                811m   110Mi   \ndurableq-worker-5bf8fbbbdf-nk4fx   35m    10Mi    \ndurableq-worker-5bf8fbbbdf-rd5ch   32m    9Mi"
+      },
+      {
+        "at": "2026-11-13T00:41:32.273926Z",
+        "desired": 2,
+        "ready": 2,
+        "postgres_connections": 14,
+        "top": "durableq-api-9cfcff549-7wb7l       7m     11Mi    \ndurableq-postgres-0                984m   114Mi   \ndurableq-worker-5bf8fbbbdf-nk4fx   36m    10Mi    \ndurableq-worker-5bf8fbbbdf-rd5ch   32m    9Mi"
+      },
+      {
+        "at": "2026-11-13T00:41:34.828483Z",
+        "desired": 2,
+        "ready": 2,
+        "postgres_connections": 14,
+        "top": "durableq-api-9cfcff549-7wb7l       7m     11Mi    \ndurableq-postgres-0                984m   114Mi   \ndurableq-worker-5bf8fbbbdf-nk4fx   36m    10Mi    \ndurableq-worker-5bf8fbbbdf-rd5ch   32m    9Mi"
+      },
+      {
+        "at": "2026-11-13T00:41:37.10762Z",
+        "desired": 2,
+        "ready": 2,
+        "postgres_connections": 14,
+        "top": "durableq-api-9cfcff549-7wb7l       7m     11Mi    \ndurableq-postgres-0                984m   114Mi   \ndurableq-worker-5bf8fbbbdf-nk4fx   36m    10Mi    \ndurableq-worker-5bf8fbbbdf-rd5ch   32m    9Mi"
+      },
+      {
+        "at": "2026-11-13T00:41:39.401315Z",
+        "desired": 2,
+        "ready": 2,
+        "postgres_connections": 14,
+        "top": "durableq-api-9cfcff549-7wb7l       7m     11Mi    \ndurableq-postgres-0                984m   114Mi   \ndurableq-worker-5bf8fbbbdf-nk4fx   36m    10Mi    \ndurableq-worker-5bf8fbbbdf-rd5ch   32m    9Mi"
+      },
+      {
+        "at": "2026-11-13T00:41:41.73051Z",
+        "desired": 2,
+        "ready": 2,
+        "postgres_connections": 14,
+        "top": "durableq-api-9cfcff549-7wb7l       7m     11Mi    \ndurableq-postgres-0                984m   114Mi   \ndurableq-worker-5bf8fbbbdf-nk4fx   36m    10Mi    \ndurableq-worker-5bf8fbbbdf-rd5ch   32m    9Mi"
+      },
+      {
+        "at": "2026-11-13T00:41:44.000102Z",
+        "desired": 2,
+        "ready": 2,
+        "postgres_connections": 14,
+        "top": "durableq-api-9cfcff549-7wb7l       7m     11Mi    \ndurableq-postgres-0                984m   114Mi   \ndurableq-worker-5bf8fbbbdf-nk4fx   36m    10Mi    \ndurableq-worker-5bf8fbbbdf-rd5ch   32m    9Mi"
+      },
+      {
+        "at": "2026-11-13T00:41:46.254417Z",
+        "desired": 2,
+        "ready": 2,
+        "postgres_connections": 14,
+        "top": "durableq-api-9cfcff549-7wb7l       8m     11Mi    \ndurableq-postgres-0                894m   115Mi   \ndurableq-worker-5bf8fbbbdf-nk4fx   50m    10Mi    \ndurableq-worker-5bf8fbbbdf-rd5ch   33m    10Mi"
+      }
+    ],
+    "benchmark": {
+      "complete_resource_samples": 29,
+      "duration_seconds": 59.811753,
+      "failure_rate": 0,
+      "finished_at": "2026-11-13T00:41:44.80578+00:00",
+      "jobs_per_second": 334.38244152449437,
+      "peak_postgres_connections": 14,
+      "peak_resources": {
+        "worker_cpu_millicores": 83,
+        "worker_memory_mib": 20,
+        "postgres_cpu_millicores": 984,
+        "postgres_memory_mib": 115,
+        "workers_in_sample": 2,
+        "postgres_in_sample": 1
+      },
+      "processing_ms": [
+        52.3535,
+        74.9901,
+        77.53004999999999
+      ],
+      "queue_wait_ms": [
+        30579.1765,
+        56850.9378,
+        59140.552849999985
+      ],
+      "retry_rate": 0
+    },
+    "passed": true
+  },
+  {
+    "scenario": "BenchMatrix/sleep50/replicas5",
+    "seed": 42,
+    "params": {
+      "enqueued": 20000,
+      "max_attempts": 5,
+      "payload": "{\"sleep_ms\":50,\"fail_rate\":0.0,\"permanent\":false}",
+      "replicas": 5,
+      "sleep_ms": 50,
+      "worker_config": {
+        "API_MAX_CONNS": "5",
+        "WORKER_CONCURRENCY": "10",
+        "WORKER_GRACE": "10s",
+        "WORKER_HEARTBEAT": "10s",
+        "WORKER_LEASE": "30s",
+        "WORKER_MAX_CONNS": "6",
+        "WORKER_POLL": "1s"
+      }
+    },
+    "started": "2026-11-13T00:41:47.086368Z",
+    "duration_seconds": 70.643897,
+    "enqueue_seconds": 11.182202792,
+    "drain_seconds": 30.771305334,
+    "faults_applied": {},
+    "events": null,
+    "invariant_violations": {
+      "I1": 0,
+      "I2": 0,
+      "I3": 0,
+      "I4": 0,
+      "I5": 0,
+      "I6": 0,
+      "I7": 0
+    },
+    "metrics": {
+      "abandoned_attempts": 0,
+      "attempts": 20000,
+      "dead": 0,
+      "duplicate_executions": 0,
+      "effects": 20000,
+      "failed_attempts": 0,
+      "released": 0,
+      "retried_attempts": 0,
+      "succeeded": 20000,
+      "total": 20000
+    },
+    "samples": [
+      {
+        "at": "2026-11-13T00:42:26.915215Z",
+        "desired": 5,
+        "ready": 5,
+        "postgres_connections": 7,
+        "top": "durableq-api-9cfcff549-7wb7l       3m    11Mi   \ndurableq-postgres-0                19m   75Mi   \ndurableq-worker-5bf8fbbbdf-688ds   1m    5Mi    \ndurableq-worker-5bf8fbbbdf-695sh   2m    5Mi    \ndurableq-worker-5bf8fbbbdf-9jt4v   3m    5Mi    \ndurableq-worker-5bf8fbbbdf-hmsl2   1m    3Mi    \ndurableq-worker-5bf8fbbbdf-p6b6x   2m    5Mi"
+      },
+      {
+        "at": "2026-11-13T00:42:29.169248Z",
+        "desired": 5,
+        "ready": 5,
+        "postgres_connections": 7,
+        "top": "durableq-api-9cfcff549-7wb7l       3m    11Mi   \ndurableq-postgres-0                19m   75Mi   \ndurableq-worker-5bf8fbbbdf-688ds   1m    5Mi    \ndurableq-worker-5bf8fbbbdf-695sh   2m    5Mi    \ndurableq-worker-5bf8fbbbdf-9jt4v   3m    5Mi    \ndurableq-worker-5bf8fbbbdf-hmsl2   1m    3Mi    \ndurableq-worker-5bf8fbbbdf-p6b6x   2m    5Mi"
+      },
+      {
+        "at": "2026-11-13T00:42:31.463582Z",
+        "desired": 5,
+        "ready": 5,
+        "postgres_connections": 30,
+        "top": "durableq-api-9cfcff549-7wb7l       3m    11Mi   \ndurableq-postgres-0                79m   77Mi   \ndurableq-worker-5bf8fbbbdf-688ds   1m    5Mi    \ndurableq-worker-5bf8fbbbdf-695sh   1m    5Mi    \ndurableq-worker-5bf8fbbbdf-9jt4v   3m    5Mi    \ndurableq-worker-5bf8fbbbdf-hmsl2   2m    5Mi    \ndurableq-worker-5bf8fbbbdf-p6b6x   1m    5Mi"
+      },
+      {
+        "at": "2026-11-13T00:42:33.972506Z",
+        "desired": 5,
+        "ready": 5,
+        "postgres_connections": 31,
+        "top": "durableq-api-9cfcff549-7wb7l       3m    11Mi   \ndurableq-postgres-0                79m   77Mi   \ndurableq-worker-5bf8fbbbdf-688ds   1m    5Mi    \ndurableq-worker-5bf8fbbbdf-695sh   1m    5Mi    \ndurableq-worker-5bf8fbbbdf-9jt4v   3m    5Mi    \ndurableq-worker-5bf8fbbbdf-hmsl2   2m    5Mi    \ndurableq-worker-5bf8fbbbdf-p6b6x   1m    5Mi"
+      },
+      {
+        "at": "2026-11-13T00:42:36.357493Z",
+        "desired": 5,
+        "ready": 5,
+        "postgres_connections": 31,
+        "top": "durableq-api-9cfcff549-7wb7l       3m    11Mi   \ndurableq-postgres-0                79m   77Mi   \ndurableq-worker-5bf8fbbbdf-688ds   1m    5Mi    \ndurableq-worker-5bf8fbbbdf-695sh   1m    5Mi    \ndurableq-worker-5bf8fbbbdf-9jt4v   3m    5Mi    \ndurableq-worker-5bf8fbbbdf-hmsl2   2m    5Mi    \ndurableq-worker-5bf8fbbbdf-p6b6x   1m    5Mi"
+      },
+      {
+        "at": "2026-11-13T00:42:38.654997Z",
+        "desired": 5,
+        "ready": 5,
+        "postgres_connections": 31,
+        "top": "durableq-api-9cfcff549-7wb7l       3m    11Mi   \ndurableq-postgres-0                79m   77Mi   \ndurableq-worker-5bf8fbbbdf-688ds   1m    5Mi    \ndurableq-worker-5bf8fbbbdf-695sh   1m    5Mi    \ndurableq-worker-5bf8fbbbdf-9jt4v   3m    5Mi    \ndurableq-worker-5bf8fbbbdf-hmsl2   2m    5Mi    \ndurableq-worker-5bf8fbbbdf-p6b6x   1m    5Mi"
+      },
+      {
+        "at": "2026-11-13T00:42:40.961056Z",
+        "desired": 5,
+        "ready": 5,
+        "postgres_connections": 32,
+        "top": "durableq-api-9cfcff549-7wb7l       3m    11Mi   \ndurableq-postgres-0                79m   77Mi   \ndurableq-worker-5bf8fbbbdf-688ds   1m    5Mi    \ndurableq-worker-5bf8fbbbdf-695sh   1m    5Mi    \ndurableq-worker-5bf8fbbbdf-9jt4v   3m    5Mi    \ndurableq-worker-5bf8fbbbdf-hmsl2   2m    5Mi    \ndurableq-worker-5bf8fbbbdf-p6b6x   1m    5Mi"
+      },
+      {
+        "at": "2026-11-13T00:42:43.236877Z",
+        "desired": 5,
+        "ready": 5,
+        "postgres_connections": 32,
+        "top": "durableq-api-9cfcff549-7wb7l       3m    11Mi   \ndurableq-postgres-0                79m   77Mi   \ndurableq-worker-5bf8fbbbdf-688ds   1m    5Mi    \ndurableq-worker-5bf8fbbbdf-695sh   1m    5Mi    \ndurableq-worker-5bf8fbbbdf-9jt4v   3m    5Mi    \ndurableq-worker-5bf8fbbbdf-hmsl2   2m    5Mi    \ndurableq-worker-5bf8fbbbdf-p6b6x   1m    5Mi"
+      },
+      {
+        "at": "2026-11-13T00:42:45.525198Z",
+        "desired": 5,
+        "ready": 5,
+        "postgres_connections": 32,
+        "top": "durableq-api-9cfcff549-7wb7l       21m     12Mi    \ndurableq-postgres-0                1534m   148Mi   \ndurableq-worker-5bf8fbbbdf-688ds   33m     9Mi     \ndurableq-worker-5bf8fbbbdf-695sh   13m     9Mi     \ndurableq-worker-5bf8fbbbdf-9jt4v   3m      8Mi     \ndurableq-worker-5bf8fbbbdf-hmsl2   2m      5Mi     \ndurableq-worker-5bf8fbbbdf-p6b6x   9m      8Mi"
+      },
+      {
+        "at": "2026-11-13T00:42:47.869695Z",
+        "desired": 5,
+        "ready": 5,
+        "postgres_connections": 32,
+        "top": "durableq-api-9cfcff549-7wb7l       21m     12Mi    \ndurableq-postgres-0                1534m   148Mi   \ndurableq-worker-5bf8fbbbdf-688ds   33m     9Mi     \ndurableq-worker-5bf8fbbbdf-695sh   13m     9Mi     \ndurableq-worker-5bf8fbbbdf-9jt4v   3m      8Mi     \ndurableq-worker-5bf8fbbbdf-hmsl2   2m      5Mi     \ndurableq-worker-5bf8fbbbdf-p6b6x   9m      8Mi"
+      },
+      {
+        "at": "2026-11-13T00:42:50.160015Z",
+        "desired": 5,
+        "ready": 5,
+        "postgres_connections": 32,
+        "top": "durableq-api-9cfcff549-7wb7l       21m     12Mi    \ndurableq-postgres-0                1534m   148Mi   \ndurableq-worker-5bf8fbbbdf-688ds   33m     9Mi     \ndurableq-worker-5bf8fbbbdf-695sh   13m     9Mi     \ndurableq-worker-5bf8fbbbdf-9jt4v   3m      8Mi     \ndurableq-worker-5bf8fbbbdf-hmsl2   2m      5Mi     \ndurableq-worker-5bf8fbbbdf-p6b6x   9m      8Mi"
+      },
+      {
+        "at": "2026-11-13T00:42:52.430994Z",
+        "desired": 5,
+        "ready": 5,
+        "postgres_connections": 32,
+        "top": "durableq-api-9cfcff549-7wb7l       21m     12Mi    \ndurableq-postgres-0                1534m   148Mi   \ndurableq-worker-5bf8fbbbdf-688ds   33m     9Mi     \ndurableq-worker-5bf8fbbbdf-695sh   13m     9Mi     \ndurableq-worker-5bf8fbbbdf-9jt4v   3m      8Mi     \ndurableq-worker-5bf8fbbbdf-hmsl2   2m      5Mi     \ndurableq-worker-5bf8fbbbdf-p6b6x   9m      8Mi"
+      },
+      {
+        "at": "2026-11-13T00:42:54.793967Z",
+        "desired": 5,
+        "ready": 5,
+        "postgres_connections": 32,
+        "top": "durableq-api-9cfcff549-7wb7l       21m     12Mi    \ndurableq-postgres-0                1534m   148Mi   \ndurableq-worker-5bf8fbbbdf-688ds   33m     9Mi     \ndurableq-worker-5bf8fbbbdf-695sh   13m     9Mi     \ndurableq-worker-5bf8fbbbdf-9jt4v   3m      8Mi     \ndurableq-worker-5bf8fbbbdf-hmsl2   2m      5Mi     \ndurableq-worker-5bf8fbbbdf-p6b6x   9m      8Mi"
+      },
+      {
+        "at": "2026-11-13T00:42:57.111143Z",
+        "desired": 5,
+        "ready": 5,
+        "postgres_connections": 32,
+        "top": "durableq-api-9cfcff549-7wb7l       21m     12Mi    \ndurableq-postgres-0                1534m   148Mi   \ndurableq-worker-5bf8fbbbdf-688ds   33m     9Mi     \ndurableq-worker-5bf8fbbbdf-695sh   13m     9Mi     \ndurableq-worker-5bf8fbbbdf-9jt4v   3m      8Mi     \ndurableq-worker-5bf8fbbbdf-hmsl2   2m      5Mi     \ndurableq-worker-5bf8fbbbdf-p6b6x   9m      8Mi"
+      }
+    ],
+    "benchmark": {
+      "complete_resource_samples": 14,
+      "duration_seconds": 25.572723,
+      "failure_rate": 0,
+      "finished_at": "2026-11-13T00:42:55.383446+00:00",
+      "jobs_per_second": 782.0833158830993,
+      "peak_postgres_connections": 32,
+      "peak_resources": {
+        "worker_cpu_millicores": 60,
+        "worker_memory_mib": 39,
+        "postgres_cpu_millicores": 1534,
+        "postgres_memory_mib": 148,
+        "workers_in_sample": 5,
+        "postgres_in_sample": 1
+      },
+      "processing_ms": [
+        52.33,
+        75.10505,
+        77.76517999999997
+      ],
+      "queue_wait_ms": [
+        13344.8665,
+        24301.61135,
+        25265.00801
+      ],
+      "retry_rate": 0
+    },
+    "passed": true
+  },
+  {
+    "scenario": "BenchMatrix/sleep50/replicas10",
+    "seed": 42,
+    "params": {
+      "enqueued": 20000,
+      "max_attempts": 5,
+      "payload": "{\"sleep_ms\":50,\"fail_rate\":0.0,\"permanent\":false}",
+      "replicas": 10,
+      "sleep_ms": 50,
+      "worker_config": {
+        "API_MAX_CONNS": "5",
+        "WORKER_CONCURRENCY": "10",
+        "WORKER_GRACE": "10s",
+        "WORKER_HEARTBEAT": "10s",
+        "WORKER_LEASE": "30s",
+        "WORKER_MAX_CONNS": "6",
+        "WORKER_POLL": "1s"
+      }
+    },
+    "started": "2026-11-13T00:42:57.73313Z",
+    "duration_seconds": 49.537944,
+    "enqueue_seconds": 11.422206083,
+    "drain_seconds": 19.421113291,
+    "faults_applied": {},
+    "events": null,
+    "invariant_violations": {
+      "I1": 0,
+      "I2": 0,
+      "I3": 0,
+      "I4": 0,
+      "I5": 0,
+      "I6": 0,
+      "I7": 0
+    },
+    "metrics": {
+      "abandoned_attempts": 0,
+      "attempts": 20000,
+      "dead": 0,
+      "duplicate_executions": 0,
+      "effects": 20000,
+      "failed_attempts": 0,
+      "released": 0,
+      "retried_attempts": 0,
+      "succeeded": 20000,
+      "total": 20000
+    },
+    "samples": [
+      {
+        "at": "2026-11-13T00:43:27.848614Z",
+        "desired": 10,
+        "ready": 10,
+        "postgres_connections": 12,
+        "top": "durableq-api-9cfcff549-7wb7l       6m     11Mi   \ndurableq-postgres-0                524m   86Mi   \ndurableq-worker-5bf8fbbbdf-5tq9w   4m     3Mi    \ndurableq-worker-5bf8fbbbdf-7bblq   3m     3Mi    \ndurableq-worker-5bf8fbbbdf-dldvl   3m     3Mi    \ndurableq-worker-5bf8fbbbdf-fx5h4   3m     3Mi    \ndurableq-worker-5bf8fbbbdf-hm2mc   3m     3Mi    \ndurableq-worker-5bf8fbbbdf-pfv8s   3m     3Mi    \ndurableq-worker-5bf8fbbbdf-qbpts   3m     3Mi    \ndurableq-worker-5bf8fbbbdf-r7fh5   3m     3Mi    \ndurableq-worker-5bf8fbbbdf-sqnnn   4m     3Mi    \ndurableq-worker-5bf8fbbbdf-vx4t5   3m     3Mi"
+      },
+      {
+        "at": "2026-11-13T00:43:30.120086Z",
+        "desired": 10,
+        "ready": 10,
+        "postgres_connections": 12,
+        "top": "durableq-api-9cfcff549-7wb7l       6m     16Mi   \ndurableq-postgres-0                165m   88Mi   \ndurableq-worker-5bf8fbbbdf-5tq9w   1m     3Mi    \ndurableq-worker-5bf8fbbbdf-7bblq   1m     5Mi    \ndurableq-worker-5bf8fbbbdf-dldvl   1m     5Mi    \ndurableq-worker-5bf8fbbbdf-fx5h4   1m     3Mi    \ndurableq-worker-5bf8fbbbdf-hm2mc   1m     5Mi    \ndurableq-worker-5bf8fbbbdf-pfv8s   2m     6Mi    \ndurableq-worker-5bf8fbbbdf-qbpts   1m     3Mi    \ndurableq-worker-5bf8fbbbdf-r7fh5   3m     3Mi    \ndurableq-worker-5bf8fbbbdf-sqnnn   4m     3Mi    \ndurableq-worker-5bf8fbbbdf-vx4t5   1m     5Mi"
+      },
+      {
+        "at": "2026-11-13T00:43:32.401853Z",
+        "desired": 10,
+        "ready": 10,
+        "postgres_connections": 58,
+        "top": "durableq-api-9cfcff549-7wb7l       6m     16Mi   \ndurableq-postgres-0                165m   88Mi   \ndurableq-worker-5bf8fbbbdf-5tq9w   1m     3Mi    \ndurableq-worker-5bf8fbbbdf-7bblq   1m     5Mi    \ndurableq-worker-5bf8fbbbdf-dldvl   1m     5Mi    \ndurableq-worker-5bf8fbbbdf-fx5h4   1m     3Mi    \ndurableq-worker-5bf8fbbbdf-hm2mc   1m     5Mi    \ndurableq-worker-5bf8fbbbdf-pfv8s   2m     6Mi    \ndurableq-worker-5bf8fbbbdf-qbpts   1m     3Mi    \ndurableq-worker-5bf8fbbbdf-r7fh5   3m     3Mi    \ndurableq-worker-5bf8fbbbdf-sqnnn   4m     3Mi    \ndurableq-worker-5bf8fbbbdf-vx4t5   1m     5Mi"
+      },
+      {
+        "at": "2026-11-13T00:43:34.812573Z",
+        "desired": 10,
+        "ready": 10,
+        "postgres_connections": 60,
+        "top": "durableq-api-9cfcff549-7wb7l       6m     16Mi   \ndurableq-postgres-0                165m   88Mi   \ndurableq-worker-5bf8fbbbdf-5tq9w   1m     3Mi    \ndurableq-worker-5bf8fbbbdf-7bblq   1m     5Mi    \ndurableq-worker-5bf8fbbbdf-dldvl   1m     5Mi    \ndurableq-worker-5bf8fbbbdf-fx5h4   1m     3Mi    \ndurableq-worker-5bf8fbbbdf-hm2mc   1m     5Mi    \ndurableq-worker-5bf8fbbbdf-pfv8s   2m     6Mi    \ndurableq-worker-5bf8fbbbdf-qbpts   1m     3Mi    \ndurableq-worker-5bf8fbbbdf-r7fh5   3m     3Mi    \ndurableq-worker-5bf8fbbbdf-sqnnn   4m     3Mi    \ndurableq-worker-5bf8fbbbdf-vx4t5   1m     5Mi"
+      },
+      {
+        "at": "2026-11-13T00:43:37.164006Z",
+        "desired": 10,
+        "ready": 10,
+        "postgres_connections": 60,
+        "top": "durableq-api-9cfcff549-7wb7l       6m     16Mi   \ndurableq-postgres-0                165m   88Mi   \ndurableq-worker-5bf8fbbbdf-5tq9w   1m     3Mi    \ndurableq-worker-5bf8fbbbdf-7bblq   1m     5Mi    \ndurableq-worker-5bf8fbbbdf-dldvl   1m     5Mi    \ndurableq-worker-5bf8fbbbdf-fx5h4   1m     3Mi    \ndurableq-worker-5bf8fbbbdf-hm2mc   1m     5Mi    \ndurableq-worker-5bf8fbbbdf-pfv8s   2m     6Mi    \ndurableq-worker-5bf8fbbbdf-qbpts   1m     3Mi    \ndurableq-worker-5bf8fbbbdf-r7fh5   3m     3Mi    \ndurableq-worker-5bf8fbbbdf-sqnnn   4m     3Mi    \ndurableq-worker-5bf8fbbbdf-vx4t5   1m     5Mi"
+      },
+      {
+        "at": "2026-11-13T00:43:39.517858Z",
+        "desired": 10,
+        "ready": 10,
+        "postgres_connections": 61,
+        "top": "durableq-api-9cfcff549-7wb7l       6m     16Mi   \ndurableq-postgres-0                165m   88Mi   \ndurableq-worker-5bf8fbbbdf-5tq9w   1m     3Mi    \ndurableq-worker-5bf8fbbbdf-7bblq   1m     5Mi    \ndurableq-worker-5bf8fbbbdf-dldvl   1m     5Mi    \ndurableq-worker-5bf8fbbbdf-fx5h4   1m     3Mi    \ndurableq-worker-5bf8fbbbdf-hm2mc   1m     5Mi    \ndurableq-worker-5bf8fbbbdf-pfv8s   2m     6Mi    \ndurableq-worker-5bf8fbbbdf-qbpts   1m     3Mi    \ndurableq-worker-5bf8fbbbdf-r7fh5   3m     3Mi    \ndurableq-worker-5bf8fbbbdf-sqnnn   4m     3Mi    \ndurableq-worker-5bf8fbbbdf-vx4t5   1m     5Mi"
+      },
+      {
+        "at": "2026-11-13T00:43:41.946842Z",
+        "desired": 10,
+        "ready": 10,
+        "postgres_connections": 61,
+        "top": "durableq-api-9cfcff549-7wb7l       6m     16Mi   \ndurableq-postgres-0                165m   88Mi   \ndurableq-worker-5bf8fbbbdf-5tq9w   1m     3Mi    \ndurableq-worker-5bf8fbbbdf-7bblq   1m     5Mi    \ndurableq-worker-5bf8fbbbdf-dldvl   1m     5Mi    \ndurableq-worker-5bf8fbbbdf-fx5h4   1m     3Mi    \ndurableq-worker-5bf8fbbbdf-hm2mc   1m     5Mi    \ndurableq-worker-5bf8fbbbdf-pfv8s   2m     6Mi    \ndurableq-worker-5bf8fbbbdf-qbpts   1m     3Mi    \ndurableq-worker-5bf8fbbbdf-r7fh5   3m     3Mi    \ndurableq-worker-5bf8fbbbdf-sqnnn   4m     3Mi    \ndurableq-worker-5bf8fbbbdf-vx4t5   1m     5Mi"
+      },
+      {
+        "at": "2026-11-13T00:43:44.306101Z",
+        "desired": 10,
+        "ready": 10,
+        "postgres_connections": 61,
+        "top": "durableq-api-9cfcff549-7wb7l       6m     16Mi   \ndurableq-postgres-0                165m   88Mi   \ndurableq-worker-5bf8fbbbdf-5tq9w   1m     3Mi    \ndurableq-worker-5bf8fbbbdf-7bblq   1m     5Mi    \ndurableq-worker-5bf8fbbbdf-dldvl   1m     5Mi    \ndurableq-worker-5bf8fbbbdf-fx5h4   1m     3Mi    \ndurableq-worker-5bf8fbbbdf-hm2mc   1m     5Mi    \ndurableq-worker-5bf8fbbbdf-pfv8s   2m     6Mi    \ndurableq-worker-5bf8fbbbdf-qbpts   1m     3Mi    \ndurableq-worker-5bf8fbbbdf-r7fh5   3m     3Mi    \ndurableq-worker-5bf8fbbbdf-sqnnn   4m     3Mi    \ndurableq-worker-5bf8fbbbdf-vx4t5   1m     5Mi"
+      },
+      {
+        "at": "2026-11-13T00:43:46.683702Z",
+        "desired": 10,
+        "ready": 10,
+        "postgres_connections": 61,
+        "top": "durableq-api-9cfcff549-7wb7l       30m     11Mi    \ndurableq-postgres-0                2935m   234Mi   \ndurableq-worker-5bf8fbbbdf-5tq9w   34m     8Mi     \ndurableq-worker-5bf8fbbbdf-7bblq   28m     9Mi     \ndurableq-worker-5bf8fbbbdf-dldvl   23m     8Mi     \ndurableq-worker-5bf8fbbbdf-fx5h4   35m     9Mi     \ndurableq-worker-5bf8fbbbdf-hm2mc   23m     8Mi     \ndurableq-worker-5bf8fbbbdf-pfv8s   27m     8Mi     \ndurableq-worker-5bf8fbbbdf-qbpts   11m     8Mi     \ndurableq-worker-5bf8fbbbdf-r7fh5   20m     9Mi     \ndurableq-worker-5bf8fbbbdf-sqnnn   3m      7Mi     \ndurableq-worker-5bf8fbbbdf-vx4t5   29m     9Mi"
+      }
+    ],
+    "benchmark": {
+      "complete_resource_samples": 9,
+      "duration_seconds": 14.509379,
+      "failure_rate": 0,
+      "finished_at": "2026-11-13T00:43:45.236268+00:00",
+      "jobs_per_second": 1378.4187455576148,
+      "peak_postgres_connections": 61,
+      "peak_resources": {
+        "worker_cpu_millicores": 233,
+        "worker_memory_mib": 83,
+        "postgres_cpu_millicores": 2935,
+        "postgres_memory_mib": 234,
+        "workers_in_sample": 10,
+        "postgres_in_sample": 1
+      },
+      "processing_ms": [
+        53.8875,
+        76.355,
+        79.774
+      ],
+      "queue_wait_ms": [
+        7763.416,
+        13776.094849999998,
+        14307.836229999997
+      ],
+      "retry_rate": 0
+    },
+    "passed": true
+  },
+  {
+    "scenario": "BenchRecovery",
+    "seed": 42,
+    "params": {
+      "enqueued": 1200,
+      "max_attempts": 10,
+      "payload": "{\"sleep_ms\":500,\"fail_rate\":0.0,\"permanent\":false}",
+      "worker_config": {
+        "API_MAX_CONNS": "5",
+        "WORKER_CONCURRENCY": "10",
+        "WORKER_GRACE": "10s",
+        "WORKER_HEARTBEAT": "10s",
+        "WORKER_LEASE": "30s",
+        "WORKER_MAX_CONNS": "6",
+        "WORKER_POLL": "1s"
+      }
+    },
+    "started": "2026-11-13T00:43:47.272553Z",
+    "duration_seconds": 47.550387,
+    "enqueue_seconds": 0.766097542,
+    "drain_seconds": 40.4070255,
+    "faults_applied": {
+      "sigkill": 1
+    },
+    "events": [
+      {
+        "seconds": 14.817295,
+        "type": "sigkill",
+        "target": "durableq-worker-5bf8fbbbdf-lvdlf",
+        "detail": "node=durableq-worker2 container=638eb5fa81415829a179ca88d4a1d300e8c2a4fd9856217622d194f59229fcd1 pid=46597 exit=137 killed_at=2026-11-13T00:44:02.038274134Z"
+      }
+    ],
+    "invariant_violations": {
+      "I1": 0,
+      "I2": 0,
+      "I3": 0,
+      "I4": 0,
+      "I5": 0,
+      "I6": 0,
+      "I7": 0
+    },
+    "metrics": {
+      "abandoned_attempts": 10,
+      "attempts": 1210,
+      "dead": 0,
+      "duplicate_executions": 10,
+      "effects": 1200,
+      "failed_attempts": 0,
+      "released": 0,
+      "retried_attempts": 0,
+      "succeeded": 1200,
+      "total": 1200
+    },
+    "benchmark": {
+      "heartbeat": "10s",
+      "killed_at": "2026-11-13T00:44:02.038274134Z",
+      "killed_jobs": [
+        {
+          "id": 153,
+          "attempt": 1
+        },
+        {
+          "id": 155,
+          "attempt": 1
+        },
+        {
+          "id": 162,
+          "attempt": 1
+        },
+        {
+          "id": 163,
+          "attempt": 1
+        },
+        {
+          "id": 169,
+          "attempt": 1
+        },
+        {
+          "id": 170,
+          "attempt": 1
+        },
+        {
+          "id": 171,
+          "attempt": 1
+        },
+        {
+          "id": 172,
+          "attempt": 1
+        },
+        {
+          "id": 174,
+          "attempt": 1
+        },
+        {
+          "id": 181,
+          "attempt": 1
+        }
+      ],
+      "lease": "30s",
+      "next_claims": [
+        {
+          "id": 153,
+          "claimed_at": "2026-11-13T00:44:31.909861Z"
+        },
+        {
+          "id": 155,
+          "claimed_at": "2026-11-13T00:44:31.909749Z"
+        },
+        {
+          "id": 162,
+          "claimed_at": "2026-11-13T00:44:31.909833Z"
+        },
+        {
+          "id": 163,
+          "claimed_at": "2026-11-13T00:44:31.909867Z"
+        },
+        {
+          "id": 169,
+          "claimed_at": "2026-11-13T00:44:31.909841Z"
+        },
+        {
+          "id": 170,
+          "claimed_at": "2026-11-13T00:44:31.909873Z"
+        },
+        {
+          "id": 171,
+          "claimed_at": "2026-11-13T00:44:31.909848Z"
+        },
+        {
+          "id": 172,
+          "claimed_at": "2026-11-13T00:44:31.909855Z"
+        },
+        {
+          "id": 174,
+          "claimed_at": "2026-11-13T00:44:32.197996Z"
+        },
+        {
+          "id": 181,
+          "claimed_at": "2026-11-13T00:44:32.197953Z"
+        }
+      ],
+      "pre_kill_snapshot": [
+        {
+          "id": 109,
+          "attempt": 1
+        },
+        {
+          "id": 111,
+          "attempt": 1
+        },
+        {
+          "id": 120,
+          "attempt": 1
+        },
+        {
+          "id": 123,
+          "attempt": 1
+        },
+        {
+          "id": 134,
+          "attempt": 1
+        },
+        {
+          "id": 136,
+          "attempt": 1
+        },
+        {
+          "id": 139,
+          "attempt": 1
+        },
+        {
+          "id": 140,
+          "attempt": 1
+        },
+        {
+          "id": 141,
+          "attempt": 1
+        },
+        {
+          "id": 143,
+          "attempt": 1
+        }
+      ],
+      "recovery_seconds": [
+        29.871586866,
+        29.871474866,
+        29.871558866,
+        29.871592866,
+        29.871566866,
+        29.871598866,
+        29.871573866,
+        29.871580866,
+        30.159721866,
+        30.159678866
+      ]
+    },
+    "passed": true
+  },
+  {
+    "scenario": "BenchKEDA",
+    "seed": 42,
+    "params": {
+      "autoscaling": {
+        "MinReplicaCount": 3,
+        "MaxReplicaCount": 10,
+        "PollingInterval": 15,
+        "CooldownPeriod": 60
+      },
+      "enqueued": 3000,
+      "max_attempts": 10,
+      "payload": "{\"sleep_ms\":2000,\"fail_rate\":0.0,\"permanent\":false}",
+      "worker_config": {
+        "API_MAX_CONNS": "5",
+        "WORKER_CONCURRENCY": "10",
+        "WORKER_GRACE": "10s",
+        "WORKER_HEARTBEAT": "10s",
+        "WORKER_LEASE": "30s",
+        "WORKER_MAX_CONNS": "6",
+        "WORKER_POLL": "1s"
+      }
+    },
+    "started": "2026-11-13T00:44:34.823456Z",
+    "duration_seconds": 198.718516,
+    "enqueue_seconds": 1.557647708,
+    "drain_seconds": 74.984400709,
+    "faults_applied": {},
+    "events": null,
+    "invariant_violations": {
+      "I1": 0,
+      "I2": 0,
+      "I3": 0,
+      "I4": 0,
+      "I5": 0,
+      "I6": 0,
+      "I7": 0
+    },
+    "metrics": {
+      "abandoned_attempts": 0,
+      "attempts": 3000,
+      "dead": 0,
+      "duplicate_executions": 0,
+      "effects": 3000,
+      "failed_attempts": 0,
+      "released": 0,
+      "retried_attempts": 0,
+      "succeeded": 3000,
+      "total": 3000
+    },
+    "samples": [
+      {
+        "at": "2026-11-13T00:44:41.837732Z",
+        "desired": 3,
+        "ready": 3
+      },
+      {
+        "at": "2026-11-13T00:44:43.983527Z",
+        "desired": 3,
+        "ready": 3
+      },
+      {
+        "at": "2026-11-13T00:44:46.224942Z",
+        "desired": 3,
+        "ready": 3
+      },
+      {
+        "at": "2026-11-13T00:44:48.428008Z",
+        "desired": 3,
+        "ready": 3
+      },
+      {
+        "at": "2026-11-13T00:44:50.628129Z",
+        "desired": 7,
+        "ready": 3
+      },
+      {
+        "at": "2026-11-13T00:44:52.83848Z",
+        "desired": 7,
+        "ready": 7
+      },
+      {
+        "at": "2026-11-13T00:44:54.991626Z",
+        "desired": 7,
+        "ready": 7
+      },
+      {
+        "at": "2026-11-13T00:44:57.16913Z",
+        "desired": 7,
+        "ready": 7
+      },
+      {
+        "at": "2026-11-13T00:44:59.416712Z",
+        "desired": 7,
+        "ready": 7
+      },
+      {
+        "at": "2026-11-13T00:45:01.603505Z",
+        "desired": 7,
+        "ready": 7
+      },
+      {
+        "at": "2026-11-13T00:45:03.790416Z",
+        "desired": 7,
+        "ready": 7
+      },
+      {
+        "at": "2026-11-13T00:45:05.986714Z",
+        "desired": 10,
+        "ready": 7
+      },
+      {
+        "at": "2026-11-13T00:45:08.149156Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:45:10.345427Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:45:12.586433Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:45:14.749447Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:45:16.972223Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:45:19.172873Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:45:21.377939Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:45:23.582226Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:45:25.811718Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:45:27.987658Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:45:30.190842Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:45:32.395679Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:45:34.677459Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:45:36.865881Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:45:39.086453Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:45:41.281249Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:45:43.48228Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:45:45.718011Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:45:47.890123Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:45:50.052784Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:45:52.218885Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:45:54.43358Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:45:56.655693Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:45:58.894241Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:46:01.09823Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:46:03.302029Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:46:05.509449Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:46:07.725965Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:46:09.933316Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:46:12.15448Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:46:14.328581Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:46:16.524036Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:46:18.756616Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:46:20.945213Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:46:23.126457Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:46:25.344874Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:46:27.556664Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:46:29.742781Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:46:31.988625Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:46:34.161818Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:46:36.39425Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:46:38.65933Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:46:40.833128Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:46:43.02416Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:46:45.246399Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:46:47.462344Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:46:49.703105Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:46:51.948313Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:46:54.140011Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:46:56.485064Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:46:58.760623Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:47:00.977115Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:47:03.122609Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:47:05.333745Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:47:07.534615Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:47:09.756505Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:47:12.007859Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:47:14.197935Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:47:16.389452Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:47:18.632032Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:47:20.822322Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:47:23.012554Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:47:25.307087Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:47:27.5067Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:47:29.720091Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:47:31.989855Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:47:34.184166Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:47:36.395888Z",
+        "desired": 4,
+        "ready": 4
+      },
+      {
+        "at": "2026-11-13T00:47:38.650161Z",
+        "desired": 4,
+        "ready": 4
+      },
+      {
+        "at": "2026-11-13T00:47:40.902156Z",
+        "desired": 4,
+        "ready": 4
+      },
+      {
+        "at": "2026-11-13T00:47:43.111081Z",
+        "desired": 4,
+        "ready": 4
+      },
+      {
+        "at": "2026-11-13T00:47:45.327723Z",
+        "desired": 4,
+        "ready": 4
+      },
+      {
+        "at": "2026-11-13T00:47:47.504361Z",
+        "desired": 4,
+        "ready": 4
+      },
+      {
+        "at": "2026-11-13T00:47:49.685441Z",
+        "desired": 4,
+        "ready": 4
+      },
+      {
+        "at": "2026-11-13T00:47:51.930073Z",
+        "desired": 3,
+        "ready": 3
+      }
+    ],
+    "benchmark": {
+      "drain_to_min_seconds": 115.832888,
+      "first_scale_up_seconds": 8.840964,
+      "max_ready_seconds": 26.361991
+    },
+    "passed": true
+  }
+]

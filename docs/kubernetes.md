@@ -147,7 +147,12 @@ Watch it: `kubectl -n durableq get scaledobject,hpa -w` and the "Worker replicas
 
 ## Chaos and benchmarks on Kubernetes
 
-See [results-k8s.md](results-k8s.md) for the commands, methodology, hardware, and measured results.
+```sh
+make k8s-chaos   # nine fault scenarios (pod SIGKILL, pod delete, rollout, scaling, Postgres restart, connection kills, DLQ, crash loops, KEDA), each followed by I1–I7
+make k8s-bench   # throughput at 1/2/5/10 replicas, SIGKILL recovery time, KEDA reaction time
+```
+
+Both suites truncate the demo tables in this namespace. Results, hardware and methodology: [results-k8s.md](results-k8s.md).
 
 ## Known limitations
 
@@ -164,6 +169,7 @@ See [results-k8s.md](results-k8s.md) for the commands, methodology, hardware, an
 - **KEDA's query cost is O(queued rows), including scheduled ones**: `run_at <= clock_timestamp()` can't bound the partial-index scan. That's fine below millions of scheduled jobs.
 - **KEDA and the app share one DB role.** With an external database, give the TriggerAuthentication a read-only role (`SELECT` on `jobs`).
 - **No NetworkPolicy.** Any pod in the cluster can reach Postgres and the API. Add policies if the cluster is shared.
+- **Migration `0002_dead_index.sql` builds its index without `CONCURRENTLY`** (migrations run in one transaction), so it holds a write lock on `jobs` while it builds. That takes milliseconds on a small table; on a large existing `jobs` table, first run `CREATE INDEX CONCURRENTLY jobs_dead ON jobs (id) WHERE state = 'dead'` by hand; the migration's `IF NOT EXISTS` then skips the build.
 - **Mutable `durableq:dev` tag** in the local flow (base images and CI actions are pinned by digest or SHA). Use immutable tags or digests with a real registry.
 
 ## Troubleshooting

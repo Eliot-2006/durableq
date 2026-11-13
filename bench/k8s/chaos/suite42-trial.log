@@ -1,0 +1,37 @@
+=== RUN   TestRandomPodKill
+CHAOS RandomPodKill            seed=42 pass=true faults=map[sigkill:3] drain=48.73s duplicates=30 effects_violations=0 report=bench/k8s/chaos/20261112T233044Z.json
+--- PASS: TestRandomPodKill (54.82s)
+=== RUN   TestGracefulTermination
+CHAOS GracefulTermination      seed=42 pass=true faults=map[sigterm_delete:1] drain=121.17s duplicates=0 effects_violations=0 report=bench/k8s/chaos/20261112T233044Z.json
+--- PASS: TestGracefulTermination (125.44s)
+=== RUN   TestRollingUpdate
+CHAOS RollingUpdate            seed=42 pass=true faults=map[rollout_restart:3] drain=80.64s duplicates=0 effects_violations=0 report=bench/k8s/chaos/20261112T233044Z.json
+--- PASS: TestRollingUpdate (86.34s)
+=== RUN   TestScaleUpDown
+CHAOS ScaleUpDown              seed=42 pass=true faults=map[scale:4] drain=340.54s duplicates=0 effects_violations=0 report=bench/k8s/chaos/20261112T233044Z.json
+--- PASS: TestScaleUpDown (349.00s)
+=== RUN   TestPostgresRestart
+    harness_test.go:362: status unavailable during recovery: kubectl --context kind-durableq -n durableq exec deploy/durableq-api -c api -- /durableq status: exit status 1: error: failed to connect to `user=durableq database=durableq`: 10.96.60.193:5432 (durableq-postgres.durableq.svc): dial error: dial tcp 10.96.60.193:5432: connect: connection refused
+        command terminated with exit code 1
+    harness_test.go:362: status unavailable during recovery: kubectl --context kind-durableq -n durableq exec deploy/durableq-api -c api -- /durableq status: exit status 1: error: failed to connect to `user=durableq database=durableq`: 10.96.60.193:5432 (durableq-postgres.durableq.svc): dial error: dial tcp 10.96.60.193:5432: connect: connection refused
+        command terminated with exit code 1
+CHAOS PostgresRestart          seed=42 pass=true faults=map[postgres_restart:1] drain=61.00s duplicates=29 effects_violations=0 report=bench/k8s/chaos/20261112T233044Z.json
+--- PASS: TestPostgresRestart (69.38s)
+=== RUN   TestConnectionKill
+CHAOS ConnectionKill           seed=42 pass=true faults=map[connection_kill_round:3 connections_terminated:25] drain=44.39s duplicates=9 effects_violations=0 report=bench/k8s/chaos/20261112T233044Z.json
+--- PASS: TestConnectionKill (58.82s)
+=== RUN   TestRetryExhaustionDLQ
+CHAOS RetryExhaustionDLQ       seed=42 pass=true faults=map[sigkill:1] drain=39.28s duplicates=10 effects_violations=0 report=bench/k8s/chaos/20261112T233044Z.json
+--- PASS: TestRetryExhaustionDLQ (45.10s)
+=== RUN   TestRepeatedCrashRecovery
+    harness_test.go:352: timeout: every killed job reclaimed
+CHAOS RepeatedCrashRecovery    seed=42 pass=false faults=map[sigkill:3] drain=0.00s duplicates=0 effects_violations=0 report=bench/k8s/chaos/20261112T233044Z.json
+--- FAIL: TestRepeatedCrashRecovery (195.08s)
+=== RUN   TestKEDAAutoscale
+    chaos_test.go:177: parsing time "2026-11-12 23:48:30.163626+00" as "2006-01-02 15:04:05.999999999Z07:00": cannot parse "+00" as "Z07:00"
+CHAOS KEDAAutoscale            seed=42 pass=false faults=map[] drain=74.51s duplicates=0 effects_violations=0 report=bench/k8s/chaos/20261112T233044Z.json
+--- FAIL: TestKEDAAutoscale (183.63s)
+FAIL
+REPORT bench/k8s/chaos/20261112T233044Z.json
+FAIL	github.com/Eliot-2006/durableq/test/k8s	1167.929s
+FAIL

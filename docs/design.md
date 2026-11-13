@@ -121,7 +121,7 @@ This has a consequence worth stating plainly: **infrastructure faults alone can 
   - every PRD M1/M2 acceptance criterion;
   - a 1,000-iteration race between an owner completing near expiry and a reclaimer, where most iterations produce a contested completion that gets rejected;
   - a TCP proxy that cuts the database connection, to test the local deadline.
-- **Chaos (`go test -tags chaos ./chaos/...`).** Real worker processes, with these faults:
+- **Chaos (`go test -tags chaos ./test/chaos/...`).** Real worker processes, with these faults:
   - random SIGKILL;
   - `pg_terminate_backend`;
   - SIGSTOP stalls past the lease;

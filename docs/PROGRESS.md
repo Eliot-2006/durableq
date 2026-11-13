@@ -11,7 +11,7 @@
 - M4 (partial): `internal/demo/bench.go` + CLI `bench`, `docs/design.md`, README.
 
 ## M3 acceptance (2026-11-05, same machine)
-- 20 consecutive seeds (1000–1019) × 10,000 jobs, all failpoints at 0.2%: every run had 100 SIGKILLs, 92–116 failpoint self-kills, 20 connection-kill rounds (205–396 connections), and 5 SIGSTOP stalls. **20/20 passed I1–I7.** Drain time 24.5–34.8s. Command is in `chaos/chaos_test.go`'s header.
+- 20 consecutive seeds (1000–1019) × 10,000 jobs, all failpoints at 0.2%: every run had 100 SIGKILLs, 92–116 failpoint self-kills, 20 connection-kill rounds (205–396 connections), and 5 SIGSTOP stalls. **20/20 passed I1–I7.** Drain time 24.5–34.8s. Command is in `test/chaos/chaos_test.go`'s header.
 - Each failpoint isolated at 3%: all 5 fire and pass.
 - Injected bug (attempt check removed from complete): I5 fails (8 and 4 violations on seeds 4242/4243, 11 in `TestStalledWorkerFenced`). The correct code passes the same workload. Reverted; `TestStalledWorkerFenced` now uses that workload permanently.
 - Lease stall uses SIGSTOP/SIGCONT of a worker process instead of the PRD's payload flag. A payload flag can't stop heartbeats, which run outside the handler. Resumed workers mostly abandon their jobs on the local deadline; the rest attempt completions that the fence rejects.
@@ -56,6 +56,14 @@ Self-review plus an independent Codex review found no critical issues and 8 majo
 - New fault: restart the Postgres server mid-run (`DBRestarts` / `DBRestartCmd`). The harness reconnects and verifies the restart via `pg_postmaster_start_time()`. A no-op command fails the run.
 - `TestPostgresRestart`: 3,000 jobs, 4 workers, 10 SIGKILLs, 3 crash-restarts (`docker restart -t 0`). 6/6 local runs passed I1–I7. Runs in CI against the service container.
 - README: headline results, CI badge, port note. MIT LICENSE.
+
+## Kubernetes extension (2026-11-12, branch `feat/kubernetes`)
+Plan and contract: [kubernetes-plan.md](kubernetes-plan.md); decisions D12–D17 in PRD §16; results in [results-k8s.md](results-k8s.md).
+- Built: `durableq serve` (HTTP API), worker `--http-addr` health and metrics, `WorkerConfig.OnEvent`, distroless image pinned by digest, Compose services, Helm chart (KEDA PostgreSQL scaler, PodMonitor, dashboard, render-time budget and grace guards), kind scripts, CI jobs (image + Trivy, helm, kind-e2e) with actions pinned by SHA.
+- Review (0 critical, 5 major): fixed the Trivy action pin (CVE-2026-33634 hijacked tags), full-history scans in queue stats (now partial-index counts; migration `0002_dead_index.sql`), chart Secret regenerated on reinstall, API dropping requests during rollout, unbounded KEDA scale-down; added lifecycle tests.
+- Kubernetes chaos: nine scenarios, each passed in at least two runs with I1–I7 at zero. Benchmarks: 1/2/5/10 replicas, SIGKILL recovery ≈ one 30s lease, KEDA 3→10 in 26s.
+- CI fix: `TestChaos` asserted that its 3 SIGTERM restarts released a job, but a 20ms grace against 10–30ms jobs and random targets often released none (2/12 local runs on main and on the branch). The harness now uses a 1ms grace and restarts the busiest worker: 30/30 runs released 6–30 jobs.
+- Layout: process chaos tests moved to `test/chaos/`; progress and plan notes moved to `docs/`.
 
 ## Next
 - Stretch items (PRD §14) only if asked: LISTEN/NOTIFY, River comparison, `dead retry`, retention.

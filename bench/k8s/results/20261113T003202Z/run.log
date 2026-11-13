@@ -1,0 +1,47 @@
+scripts/k8s-bench.sh
+=== RUN   TestBenchMatrix
+=== RUN   TestBenchMatrix/sleep0/replicas1
+BENCH replicas=1 sleep_ms=0 jobs=40000 jobs/s=692.47 processing_ms=[1.633 3.7101999999999826 5.876110000000023] queue_wait_ms=[32731.900999999998 55697.473 57356.56201] peak_connections=8 resources={WorkerCPU:74 WorkerMiB:11 PostgresCPU:974 PostgresMiB:67 Workers:1 Postgres:1}
+CHAOS BenchMatrix/sleep0/replicas1 seed=42 pass=true faults=map[] drain=62.49s duplicates=0 effects_violations=0 report=bench/k8s/results/20261113T003202Z/report.json
+=== RUN   TestBenchMatrix/sleep0/replicas2
+BENCH replicas=2 sleep_ms=0 jobs=40000 jobs/s=1148.12 processing_ms=[1.9395 5.094049999999996 8.84814000000003] queue_wait_ms=[22139.8185 33676.43205 34619.319] peak_connections=14 resources={WorkerCPU:134 WorkerMiB:21 PostgresCPU:2131 PostgresMiB:94 Workers:2 Postgres:1}
+CHAOS BenchMatrix/sleep0/replicas2 seed=42 pass=true faults=map[] drain=40.25s duplicates=0 effects_violations=0 report=bench/k8s/results/20261113T003202Z/report.json
+=== RUN   TestBenchMatrix/sleep0/replicas5
+BENCH replicas=5 sleep_ms=0 jobs=40000 jobs/s=2219.95 processing_ms=[4.271 11.589149999999988 16.259060000000012] queue_wait_ms=[9441.9625 17247.546449999998 17852.95101] peak_connections=32 resources={WorkerCPU:9 WorkerMiB:32 PostgresCPU:224 PostgresMiB:67 Workers:5 Postgres:1}
+CHAOS BenchMatrix/sleep0/replicas5 seed=42 pass=true faults=map[] drain=21.97s duplicates=0 effects_violations=0 report=bench/k8s/results/20261113T003202Z/report.json
+=== RUN   TestBenchMatrix/sleep0/replicas10
+BENCH replicas=10 sleep_ms=0 jobs=40000 jobs/s=2370.34 processing_ms=[10.22 26.513299999999976 39.28730000000006] queue_wait_ms=[9022.111499999999 16062.9604 16684.99204] peak_connections=62 resources={WorkerCPU:42 WorkerMiB:64 PostgresCPU:764 PostgresMiB:237 Workers:10 Postgres:1}
+CHAOS BenchMatrix/sleep0/replicas10 seed=42 pass=true faults=map[] drain=20.53s duplicates=0 effects_violations=0 report=bench/k8s/results/20261113T003202Z/report.json
+=== RUN   TestBenchMatrix/sleep50/replicas1
+BENCH replicas=1 sleep_ms=50 jobs=20000 jobs/s=168.48 processing_ms=[52.537 74.93615 77.40202] queue_wait_ms=[60283.754499999995 112828.49014999998 117499.77548] peak_connections=8 resources={WorkerCPU:36 WorkerMiB:10 PostgresCPU:4790 PostgresMiB:87 Workers:1 Postgres:1}
+CHAOS BenchMatrix/sleep50/replicas1 seed=42 pass=true faults=map[] drain=123.79s duplicates=0 effects_violations=0 report=bench/k8s/results/20261113T003202Z/report.json
+=== RUN   TestBenchMatrix/sleep50/replicas2
+BENCH replicas=2 sleep_ms=50 jobs=20000 jobs/s=334.38 processing_ms=[52.3535 74.9901 77.53004999999999] queue_wait_ms=[30579.1765 56850.9378 59140.552849999985] peak_connections=14 resources={WorkerCPU:83 WorkerMiB:20 PostgresCPU:984 PostgresMiB:115 Workers:2 Postgres:1}
+CHAOS BenchMatrix/sleep50/replicas2 seed=42 pass=true faults=map[] drain=64.69s duplicates=0 effects_violations=0 report=bench/k8s/results/20261113T003202Z/report.json
+=== RUN   TestBenchMatrix/sleep50/replicas5
+BENCH replicas=5 sleep_ms=50 jobs=20000 jobs/s=782.08 processing_ms=[52.33 75.10505 77.76517999999997] queue_wait_ms=[13344.8665 24301.61135 25265.00801] peak_connections=32 resources={WorkerCPU:60 WorkerMiB:39 PostgresCPU:1534 PostgresMiB:148 Workers:5 Postgres:1}
+CHAOS BenchMatrix/sleep50/replicas5 seed=42 pass=true faults=map[] drain=30.77s duplicates=0 effects_violations=0 report=bench/k8s/results/20261113T003202Z/report.json
+=== RUN   TestBenchMatrix/sleep50/replicas10
+BENCH replicas=10 sleep_ms=50 jobs=20000 jobs/s=1378.42 processing_ms=[53.8875 76.355 79.774] queue_wait_ms=[7763.416 13776.094849999998 14307.836229999997] peak_connections=61 resources={WorkerCPU:233 WorkerMiB:83 PostgresCPU:2935 PostgresMiB:234 Workers:10 Postgres:1}
+CHAOS BenchMatrix/sleep50/replicas10 seed=42 pass=true faults=map[] drain=19.42s duplicates=0 effects_violations=0 report=bench/k8s/results/20261113T003202Z/report.json
+--- PASS: TestBenchMatrix (703.90s)
+    --- PASS: TestBenchMatrix/sleep0/replicas1 (113.28s)
+    --- PASS: TestBenchMatrix/sleep0/replicas2 (81.11s)
+    --- PASS: TestBenchMatrix/sleep0/replicas5 (71.82s)
+    --- PASS: TestBenchMatrix/sleep0/replicas10 (72.32s)
+    --- PASS: TestBenchMatrix/sleep50/replicas1 (152.29s)
+    --- PASS: TestBenchMatrix/sleep50/replicas2 (91.59s)
+    --- PASS: TestBenchMatrix/sleep50/replicas5 (70.65s)
+    --- PASS: TestBenchMatrix/sleep50/replicas10 (49.54s)
+=== RUN   TestBenchRecovery
+RECOVERY lease=30s heartbeat=10s jobs=10 seconds=[29.871586866 29.871474866 29.871558866 29.871592866 29.871566866 29.871598866 29.871573866 29.871580866 30.159721866 30.159678866]
+CHAOS BenchRecovery            seed=42 pass=true faults=map[sigkill:1] drain=40.41s duplicates=10 effects_violations=0 report=bench/k8s/results/20261113T003202Z/report.json
+--- PASS: TestBenchRecovery (47.55s)
+=== RUN   TestBenchKEDA
+KEDA first_up=8.84s max_ready=26.36s drain_to_min=115.83s
+CHAOS BenchKEDA                seed=42 pass=true faults=map[] drain=74.98s duplicates=0 effects_violations=0 report=bench/k8s/results/20261113T003202Z/report.json
+--- PASS: TestBenchKEDA (198.72s)
+PASS
+REPORT bench/k8s/results/20261113T003202Z/report.json
+ok  	github.com/Eliot-2006/durableq/test/k8s	950.378s
+results: bench/k8s/results/20261113T003202Z
