@@ -22,12 +22,12 @@ func newChart(title, description string, height int, dark bool) *chart {
 		c.blue = "#56b4e9"
 		c.orange = "#f3ab63"
 	}
-	fmt.Fprintf(c, `<svg xmlns="http://www.w3.org/2000/svg" width="880" height="%d" viewBox="0 0 880 %d" role="img" aria-labelledby="title desc">
+	fmt.Fprintf(c, `<svg xmlns="http://www.w3.org/2000/svg" width="720" height="%d" viewBox="0 0 720 %d" role="img" aria-labelledby="title desc">
 <title id="title">%s</title><desc id="desc">%s</desc>
-<rect width="880" height="%d" fill="%s"/>
-<g font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="15" fill="%s">
+<rect width="720" height="%d" fill="%s"/>
+<g font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="22" fill="%s">
 `, height, height, html.EscapeString(title), html.EscapeString(description), height, bg, c.fg)
-	c.text(24, 34, title, "font-size=\"23\" font-weight=\"650\"")
+	c.text(24, 34, title, "font-size=\"26\" font-weight=\"650\"")
 	return c
 }
 
@@ -35,13 +35,13 @@ func (c *chart) text(x, y float64, value, attrs string) {
 	fmt.Fprintf(c, "<text x=\"%.2f\" y=\"%.2f\" %s>%s</text>\n", x, y, attrs, html.EscapeString(value))
 }
 func (c *chart) line(x1, y1, x2, y2 float64, color, dash string) {
-	fmt.Fprintf(c, "<line x1=\"%.2f\" y1=\"%.2f\" x2=\"%.2f\" y2=\"%.2f\" stroke=\"%s\" stroke-width=\"2\" stroke-dasharray=\"%s\"/>\n", x1, y1, x2, y2, color, dash)
+	fmt.Fprintf(c, "<line x1=\"%.2f\" y1=\"%.2f\" x2=\"%.2f\" y2=\"%.2f\" stroke=\"%s\" stroke-width=\"3\" stroke-dasharray=\"%s\"/>\n", x1, y1, x2, y2, color, dash)
 }
 func (c *chart) mark(x, y float64, color string, square bool) {
 	if square {
-		fmt.Fprintf(c, "<rect x=\"%.2f\" y=\"%.2f\" width=\"8\" height=\"8\" fill=\"%s\"/>\n", x-4, y-4, color)
+		fmt.Fprintf(c, "<rect x=\"%.2f\" y=\"%.2f\" width=\"12\" height=\"12\" fill=\"%s\"/>\n", x-6, y-6, color)
 	} else {
-		fmt.Fprintf(c, "<circle cx=\"%.2f\" cy=\"%.2f\" r=\"4.5\" fill=\"%s\"/>\n", x, y, color)
+		fmt.Fprintf(c, "<circle cx=\"%.2f\" cy=\"%.2f\" r=\"6\" fill=\"%s\"/>\n", x, y, color)
 	}
 }
 func (c *chart) legend(x, y float64, label, color, dash string, square, marker bool) {
@@ -51,30 +51,37 @@ func (c *chart) legend(x, y float64, label, color, dash string, square, marker b
 	}
 	c.text(x+40, y, label, "")
 }
-func (c *chart) finish(caption, source string, y float64) string {
-	c.text(24, y, caption, `font-size="13"`)
-	c.text(24, y+22, "source: "+source, `font-size="12"`)
+func (c *chart) finish(captions []string, source string, y float64) string {
+	for _, caption := range captions {
+		c.text(24, y, caption, `font-size="16"`)
+		y += 24
+	}
+	c.text(24, y, "source: "+source, `font-size="16"`)
 	c.WriteString("</g>\n</svg>\n")
 	return c.String()
 }
 
-func plotX(n float64) float64      { return 80 + (n-1)/9*600 }
-func plotY(n, max float64) float64 { return 440 - n/max*260 }
+const plotLeft, plotRight, plotTop, plotBottom = 80.0, 660.0, 290.0, 650.0
+
+func plotX(n float64) float64      { return plotLeft + (n-1)/9*(plotRight-plotLeft) }
+func plotY(n, max float64) float64 { return plotBottom - n/max*(plotBottom-plotTop) }
 func (c *chart) axes(max, step float64, label string) {
-	c.text(24, 157, label, `font-weight="600"`)
+	c.text(24, 254, label, `font-weight="600"`)
 	for n := 0.0; n <= max; n += step {
 		y := plotY(n, max)
-		c.line(80, y, 680, y, c.grid, "")
-		c.text(68, y+5, fmt.Sprintf("%.0f", n), `text-anchor="end"`)
+		c.line(plotLeft, y, plotRight, y, c.grid, "")
+		c.text(plotLeft-12, y+7, fmt.Sprintf("%.0f", n), `text-anchor="end"`)
 	}
-	c.line(80, 180, 80, 440, c.muted, "")
-	c.line(80, 440, 680, 440, c.muted, "")
+	c.line(plotLeft, plotTop, plotLeft, plotBottom, c.muted, "")
+	c.line(plotLeft, plotBottom, plotRight, plotBottom, c.muted, "")
 	for _, n := range []float64{1, 2, 5, 10} {
 		x := plotX(n)
-		c.line(x, 440, x, 446, c.muted, "")
-		c.text(x, 468, fmt.Sprintf("%.0f", n), `text-anchor="middle"`)
+		c.line(x, plotBottom, x, plotBottom+8, c.muted, "")
+		c.text(x, plotBottom+36, fmt.Sprintf("%.0f", n), `text-anchor="middle"`)
 	}
-	c.text(380, 498, "Worker replicas (pods)", `text-anchor="middle"`)
+	c.text((plotLeft+plotRight)/2, 730, "Worker replicas (pods)", `text-anchor="middle"`)
+	fmt.Fprintf(c, `<defs><clipPath id="plot-frame"><rect x="%.0f" y="%.0f" width="%.0f" height="%.0f"/></clipPath></defs>
+`, plotLeft, plotTop, plotRight-plotLeft, plotBottom-plotTop)
 }
 
 func (c *chart) series(rows []row, sleep int, field, color, dash string, max float64, square bool) {
@@ -101,12 +108,15 @@ func (c *chart) series(rows []row, sleep int, field, color, dash string, max flo
 }
 
 func throughputChart(rows []row, dark bool) string {
-	c := newChart("Kubernetes throughput: work per job changes the scaling limit", "Eight measured cells at 1, 2, 5 and 10 worker replicas. Solid lines join measured points. Dashed linear references are one-replica throughput multiplied by replica count; they are not measurements. Speed-ups are measured at ten replicas relative to one.", 570, dark)
-	c.legend(24, 76, "0ms measured", c.blue, "", false, true)
-	c.legend(340, 76, "0ms linear reference (1-replica rate × n)", c.blue, "7 5", false, false)
-	c.legend(24, 110, "50ms measured", c.orange, "", true, true)
-	c.legend(340, 110, "50ms linear reference (1-replica rate × n)", c.orange, "7 5", true, false)
-	c.axes(5500, 1000, "Throughput (jobs/s)")
+	c := newChart("Kind cluster throughput", "Eight measured cells at 1, 2, 5 and 10 worker replicas. Solid lines join measured points. Dashed linear references multiply the one-replica rate by replica count, not additional measurements. The 0ms reference is clipped at 2,200 jobs/s; at ten replicas it reaches 4,948 jobs/s. Speed-ups compare ten replicas to one.", 930, dark)
+	c.legend(24, 86, "0ms measured", c.blue, "", false, true)
+	c.legend(24, 124, "50ms measured", c.orange, "", true, true)
+	c.legend(24, 162, "0ms linear reference (1-pod rate × n)", c.blue, "8 6", false, false)
+	c.legend(24, 200, "50ms linear reference (1-pod rate × n)", c.orange, "8 6", true, false)
+	const max = 2200.0
+	c.axes(max, 500, "Throughput (jobs/s)")
+	c.line(plotLeft, plotTop, plotRight, plotTop, c.grid, "")
+	c.text(plotLeft-12, plotTop+7, fmt.Sprintf("%.0f", max), `text-anchor="end"`)
 	for _, sleep := range []int{0, 50} {
 		color := c.blue
 		if sleep == 50 {
@@ -122,20 +132,34 @@ func throughputChart(rows []row, dark bool) string {
 			}
 		}
 		rate := number(first, "jobs_per_second")
-		c.line(plotX(1), plotY(rate, 5500), plotX(10), plotY(rate*10, 5500), color, "7 5")
-		c.series(rows, sleep, "jobs_per_second", color, "", 5500, sleep == 50)
-		y := plotY(number(last, "jobs_per_second"), 5500)
-		c.text(700, y-3, fmt.Sprintf("%dms · %.1f×", sleep, number(last, "jobs_per_second")/rate), `font-weight="650"`)
+		c.WriteString(`<g clip-path="url(#plot-frame)">` + "\n")
+		c.line(plotX(1), plotY(rate, max), plotX(10), plotY(rate*10, max), color, "8 6")
+		c.WriteString("</g>\n")
+		if sleep == 0 {
+			label := fmt.Sprintf("%.0f", rate*10)
+			label = label[:len(label)-3] + "," + label[len(label)-3:]
+			c.text(348, 252, "0ms reference at 10:", `font-size="20"`)
+			c.text(348, 278, label+" jobs/s (off scale)", `font-size="20"`)
+		}
+		c.series(rows, sleep, "jobs_per_second", color, "", max, sleep == 50)
+		y := 782.0
+		if sleep == 50 {
+			y = 816
+		}
+		c.text(24, y, fmt.Sprintf("%dms: %.1f× throughput (1 → 10 pods)", sleep, number(last, "jobs_per_second")/rate), `font-weight="650"`)
 	}
-	return c.finish("demo.effect · kind / M3 Pro / Docker 11 CPUs · 10 slots, 6 DB conns/pod; one run/cell.", matrixSource, 532)
+	return c.finish([]string{
+		"kind cluster · M3 Pro · Docker: 11 CPUs",
+		"demo.effect · 10 slots, 6 DB connections per pod · one run/cell",
+	}, matrixSource, 855)
 }
 
 func cpuChart(rows []row, dark bool) string {
-	c := newChart("Kubernetes CPU: Postgres carries most of the queue work", "Postgres and total worker CPU for the same eight measured workload/replica cells. Values are sampled maxima of metrics-server window averages, not instantaneous CPU peaks. Circles identify 0ms; squares identify 50ms. Solid lines are Postgres; dashed lines are all workers summed.", 570, dark)
-	c.legend(24, 76, "0ms Postgres", c.blue, "", false, true)
-	c.legend(390, 76, "0ms total workers", c.blue, "7 5", false, true)
-	c.legend(24, 110, "50ms Postgres", c.orange, "", true, true)
-	c.legend(390, 110, "50ms total workers", c.orange, "7 5", true, true)
+	c := newChart("Kind cluster CPU", "Postgres and total worker CPU for the same eight measured cells. Values are sampled maxima of metrics-server window averages, not instantaneous CPU peaks. Circles identify 0ms; squares identify 50ms. Solid lines are Postgres; dashed lines are all workers summed.", 904, dark)
+	c.legend(24, 86, "0ms Postgres", c.blue, "", false, true)
+	c.legend(24, 124, "50ms Postgres", c.orange, "", true, true)
+	c.legend(24, 162, "0ms total workers", c.blue, "8 6", false, true)
+	c.legend(24, 200, "50ms total workers", c.orange, "8 6", true, true)
 	c.axes(8, 2, "CPU (cores)")
 	for _, sleep := range []int{0, 50} {
 		color := c.blue
@@ -143,43 +167,45 @@ func cpuChart(rows []row, dark bool) string {
 			color = c.orange
 		}
 		c.series(rows, sleep, "postgres_cpu_millicores", color, "", 8, sleep == 50)
-		c.series(rows, sleep, "worker_cpu_millicores", color, "7 5", 8, sleep == 50)
+		c.series(rows, sleep, "worker_cpu_millicores", color, "8 6", 8, sleep == 50)
 	}
-	return c.finish("demo.effect · kind / M3 Pro / Docker 11 CPUs · sampled metrics-server window averages.", matrixSource, 532)
+	return c.finish([]string{
+		"kind cluster · M3 Pro · Docker: 11 CPUs",
+		"demo.effect · 10 slots, 6 DB connections per pod",
+		"Sampled metrics-server window averages; eight measured cells.",
+	}, matrixSource, 790)
 }
 
 func chaosChart(rows []row, dark bool) string {
-	c := newChart("Kubernetes chaos: redelivery occurs; invariants hold", "Seed 44, nine fault scenarios with different workloads and job counts. Each row shows drain seconds, jobs re-executed under at-least-once delivery, and zero violations of each invariant I1 through I7. Drain times are not a controlled comparison between scenarios.", 730, dark)
-	c.legend(24, 76, "Drain time", c.blue, "", false, false)
-	c.legend(230, 76, "At-least-once redelivery", c.orange, "", true, false)
-	c.text(24, 120, "Scenario", `font-weight="650"`)
-	c.text(260, 120, "Drain time (s)", `font-weight="650"`)
-	c.text(555, 120, "Re-executed (jobs)", `font-weight="650"`)
-	c.text(778, 114, "I1–I7", `font-weight="650" text-anchor="middle"`)
-	c.text(778, 134, "violations each", `font-size="12" text-anchor="middle"`)
-	for _, n := range []float64{0, 100, 200, 300} {
-		x := 260 + n/360*210
-		c.line(x, 164, x, 647, c.grid, "")
-		c.text(x, 156, fmt.Sprintf("%.0f", n), `font-size="12" text-anchor="middle"`)
+	c := newChart("Kind cluster chaos", "Seed 44, nine fault scenarios with different workloads and job counts. Each scenario shows drain seconds and jobs re-executed under at-least-once delivery on separate scales. Every invariant I1 through I7 has zero violations. Drain times are not a controlled comparison between scenarios.", 1220, dark)
+	c.text(24, 76, "At-least-once redelivery; I1–I7 hold in every scenario.", "")
+	c.text(24, 116, "Drain time (s)", `font-weight="600"`)
+	c.text(384, 116, "Re-executed (jobs)", `font-weight="600"`)
+	for _, n := range []float64{0, 180, 360} {
+		c.text(24+n/360*236, 148, fmt.Sprintf("%.0f", n), `font-size="20"`)
 	}
 	for _, n := range []float64{0, 50, 100} {
-		x := 555 + n/100*130
-		c.line(x, 164, x, 647, c.grid, "")
-		c.text(x, 156, fmt.Sprintf("%.0f", n), `font-size="12" text-anchor="middle"`)
+		c.text(384+n/100*236, 148, fmt.Sprintf("%.0f", n), `font-size="20"`)
 	}
 	for i, r := range rows {
-		y := 188 + float64(i)*54
-		c.text(24, y, r["scenario"].(string), `font-size="14"`)
+		y := 184 + float64(i)*106
+		c.text(24, y, r["scenario"].(string), `font-size="24" font-weight="600"`)
+		c.text(696, y, "I1–I7: 0 each", `text-anchor="end" font-size="20"`)
+		c.line(24, y+30, 260, y+30, c.grid, "")
+		c.line(384, y+30, 620, y+30, c.grid, "")
 		drain := number(r, "drain_s")
-		fmt.Fprintf(c, "<rect x=\"260\" y=\"%.2f\" width=\"%.2f\" height=\"12\" fill=\"%s\"/>\n", y-11, drain/360*210, c.blue)
-		c.text(532, y, fmt.Sprintf("%.2f", drain), `text-anchor="end" font-size="14"`)
+		fmt.Fprintf(c, "<rect x=\"24\" y=\"%.2f\" width=\"%.2f\" height=\"16\" fill=\"%s\"/>\n", y+22, drain/360*236, c.blue)
+		c.text(342, y+37, fmt.Sprintf("%.2f", drain), `text-anchor="end"`)
 		n := r["reexecuted_jobs"].(int)
 		if n > 0 {
-			fmt.Fprintf(c, "<rect x=\"555\" y=\"%.2f\" width=\"%.2f\" height=\"12\" fill=\"%s\"/>\n", y-11, float64(n)/100*130, c.orange)
+			fmt.Fprintf(c, "<rect x=\"384\" y=\"%.2f\" width=\"%.2f\" height=\"16\" fill=\"%s\"/>\n", y+22, float64(n)/100*236, c.orange)
 		}
-		c.text(715, y, fmt.Sprint(n), `text-anchor="end"`)
-		c.text(778, y, "0", `text-anchor="middle" font-weight="650"`)
+		c.text(696, y+37, fmt.Sprint(n), `text-anchor="end"`)
 	}
-	c.text(24, 666, "Different workloads per scenario; drain times are not directly comparable. Zero re-executions have no bar.", `font-size="13"`)
-	return c.finish("demo.effect · kind / M3 Pro · seed 44 · leases 30s, heartbeats 10s; I1–I7 checked after drain.", chaosSource, 692)
+	return c.finish([]string{
+		"Different workloads; drain times are not directly comparable.",
+		"Zero re-executions have no bar. I1–I7 checked after drain.",
+		"kind cluster · M3 Pro · demo.effect · seed 44",
+		"Lease: 30s · heartbeat: 10s",
+	}, chaosSource, 1096)
 }
