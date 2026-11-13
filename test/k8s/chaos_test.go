@@ -111,16 +111,17 @@ func TestRepeatedCrashRecovery(t *testing.T) {
 	h.enqueue(3600, 1000, 10, 0, false)
 	for cycle := range 3 {
 		h.at(float64(cycle)*.12 + h.rng.Float64()*.01)
+		h.wait(3*time.Minute, "all three worker containers ready before crash cycle", func() bool { desired, ready := h.replicasNow(); return desired == 3 && ready == 3 })
 		var killed []claim
 		ps := h.pods()
 		h.rng.Shuffle(len(ps), func(i, j int) { ps[i], ps[j] = ps[j], ps[i] })
 		h.check(len(ps) == 3, "crash cycle must target all three worker pods")
 		for _, p := range ps {
 			var jobs []claim
-			h.decode(h.must(sql(activeQuery(p.Metadata.Name))), &jobs)
-			if len(jobs) == 0 {
-				t.Fatal("every killed worker must hold jobs")
-			}
+			h.wait(time.Minute, "active claim on "+p.Metadata.Name, func() bool {
+				h.decode(h.must(sql(activeQuery(p.Metadata.Name))), &jobs)
+				return len(jobs) > 0
+			})
 			killedAt := h.kill(p)
 			var affected []claim
 			h.decode(h.must(sql(killedClaimsQuery(jobs[0], killedAt.Format(time.RFC3339Nano)))), &affected)
