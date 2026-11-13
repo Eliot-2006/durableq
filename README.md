@@ -1,6 +1,6 @@
 # DurableQ
 
-**A PostgreSQL-backed durable job queue in Go, with database-clock leases and fenced transitions.**
+**An at-least-once job queue in Go, with PostgreSQL leases and fencing.**
 
 DurableQ uses `FOR UPDATE SKIP LOCKED` to distribute work across concurrent workers and reclaim jobs after crashes. Run it as a Go library or deploy the HTTP API and workers on Kubernetes with Helm, KEDA autoscaling, and Prometheus/Grafana observability; PostgreSQL remains the only coordinator.
 
@@ -13,10 +13,13 @@ DurableQ uses `FOR UPDATE SKIP LOCKED` to distribute work across concurrent work
 
 ## Engineering highlights
 
-- **10,946 jobs/s** at 8 processes × 50 slots: `demo.noop`, host PostgreSQL 17.11, Apple M3 Pro. The recorded peak is 10,946.4 jobs/s. [Bare-process measurements](docs/results.md#throughput).
-- **8.1× throughput at 50ms of work per job; 4.0× at 0ms**, going from 1 to 10 worker replicas on kind. Each pod has 10 slots and 6 database connections; Postgres runs inside the Docker VM. [Replica matrix](docs/results-k8s.md#throughput-by-replica-count).
-- **20/20 process-chaos acceptance runs over 200,000 jobs**, with 100 SIGKILLs per run plus failpoints, connection kills and stalls. All seven SQL invariants passed. [Documented acceptance summary](docs/PROGRESS.md#m3-acceptance-2026-11-05-same-machine).
+- **10,946 jobs/s** at 8 processes × 50 slots: a no-op handler, host PostgreSQL 17.11, Apple M3 Pro. The recorded peak is 10,946.4 jobs/s. [Bare process measurements](docs/results.md#throughput).
+- **8.1× throughput at 50ms of work per job; 4.0× at 0ms**, going from 1 to 10 worker replicas on a kind cluster. Each pod has 10 slots and 6 database connections; Postgres runs inside the Docker VM. [Replica matrix](docs/results-k8s.md#throughput-by-replica-count).
+- **20/20 bare process chaos acceptance runs over 200,000 jobs**, with 100 SIGKILLs per run plus failpoints, connection kills and stalls. All seven SQL invariants passed. [Documented acceptance summary](docs/PROGRESS.md#m3-acceptance-2026-11-05-same-machine).
 - **Nine Kubernetes fault scenarios, each passing I1–I7 in at least two runs**: pod kills, graceful termination, rollouts, scaling, Postgres restart, connection kills, retry exhaustion, repeated crash recovery and KEDA autoscaling. [Kubernetes evidence](docs/results-k8s.md#chaos-nine-scenarios-i1i7-hold-in-every-run).
+- **Crashed workers’ jobs are reclaimed after about one lease:** 29.46–30.23s with a 30s lease on the kind cluster; p50 1,992ms and max 1,993.7ms with a 2s lease in the bare process run. [Recovery measurements](docs/results-k8s.md#recovery-and-autoscaling) · [Bare process recovery](docs/results.md#crash-recovery).
+
+**Limits:** external side effects require idempotency; no ordering guarantee, database HA/backups, or API authentication/TLS. [Guarantees and limitations](#guarantees).
 
 ## Architecture
 
@@ -58,21 +61,36 @@ Claiming and completion use short transactions. A handler holds a lease rather t
   <img src="docs/assets/charts/k8s-throughput-light.svg" alt="Measured kind throughput at 1, 2, 5 and 10 replicas: 0ms jobs scale 4.0× and 50ms jobs scale 8.1×. Dashed lines show one-replica linear references, not measurements." width="880">
 </picture>
 
-At 0ms, throughput grows more slowly as Postgres CPU rises. At 50ms, more handler time can overlap across pods. See the [CPU chart and full matrix](docs/results-k8s.md#throughput-by-replica-count), including latency, connections and resource samples.
+At 10 kind cluster replicas, the 0ms workload reaches 4.0× throughput while Postgres uses 6.9 CPU cores and all workers together use 0.49 cores. This setup is database-bound; the 50ms workload reaches 8.1× throughput. See the [CPU chart and full matrix](docs/results-k8s.md#throughput-by-replica-count), including latency, connections and resource samples.
 
-These are single-laptop measurements, one run per cell, without confidence intervals. The kind setup uses in-cluster Postgres and 6 connections per pod; the bare-process benchmark uses host Postgres and up to 80 worker connections. The two setups measure different workloads and are not a capacity comparison. [Methodology and limits](docs/results.md#setup).
+These are single-laptop measurements, one run per cell, without confidence intervals. The kind cluster setup uses in-cluster Postgres and 6 connections per pod; the bare process benchmark uses host Postgres and up to 80 worker connections. The two setups measure different workloads and are not a capacity comparison. [Methodology and limits](docs/results.md#setup).
 
 ## Reliability
 
 The chaos harness kills real worker processes, stalls them past their leases, interrupts database connections and restarts Postgres. After draining, it checks I1–I7 in SQL, including final ownership of each transactional effect. Re-executions are expected under at-least-once delivery. A stale attempt cannot commit its database transition or transactional effects; fencing cannot undo an external side effect the handler already performed. See the [demo transcript](docs/results.md#chaos-demo-transcript), [injected fencing-bug experiment](docs/results.md#the-checker-catches-a-fencing-bug), and [Kubernetes chaos chart](docs/results-k8s.md#chaos-nine-scenarios-i1i7-hold-in-every-run).
 
+Try it: [deterministic simulation of lease expiry and fencing](https://eliot-2006.github.io/durableq/reliability/).
+
 <img src="site/public/media/terminal-demo.gif" alt="Terminal recording of a real durableq demo run: 3,000 jobs across 4 worker processes while the harness SIGKILLs workers, kills their database connections, stalls them past their leases and restarts them; the queue drains and all seven invariant checks print PASS." width="880">
 
 *A real `durableq demo` run (3,000 jobs, 12 SIGKILLs, stalls and connection kills), ending with all seven invariant checks passing. [How it was recorded](docs/demo/README.md).*
 
-<img src="site/public/media/grafana-keda-summary.png" alt="The repository's Grafana dashboard on the kind cluster during a 30,000-job run: KEDA scales workers from 3 to 10, throughput holds near 95 jobs per second at full slot utilization, the 20,000-job backlog drains, and no jobs are dead-lettered." width="880">
+<img src="site/public/media/grafana-keda-summary.png" alt="The repository's Grafana dashboard on the kind cluster during a 30,000-job run: KEDA scales workers from 3 to 10, throughput holds near 95 jobs per second at full slot utilization, pending jobs peak near 20,000 before draining, and no jobs are dead-lettered." width="880">
 
-*The repository's Grafana dashboard on kind during a 30,000-job run with 5% injected failures: KEDA scales workers from 3 to 10, the backlog drains at about 95 jobs/s, and nothing is dead-lettered. [Full dashboard](site/public/media/grafana-keda.png) · [workload](docs/demo/README.md).*
+*The repository's Grafana dashboard on the kind cluster during a 30,000-job run with 5% injected failures: KEDA scales workers from 3 to 10, pending jobs peak near 20,000 before draining at about 95 jobs/s, and nothing is dead-lettered. [Full dashboard](site/public/media/grafana-keda.png) · [workload](docs/demo/README.md).*
+
+<a id="guarantees"></a>
+
+## Guarantees and limitations
+
+- **At-least-once execution:** committed jobs run until success or dead-lettering, while workers and Postgres are available. Executions may repeat.
+- **At most one terminal transition per job:** `succeeded` or `dead` commits at most once.
+- **Fenced transitions:** heartbeat, completion, failure and release check the current attempt, running state and lease against the database clock. See the [row-lock nuance](docs/design.md#lock-wait-subtlety-from-the-independent-review).
+- **Exactly-once transactional effects:** `CommitFunc` writes commit if and only if that attempt's completion commits. External side effects, such as HTTP calls and emails, may repeat; handlers must make them idempotent.
+- **Bounded attempts:** crashes spend the attempt budget; a healthy job can dead-letter after repeated infrastructure faults. Graceful release raises the budget without decrementing the fencing token.
+- **No ordering guarantee.** No progress during a database outage, no protection against permanent database loss, and no built-in retention of finished jobs.
+
+The Helm chart's single Postgres instance has no HA or backups, and the demo HTTP API has no authentication or TLS. See [design limits](docs/design.md#9-known-limitations) and [deployment limits](docs/kubernetes.md#known-limitations) before adapting it to an exposed service.
 
 ## Quick start
 
@@ -93,7 +111,7 @@ go run ./cmd/durableq check                   # run after the queue is drained
 
 If port 5432 is occupied, use `DURABLEQ_PG_PORT=55432 make up` and change the URL to port 55432. For the API and workers entirely in Compose, see [the Compose guide](docs/kubernetes.md#docker-compose-no-kubernetes).
 
-### Kubernetes (kind)
+### Kubernetes (kind cluster)
 
 Requires Docker, kind, kubectl and Helm. No cloud account.
 
@@ -133,23 +151,10 @@ w.Run(ctx) // until ctx is cancelled; then drains for ShutdownGrace and releases
 
 </details>
 
-<a id="guarantees"></a>
-
-## Guarantees and limitations
-
-- **At-least-once execution:** committed jobs run until success or dead-lettering, while workers and Postgres are available. Executions may repeat.
-- **At most one terminal transition per job:** `succeeded` or `dead` commits at most once.
-- **Fenced transitions:** heartbeat, completion, failure and release check the current attempt, running state and lease against the database clock. See the [row-lock nuance](docs/design.md#lock-wait-subtlety-from-the-independent-review).
-- **Exactly-once transactional effects:** `CommitFunc` writes commit if and only if that attempt's completion commits. External side effects, such as HTTP calls and emails, may repeat; handlers must make them idempotent.
-- **Bounded attempts:** crashes spend the attempt budget; a healthy job can dead-letter after repeated infrastructure faults. Graceful release raises the budget without decrementing the fencing token.
-- **No ordering guarantee.** No progress during a database outage, no protection against permanent database loss, and no built-in retention of finished jobs.
-
-The Helm chart's single Postgres instance has no HA or backups, and the demo HTTP API has no authentication or TLS. See [design limits](docs/design.md#9-known-limitations) and [deployment limits](docs/kubernetes.md#known-limitations) before adapting it to an exposed service.
-
 ## Documentation
 
 - [Design](docs/design.md) — state machine, SQL contracts, leases, fencing and failure model
-- [Bare-process results](docs/results.md) — setup, benchmarks, chaos transcript and checker experiments
+- [Bare process results](docs/results.md) — setup, benchmarks, chaos transcript and checker experiments
 - [Kubernetes guide](docs/kubernetes.md) — Helm, API, KEDA, Prometheus and Grafana
 - [Kubernetes results](docs/results-k8s.md) — replica matrix, fault scenarios, recovery and autoscaling
 - [Requirements and decisions](docs/PRD.md) · [Kubernetes plan](docs/kubernetes-plan.md) · [Implementation plan](docs/IMPLEMENTATION_PLAN.md) · [Engineering log](docs/PROGRESS.md)
