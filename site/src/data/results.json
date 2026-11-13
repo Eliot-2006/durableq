@@ -1,0 +1,533 @@
+{
+  "note": "Seed hand-built from the files in `sources`; tools/resultsgen regenerates it. Every value is measured unless its field says otherwise.",
+  "process": {
+    "environment": "Apple M3 Pro (11 cores, 18 GiB), PostgreSQL 17.11 (Homebrew, default settings) on the same host, Go 1.27.3, commit 8fa4341",
+    "sources": [
+      "bench/results/20261106T050117Z/throughput.csv",
+      "bench/results/20261106T050117Z/latency.csv",
+      "bench/results/20261106T050117Z/recovery.csv",
+      "bench/results/20261106T050117Z/chaos.csv",
+      "bench/results/20261106T050117Z/env.txt"
+    ],
+    "throughput": [
+      {
+        "procs": 1,
+        "concurrency": 1,
+        "pool_per_proc": 3,
+        "jobs": 20000,
+        "jobs_per_sec": 397.5,
+        "max_worker_conns": 1
+      },
+      {
+        "procs": 1,
+        "concurrency": 10,
+        "pool_per_proc": 12,
+        "jobs": 20000,
+        "jobs_per_sec": 2423.1,
+        "max_worker_conns": 10
+      },
+      {
+        "procs": 1,
+        "concurrency": 50,
+        "pool_per_proc": 52,
+        "jobs": 20000,
+        "jobs_per_sec": 4513.6,
+        "max_worker_conns": 21
+      },
+      {
+        "procs": 2,
+        "concurrency": 1,
+        "pool_per_proc": 3,
+        "jobs": 20000,
+        "jobs_per_sec": 770.3,
+        "max_worker_conns": 2
+      },
+      {
+        "procs": 2,
+        "concurrency": 10,
+        "pool_per_proc": 12,
+        "jobs": 20000,
+        "jobs_per_sec": 4848,
+        "max_worker_conns": 20
+      },
+      {
+        "procs": 2,
+        "concurrency": 50,
+        "pool_per_proc": 40,
+        "jobs": 20000,
+        "jobs_per_sec": 8623.2,
+        "max_worker_conns": 80
+      },
+      {
+        "procs": 4,
+        "concurrency": 1,
+        "pool_per_proc": 3,
+        "jobs": 20000,
+        "jobs_per_sec": 1576.5,
+        "max_worker_conns": 4
+      },
+      {
+        "procs": 4,
+        "concurrency": 10,
+        "pool_per_proc": 12,
+        "jobs": 20000,
+        "jobs_per_sec": 7709.6,
+        "max_worker_conns": 40
+      },
+      {
+        "procs": 4,
+        "concurrency": 50,
+        "pool_per_proc": 20,
+        "jobs": 20000,
+        "jobs_per_sec": 10522.5,
+        "max_worker_conns": 80
+      },
+      {
+        "procs": 8,
+        "concurrency": 1,
+        "pool_per_proc": 3,
+        "jobs": 20000,
+        "jobs_per_sec": 2092.9,
+        "max_worker_conns": 8
+      },
+      {
+        "procs": 8,
+        "concurrency": 10,
+        "pool_per_proc": 10,
+        "jobs": 20000,
+        "jobs_per_sec": 8700.5,
+        "max_worker_conns": 80
+      },
+      {
+        "procs": 8,
+        "concurrency": 50,
+        "pool_per_proc": 10,
+        "jobs": 20000,
+        "jobs_per_sec": 10946.4,
+        "max_worker_conns": 80
+      }
+    ],
+    "latency": [
+      {
+        "rate_per_sec": 200,
+        "jobs": 2000,
+        "p50_ms": 21.5,
+        "p95_ms": 70.4,
+        "p99_ms": 83.4
+      }
+    ],
+    "recovery": {
+      "jobs": 20,
+      "lease": "2s",
+      "p50_ms": 1992.1,
+      "max_ms": 1993.7
+    },
+    "chaos_acceptance": {
+      "runs": 20,
+      "passed": 20,
+      "jobs_per_run": 10000,
+      "sigkills_per_run": 100,
+      "seeds": "1000-1019",
+      "source": "docs/PROGRESS.md#m3-acceptance-2026-11-05-same-machine",
+      "raw_data": false
+    }
+  },
+  "k8s": {
+    "environment": "kind v0.33.0 / Kubernetes v1.37.0 (3 nodes) on Docker (11 CPUs, 8.8 GiB) on an Apple M3 Pro; in-chart postgres:17, default settings; worker pod: concurrency 10, maxConns 6, lease 30s, heartbeat 10s",
+    "sources": [
+      "bench/k8s/results/20261113T020847Z/accepted-matrix.csv",
+      "bench/k8s/chaos/20261113T001148Z.json",
+      "bench/k8s/chaos/final-build-seed45.json",
+      "docs/results-k8s.md"
+    ],
+    "matrix": [
+      {
+        "replicas": 1,
+        "sleep_ms": 0,
+        "jobs": 60000,
+        "jobs_per_second": 494.8,
+        "processing_ms": {
+          "p50": 1.84,
+          "p95": 4.92,
+          "p99": 6.97
+        },
+        "queue_wait_s": {
+          "p50": 69.323,
+          "p95": 116.903,
+          "p99": 120.392
+        },
+        "peak_postgres_connections": 8,
+        "worker_cpu_millicores": 71.9,
+        "worker_memory_mib": 12,
+        "postgres_cpu_millicores": 1027.4,
+        "postgres_memory_mib": 97.2,
+        "source": "bench/k8s/results/20261113T004916Z/report.json"
+      },
+      {
+        "replicas": 2,
+        "sleep_ms": 0,
+        "jobs": 60000,
+        "jobs_per_second": 870.3,
+        "processing_ms": {
+          "p50": 2.53,
+          "p95": 6.27,
+          "p99": 10.72
+        },
+        "queue_wait_s": {
+          "p50": 37.804,
+          "p95": 66.408,
+          "p99": 68.437
+        },
+        "peak_postgres_connections": 15,
+        "worker_cpu_millicores": 146.4,
+        "worker_memory_mib": 22.7,
+        "postgres_cpu_millicores": 1905.7,
+        "postgres_memory_mib": 126.6,
+        "source": "bench/k8s/results/20261113T020847Z/report.json"
+      },
+      {
+        "replicas": 5,
+        "sleep_ms": 0,
+        "jobs": 60000,
+        "jobs_per_second": 1420.88,
+        "processing_ms": {
+          "p50": 6.49,
+          "p95": 19.08,
+          "p99": 32.35
+        },
+        "queue_wait_s": {
+          "p50": 24.804,
+          "p95": 41.01,
+          "p99": 41.973
+        },
+        "peak_postgres_connections": 32,
+        "worker_cpu_millicores": 367.6,
+        "worker_memory_mib": 56.3,
+        "postgres_cpu_millicores": 4778,
+        "postgres_memory_mib": 268.3,
+        "source": "bench/k8s/results/20261113T020847Z/report.json"
+      },
+      {
+        "replicas": 10,
+        "sleep_ms": 0,
+        "jobs": 60000,
+        "jobs_per_second": 1997.32,
+        "processing_ms": {
+          "p50": 10.67,
+          "p95": 30.71,
+          "p99": 43.63
+        },
+        "queue_wait_s": {
+          "p50": 16.532,
+          "p95": 29.053,
+          "p99": 29.837
+        },
+        "peak_postgres_connections": 62,
+        "worker_cpu_millicores": 493.7,
+        "worker_memory_mib": 101.4,
+        "postgres_cpu_millicores": 6894.2,
+        "postgres_memory_mib": 406.5,
+        "source": "bench/k8s/results/20261113T020847Z/report.json"
+      },
+      {
+        "replicas": 1,
+        "sleep_ms": 50,
+        "jobs": 40000,
+        "jobs_per_second": 159.45,
+        "processing_ms": {
+          "p50": 52.05,
+          "p95": 74.64,
+          "p99": 77.15
+        },
+        "queue_wait_s": {
+          "p50": 130.303,
+          "p95": 239.023,
+          "p99": 248.461
+        },
+        "peak_postgres_connections": 9,
+        "worker_cpu_millicores": 42.8,
+        "worker_memory_mib": 10.6,
+        "postgres_cpu_millicores": 857.2,
+        "postgres_memory_mib": 102.8,
+        "source": "bench/k8s/results/20261113T004916Z/report.json"
+      },
+      {
+        "replicas": 2,
+        "sleep_ms": 50,
+        "jobs": 40000,
+        "jobs_per_second": 304.96,
+        "processing_ms": {
+          "p50": 52.91,
+          "p95": 75.56,
+          "p99": 78.5
+        },
+        "queue_wait_s": {
+          "p50": 67.247,
+          "p95": 124.929,
+          "p99": 129.855
+        },
+        "peak_postgres_connections": 14,
+        "worker_cpu_millicores": 99.4,
+        "worker_memory_mib": 21.1,
+        "postgres_cpu_millicores": 1674.3,
+        "postgres_memory_mib": 138.4,
+        "source": "bench/k8s/results/20261113T020847Z/report.json"
+      },
+      {
+        "replicas": 5,
+        "sleep_ms": 50,
+        "jobs": 40000,
+        "jobs_per_second": 730.9,
+        "processing_ms": {
+          "p50": 53.74,
+          "p95": 76.17,
+          "p99": 80.55
+        },
+        "queue_wait_s": {
+          "p50": 28.11,
+          "p95": 52.021,
+          "p99": 54.178
+        },
+        "peak_postgres_connections": 32,
+        "worker_cpu_millicores": 254.7,
+        "worker_memory_mib": 49,
+        "postgres_cpu_millicores": 3486.9,
+        "postgres_memory_mib": 222.1,
+        "source": "bench/k8s/results/20261113T020847Z/report.json"
+      },
+      {
+        "replicas": 10,
+        "sleep_ms": 50,
+        "jobs": 40000,
+        "jobs_per_second": 1288.91,
+        "processing_ms": {
+          "p50": 54.64,
+          "p95": 77.37,
+          "p99": 81.38
+        },
+        "queue_wait_s": {
+          "p50": 16.351,
+          "p95": 29.464,
+          "p99": 30.667
+        },
+        "peak_postgres_connections": 63,
+        "worker_cpu_millicores": 446.7,
+        "worker_memory_mib": 93.8,
+        "postgres_cpu_millicores": 5844.5,
+        "postgres_memory_mib": 355.3,
+        "source": "bench/k8s/results/20261113T020847Z/report.json"
+      }
+    ],
+    "recovery": {
+      "claims": 10,
+      "lease_s": 30,
+      "heartbeat_s": 10,
+      "min_s": 29.461,
+      "max_s": 30.229,
+      "source": "bench/k8s/results/20261113T020847Z/report.json"
+    },
+    "keda": [
+      {
+        "run": "benchmark",
+        "commit": "0ec3769",
+        "scale_down_limit_pods_per_min": null,
+        "first_scale_up_s": 8.74,
+        "ten_ready_s": 26.15,
+        "back_to_min_s": 100.54,
+        "source": "bench/k8s/results/20261113T020847Z/report.json"
+      },
+      {
+        "run": "final-build",
+        "commit": "23d96c1",
+        "scale_down_limit_pods_per_min": 2,
+        "first_scale_up_s": 13.46,
+        "ten_ready_s": 33.11,
+        "back_to_min_s": 283.53,
+        "source": "bench/k8s/chaos/final-build-seed45.json"
+      }
+    ],
+    "chaos": [
+      {
+        "scenario": "RandomPodKill",
+        "seed": 44,
+        "jobs": 1200,
+        "drain_s": 48.97,
+        "faults": {
+          "sigkill": 3
+        },
+        "reexecuted_jobs": 30,
+        "invariant_violations": {
+          "I1": 0,
+          "I2": 0,
+          "I3": 0,
+          "I4": 0,
+          "I5": 0,
+          "I6": 0,
+          "I7": 0
+        },
+        "source": "bench/k8s/chaos/20261113T001148Z.json"
+      },
+      {
+        "scenario": "GracefulTermination",
+        "seed": 44,
+        "jobs": 90,
+        "drain_s": 121.01,
+        "faults": {
+          "sigterm_delete": 1
+        },
+        "reexecuted_jobs": 0,
+        "invariant_violations": {
+          "I1": 0,
+          "I2": 0,
+          "I3": 0,
+          "I4": 0,
+          "I5": 0,
+          "I6": 0,
+          "I7": 0
+        },
+        "source": "bench/k8s/chaos/20261113T001148Z.json"
+      },
+      {
+        "scenario": "RollingUpdate",
+        "seed": 44,
+        "jobs": 2400,
+        "drain_s": 79.91,
+        "faults": {
+          "rollout_restart": 3
+        },
+        "reexecuted_jobs": 0,
+        "invariant_violations": {
+          "I1": 0,
+          "I2": 0,
+          "I3": 0,
+          "I4": 0,
+          "I5": 0,
+          "I6": 0,
+          "I7": 0
+        },
+        "source": "bench/k8s/chaos/20261113T001148Z.json"
+      },
+      {
+        "scenario": "ScaleUpDown",
+        "seed": 44,
+        "jobs": 4000,
+        "drain_s": 339.4,
+        "faults": {
+          "scale": 4
+        },
+        "reexecuted_jobs": 0,
+        "invariant_violations": {
+          "I1": 0,
+          "I2": 0,
+          "I3": 0,
+          "I4": 0,
+          "I5": 0,
+          "I6": 0,
+          "I7": 0
+        },
+        "source": "bench/k8s/chaos/20261113T001148Z.json"
+      },
+      {
+        "scenario": "PostgresRestart",
+        "seed": 44,
+        "jobs": 900,
+        "drain_s": 80.67,
+        "faults": {
+          "postgres_restart": 1
+        },
+        "reexecuted_jobs": 30,
+        "invariant_violations": {
+          "I1": 0,
+          "I2": 0,
+          "I3": 0,
+          "I4": 0,
+          "I5": 0,
+          "I6": 0,
+          "I7": 0
+        },
+        "source": "bench/k8s/chaos/20261113T001148Z.json"
+      },
+      {
+        "scenario": "ConnectionKill",
+        "seed": 44,
+        "jobs": 900,
+        "drain_s": 42.85,
+        "faults": {
+          "connection_kill_round": 3,
+          "connections_terminated": 23
+        },
+        "reexecuted_jobs": 9,
+        "invariant_violations": {
+          "I1": 0,
+          "I2": 0,
+          "I3": 0,
+          "I4": 0,
+          "I5": 0,
+          "I6": 0,
+          "I7": 0
+        },
+        "source": "bench/k8s/chaos/20261113T001148Z.json"
+      },
+      {
+        "scenario": "RetryExhaustionDLQ",
+        "seed": 44,
+        "jobs": 240,
+        "drain_s": 39.64,
+        "faults": {
+          "sigkill": 1
+        },
+        "reexecuted_jobs": 10,
+        "invariant_violations": {
+          "I1": 0,
+          "I2": 0,
+          "I3": 0,
+          "I4": 0,
+          "I5": 0,
+          "I6": 0,
+          "I7": 0
+        },
+        "source": "bench/k8s/chaos/20261113T001148Z.json"
+      },
+      {
+        "scenario": "RepeatedCrashRecovery",
+        "seed": 44,
+        "jobs": 3600,
+        "drain_s": 164.99,
+        "faults": {
+          "crash_recovery_cycle": 3,
+          "sigkill": 9
+        },
+        "reexecuted_jobs": 88,
+        "invariant_violations": {
+          "I1": 0,
+          "I2": 0,
+          "I3": 0,
+          "I4": 0,
+          "I5": 0,
+          "I6": 0,
+          "I7": 0
+        },
+        "source": "bench/k8s/chaos/20261113T001148Z.json"
+      },
+      {
+        "scenario": "KEDAAutoscale",
+        "seed": 44,
+        "jobs": 3000,
+        "drain_s": 73.48,
+        "faults": {},
+        "reexecuted_jobs": 0,
+        "invariant_violations": {
+          "I1": 0,
+          "I2": 0,
+          "I3": 0,
+          "I4": 0,
+          "I5": 0,
+          "I6": 0,
+          "I7": 0
+        },
+        "source": "bench/k8s/chaos/20261113T001148Z.json"
+      }
+    ],
+    "chaos_runs_passed_per_scenario_min": 2
+  }
+}
