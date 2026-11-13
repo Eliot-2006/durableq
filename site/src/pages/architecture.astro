@@ -1,0 +1,92 @@
+---
+import Base from '../layouts/Base.astro';
+import Note from '../components/Note.astro';
+import ArchDiagram from '../components/ArchDiagram.astro';
+import { blob, href } from '../lib/url';
+---
+
+<Base title="Architecture" description="How DurableQ works: submission, claiming with SKIP LOCKED, leases and heartbeats on the database clock, attempt fencing, Postgres as the source of truth, and how KEDA sizes the workers.">
+  <div class="page">
+    <header>
+      <h1>Architecture</h1>
+      <p class="lead">One database decides who owns which job. Everything else, the API, the workers, the autoscaler and the dashboards, is a process that can be killed and replaced without changing that answer.</p>
+    </header>
+
+    <h2 style="margin-top: 0">The system</h2>
+    <p>Select a component to read what it is responsible for. Use the mouse, or Tab to a component and press Enter or Space.</p>
+    <ArchDiagram />
+    <p class="caption">Solid arrows are the job path and the scaling path; dashed arrows are observation. The diagram shows the local kind deployment: the in-chart Postgres is a dev-only StatefulSet, and KEDA’s min 3 / max 10 are the kind values.</p>
+
+    <h2>Submission</h2>
+    <div class="row">
+      <div>
+        <p>A job is a row. <code>Enqueue</code> runs <code>INSERT … ON CONFLICT (idempotency_key) DO NOTHING RETURNING id</code>; if no row comes back, the key already existed and the existing id is returned. <code>EnqueueTx</code> runs the same statement inside the caller’s own transaction, so a job can be committed atomically with the business write that caused it (a transactional outbox).</p>
+        <p>Over HTTP the API wraps the same call as <code>POST /v1/jobs</code>.</p>
+      </div>
+      <Note sources={['docs/design.md#4-sql-contracts']}>
+        <p>Idempotency keys deduplicate forever, and nothing deletes finished jobs yet, so <code>jobs</code> and <code>job_attempts</code> grow without bound.</p>
+      </Note>
+    </div>
+
+    <h2>Claiming with SKIP LOCKED</h2>
+    <div class="row">
+      <div>
+        <p>A claim is one atomic statement. It selects due rows (<code>queued</code> and <code>run_at</code> passed, or <code>running</code> with an expired lease), locks them with <code>FOR UPDATE SKIP LOCKED</code>, sets <code>state = 'running'</code>, increments <code>attempt</code>, writes the lease, and inserts one <code>job_attempts</code> row.</p>
+        <p><code>SKIP LOCKED</code> is what keeps claimers from queueing behind each other: concurrent workers split the available rows. The claim also filters on the kinds the worker has a handler for, so a worker never claims work it cannot run. If a claimer dies before COMMIT, the row is unchanged and nothing leaks.</p>
+        <pre><code>SELECT id FROM jobs
+WHERE (state = 'queued'  AND run_at &lt;= clock_timestamp())
+   OR (state = 'running' AND lease_expires_at &lt; clock_timestamp())
+FOR UPDATE SKIP LOCKED</code></pre>
+        <p class="small muted">Simplified from the claim query in <a href={blob('queries.go')}>queries.go</a>, which also filters by kind and batches.</p>
+      </div>
+      <Note sources={['docs/design.md#4-sql-contracts']}>
+        <p>No separate reaper process exists. Expired leases are reclaimed by the same query that claims new work.</p>
+      </Note>
+    </div>
+
+    <h2>Leases and heartbeats on the database clock</h2>
+    <div class="row">
+      <div>
+        <p>A worker does not hold a transaction open while a handler runs. Instead the claim writes ownership into the row: <code>lease_owner</code>, <code>lease_expires_at</code>, and <code>attempt</code>. While the handler runs, a heartbeat goroutine extends the lease (every 10 s on a 30 s lease in the chart defaults).</p>
+        <p>Every time comparison uses <code>clock_timestamp()</code>, the database’s clock at the moment the statement runs, never <code>now()</code>, which is frozen at transaction start, and never a worker’s clock. A worker that cannot reach the database also keeps a conservative local deadline on its monotonic clock, and cancels the job’s context when it passes.</p>
+      </div>
+      <Note sources={['docs/design.md#3-leases-not-long-transactions-d2', 'docs/design.md#5-worker']}>
+        <p>Holding <code>SELECT … FOR UPDATE</code> for the whole job would pin a connection per running job and keep long transactions open, which block vacuum.</p>
+      </Note>
+    </div>
+
+    <h2>Attempt fencing</h2>
+    <div class="row">
+      <div>
+        <p><code>attempt</code> is the fencing token. Heartbeat, complete, fail and release all end in the same condition:</p>
+        <pre><code>WHERE id = $1 AND attempt = $2
+  AND state = 'running'
+  AND lease_expires_at &gt; clock_timestamp()</code></pre>
+        <p>Zero rows affected means the caller no longer owns the job. Completion is one transaction and the fenced <code>UPDATE</code> runs first: it takes the row lock, then the handler’s <code>CommitFunc</code> writes its effects, then the transaction commits. A stale worker’s completion matches nothing and rolls back before any effect is written. <code>attempt</code> is never decremented, because that would make an old token valid again.</p>
+        <p>You can watch this happen in the <a href={href('reliability/')}>reliability simulation</a>.</p>
+      </div>
+      <Note title="Limit" sources={['docs/design.md#1-guarantees']}>
+        <p>Fencing rejects a stale <em>database</em> transition and its transactional effects. It cannot undo an external side effect a stale handler already performed, so handlers must be idempotent.</p>
+      </Note>
+    </div>
+
+    <h2>Postgres as the source of truth</h2>
+    <p>Kubernetes decides how many workers run; Postgres decides which worker owns which job. A pod being killed, drained, rolled or partitioned changes only which processes are alive. The state machine and the lease live in the row, a table <code>CHECK</code> enforces that <code>state = 'running'</code> holds exactly when the lease fields are set, and seven invariants can be checked directly in SQL after any run.</p>
+    <p>The cost of that choice is that Postgres is also the ceiling and a single point of failure in this deployment: the in-chart database has one replica and no backups, and nothing progresses while it is down. See <a href={href('engineering/')}>Engineering</a>.</p>
+
+    <h2>How KEDA sizes the workers</h2>
+    <div class="row">
+      <div>
+        <p>KEDA’s PostgreSQL scaler runs this query every 15 s:</p>
+        <pre><code>SELECT count(*) FROM jobs
+WHERE (state = 'queued'  AND run_at &lt;= clock_timestamp())
+   OR (state = 'running' AND lease_expires_at &lt; clock_timestamp())</code></pre>
+        <p>That counts what a worker could claim right now: jobs due now and jobs whose lease expired because their worker died. Scheduled and backoff jobs, and jobs under a valid lease, are excluded. The HPA then computes <code>desired = ceil(eligible backlog / 50)</code>, clamped to the configured range, which is <strong>min 3 and max 10 in the kind values</strong> (the chart’s own defaults are autoscaling off, 1 to 10). Scale-down sheds at most 2 pods a minute after a 120 s stabilization window.</p>
+        <p>Measured reaction times are on the <a href={href('performance/')}>performance page</a>.</p>
+      </div>
+      <Note sources={['docs/kubernetes.md#autoscaling-keda']}>
+        <p>The query reads Postgres directly, so scaling still works when Prometheus is down. It does not count running jobs, and it has no kind filter, so jobs of a kind no worker handles can hold the workers at the maximum.</p>
+      </Note>
+    </div>
+  </div>
+</Base>

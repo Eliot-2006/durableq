@@ -1,0 +1,19 @@
+---
+import Env from './Env.astro';
+import Sources from './Sources.astro';
+
+interface Props {
+  title?: string;
+  env?: 'process' | 'kind' | 'sim';
+  envLabel?: string;
+  sources?: string[];
+}
+const { title = 'Evidence', env, envLabel, sources } = Astro.props;
+---
+
+<aside class="note">
+  <p class="note-title">{title}</p>
+  {env && <p><Env env={env} label={envLabel} /></p>}
+  <slot />
+  {sources && <p>Source: <Sources paths={sources} /></p>}
+</aside>

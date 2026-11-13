@@ -1,0 +1,237 @@
+---
+import { blob } from '../lib/url';
+
+interface Props {
+  /** Static figure without the responsibility panel (used on the home page). */
+  compact?: boolean;
+}
+const { compact = false } = Astro.props;
+
+interface Part {
+  id: string;
+  title: string;
+  role: string;
+  facts: string[];
+  doc: [label: string, path: string];
+}
+
+const parts: Part[] = [
+  {
+    id: 'client',
+    title: 'Client',
+    role: 'Submits jobs and reads their status. It never talks to a worker.',
+    facts: [
+      'Over HTTP: POST /v1/jobs with kind, payload, and optionally max_attempts, delay_ms and idempotency_key; GET /v1/jobs/{id} and /v1/stats for status.',
+      'In Go: Client.Enqueue, or EnqueueTx inside your own transaction (a transactional outbox).',
+      'A repeated idempotency_key returns the existing job (HTTP 200, existed: true).',
+    ],
+    doc: ['Kubernetes doc: using the API', 'docs/kubernetes.md#quick-start-kind-no-cloud-account'],
+  },
+  {
+    id: 'api',
+    title: 'durableq-api',
+    role: 'Accepts jobs and reports queue state. It owns no job.',
+    facts: [
+      'durableq serve: an INSERT with ON CONFLICT on the idempotency key, plus status endpoints.',
+      'Queue-wide gauges on /metrics come from one SQL query per scrape. Only the API exports them, so N workers do not multiply them.',
+      '/healthz never checks the database; /readyz pings it (under 1 s).',
+      'No authentication or TLS: the Service is ClusterIP-only and the chart creates no Ingress. Put an authenticating proxy in front before exposing it.',
+    ],
+    doc: ['Kubernetes doc: architecture', 'docs/kubernetes.md#architecture'],
+  },
+  {
+    id: 'postgres',
+    title: 'PostgreSQL',
+    role: 'The only coordinator and the source of truth. Which worker owns a job is a row, not a process.',
+    facts: [
+      'jobs holds state, attempt, lease_owner and lease_expires_at. job_attempts gets one row per claim.',
+      'Every lease comparison uses clock_timestamp() on the database, so a worker with a skewed clock cannot decide ownership.',
+      'In the chart it is a dev-only, single-replica StatefulSet (postgres:17, 1 Gi PVC): no backups, no high availability. Use database.existingSecret for a real database.',
+    ],
+    doc: ['Design: SQL contracts', 'docs/design.md#4-sql-contracts'],
+  },
+  {
+    id: 'workers',
+    title: 'durableq-worker pods',
+    role: 'Claim jobs, run handlers, keep leases alive, and complete jobs under the fence.',
+    facts: [
+      'Claiming is one statement with FOR UPDATE SKIP LOCKED, limited to the kinds this worker has a handler for.',
+      'A heartbeat every 10 s extends a 30 s lease (chart defaults). Completion is a fenced UPDATE first, then the handler’s CommitFunc, in one transaction.',
+      'On SIGTERM a worker stops claiming, waits up to the 10 s grace for in-flight jobs, and releases the rest without spending their attempt budget.',
+      'Defaults: 10 concurrent jobs and 6 database connections per pod.',
+    ],
+    doc: ['Design: the worker', 'docs/design.md#5-worker'],
+  },
+  {
+    id: 'keda',
+    title: 'KEDA',
+    role: 'Chooses how many worker pods run, from the backlog in Postgres.',
+    facts: [
+      'Its PostgreSQL scaler counts eligible jobs every 15 s: queued and due, or running with an expired lease.',
+      'Desired replicas = ceil(eligible backlog / 50), clamped to min 3 and max 10 in the kind values.',
+      'It reads Postgres directly, so scaling still works when Prometheus is down or behind.',
+    ],
+    doc: ['Kubernetes doc: autoscaling', 'docs/kubernetes.md#autoscaling-keda'],
+  },
+  {
+    id: 'prometheus',
+    title: 'Prometheus',
+    role: 'Scrapes metrics. It plays no part in scheduling or scaling.',
+    facts: [
+      'PodMonitors scrape the API (:8080/metrics) and every worker (:9090/metrics). They need the prometheus-operator CRDs (metrics.podMonitor.enabled).',
+      'Labels are only kind, outcome, route and code: no job ids and no client-supplied values.',
+    ],
+    doc: ['Kubernetes doc: metrics', 'docs/kubernetes.md#metrics-and-dashboards'],
+  },
+  {
+    id: 'grafana',
+    title: 'Grafana',
+    role: 'Shows the queue: backlog, throughput, latency percentiles, lease health, replicas.',
+    facts: [
+      'The “DurableQ overview” dashboard (uid durableq-overview) ships as a ConfigMap that the Grafana sidecar loads.',
+      'A read-only view. Nothing in the system depends on it.',
+    ],
+    doc: ['Dashboard JSON', 'deploy/helm/durableq/dashboards/durableq.json'],
+  },
+  {
+    id: 'k8s',
+    title: 'Kubernetes',
+    role: 'Decides how many worker processes exist and restarts them. Postgres still decides who owns which job.',
+    facts: [
+      'Deployments for the API and the workers, one image, one Helm chart.',
+      'Killing, draining or rolling a pod changes only which processes are alive. The guarantees come from the rows, not from pod lifecycle.',
+      'A chaos suite injects nine fault scenarios and runs invariants I1–I7 after each.',
+    ],
+    doc: ['Kubernetes doc', 'docs/kubernetes.md'],
+  },
+];
+
+const interactive = !compact;
+const nodeAttrs = (id: string, name: string) =>
+  interactive
+    ? { role: 'button' as const, tabindex: 0, 'aria-pressed': 'false' as const, 'aria-label': `${name}: show responsibility`, 'data-id': id }
+    : { 'data-id': id };
+---
+
+<div class="explorer" data-explorer={interactive ? '' : undefined} style={compact ? 'margin: 0;' : undefined}>
+  <figure class="figure" style="margin: 0">
+    <svg class="diagram" viewBox="0 0 420 668" role={compact ? 'img' : 'group'} aria-label="DurableQ system diagram: a client submits jobs to an API, which writes to PostgreSQL. Worker pods claim jobs from PostgreSQL. KEDA reads the backlog from PostgreSQL and sets the worker count. Prometheus scrapes the API and workers; Grafana reads Prometheus. All run on Kubernetes.">
+      <defs>
+        <marker id="arr" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0 0 L8 4 L0 8 z" class="arrow" />
+        </marker>
+      </defs>
+
+      <rect class="boundary" x="8" y="86" width="404" height="572" rx="8" />
+
+      <!-- edges -->
+      <path class="edge" d="M210 52 V118" marker-end="url(#arr)" />
+      <text class="elabel" x="218" y="78">POST /v1/jobs</text>
+      <path class="edge" d="M210 170 V236" marker-end="url(#arr)" />
+      <text class="elabel" x="218" y="208">INSERT · stats</text>
+      <path class="edge" d="M110 420 V320" marker-start="url(#arr)" marker-end="url(#arr)" />
+      <text class="elabel" x="120" y="366">claim · SKIP LOCKED</text>
+      <text class="elabel" x="120" y="381">heartbeat · fenced complete</text>
+      <path class="edge" d="M376 420 V320" marker-end="url(#arr)" />
+      <text class="elabel" x="368" y="356" text-anchor="end">count eligible</text>
+      <text class="elabel" x="368" y="371" text-anchor="end">every 15 s</text>
+      <path class="edge" d="M292 458 H262" marker-end="url(#arr)" />
+      <text class="elabel" x="277" y="450" text-anchor="middle">HPA</text>
+      <path class="edge soft" d="M110 578 V514" marker-end="url(#arr)" />
+      <text class="elabel" x="120" y="552">scrape :9090</text>
+      <path class="edge soft" d="M24 606 H16 V144 H108" marker-end="url(#arr)" />
+      <path class="edge soft" d="M230 606 H196" marker-end="url(#arr)" />
+      <text class="elabel" x="213" y="598" text-anchor="middle">query</text>
+
+      <!-- nodes -->
+      <g class="node" {...nodeAttrs('client', 'Client')}>
+        <rect x="110" y="4" width="200" height="48" rx="6" />
+        <text x="210" y="26">Client</text>
+        <text class="sub" x="210" y="43">HTTP or Go library</text>
+      </g>
+      <g class="node" {...nodeAttrs('k8s', 'Kubernetes')}>
+        <rect x="16" y="92" width="136" height="24" rx="12" />
+        <text x="84" y="108" style="font-size: 12px">Kubernetes · kind</text>
+      </g>
+      <g class="node" {...nodeAttrs('api', 'durableq-api')}>
+        <rect x="110" y="118" width="200" height="52" rx="6" />
+        <text x="210" y="140">durableq-api</text>
+        <text class="sub" x="210" y="158">HTTP API · Deployment</text>
+      </g>
+      <g class="node store" {...nodeAttrs('postgres', 'PostgreSQL')}>
+        <rect x="50" y="236" width="320" height="84" rx="6" />
+        <text x="210" y="264">PostgreSQL</text>
+        <text class="sub" x="210" y="284">jobs · job_attempts</text>
+        <text class="sub" x="210" y="302">source of truth · database clock</text>
+      </g>
+      <g class="node" {...nodeAttrs('workers', 'Worker pods')}>
+        <rect x="36" y="432" width="232" height="76" rx="6" opacity="0.45" />
+        <rect x="30" y="426" width="232" height="76" rx="6" opacity="0.7" />
+        <rect x="24" y="420" width="232" height="76" rx="6" />
+        <text x="140" y="444">durableq-worker</text>
+        <text class="sub" x="140" y="462">Deployment · 3–10 replicas (kind)</text>
+        <text class="sub" x="140" y="480">10 jobs · 6 connections per pod</text>
+      </g>
+      <g class="node" {...nodeAttrs('keda', 'KEDA')}>
+        <rect x="292" y="420" width="116" height="76" rx="6" />
+        <text x="350" y="448">KEDA</text>
+        <text class="sub" x="350" y="466">PostgreSQL</text>
+        <text class="sub" x="350" y="482">scaler</text>
+      </g>
+      <g class="node" {...nodeAttrs('prometheus', 'Prometheus')}>
+        <rect x="24" y="578" width="172" height="56" rx="6" />
+        <text x="110" y="602">Prometheus</text>
+        <text class="sub" x="110" y="620">PodMonitor scrape</text>
+      </g>
+      <g class="node" {...nodeAttrs('grafana', 'Grafana')}>
+        <rect x="230" y="578" width="172" height="56" rx="6" />
+        <text x="316" y="602">Grafana</text>
+        <text class="sub" x="316" y="620">overview dashboard</text>
+      </g>
+    </svg>
+  </figure>
+
+  {interactive && (
+    <div class="detail-panel" aria-live="polite">
+      <p class="hint" data-hint>Select a component in the diagram (click, or Tab then Enter) to read what it is responsible for.</p>
+      {parts.map((p) => (
+        <section data-for={p.id} hidden>
+          <h3>{p.title}</h3>
+          <p>{p.role}</p>
+          <ul>{p.facts.map((f) => <li>{f}</li>)}</ul>
+          <p class="small"><a href={blob(p.doc[1])}>{p.doc[0]}</a></p>
+        </section>
+      ))}
+    </div>
+  )}
+</div>
+
+<noscript>
+  <style>
+    .detail-panel [hidden] { display: block !important; }
+    .detail-panel [data-hint] { display: none; }
+  </style>
+</noscript>
+
+{interactive && (
+  <script>
+    document.querySelectorAll<HTMLElement>('[data-explorer]').forEach((root) => {
+      const nodes = root.querySelectorAll<SVGGElement>('.node[role="button"]');
+      const panels = root.querySelectorAll<HTMLElement>('[data-for]');
+      const select = (id: string) => {
+        nodes.forEach((n) => n.setAttribute('aria-pressed', String(n.dataset.id === id)));
+        panels.forEach((p) => (p.hidden = p.dataset.for !== id));
+      };
+      nodes.forEach((n) => {
+        n.addEventListener('click', () => select(n.dataset.id!));
+        n.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            select(n.dataset.id!);
+          }
+        });
+      });
+      select('postgres');
+    });
+  </script>
+)}

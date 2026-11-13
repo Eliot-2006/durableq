@@ -1,0 +1,14 @@
+---
+import { blob } from '../lib/url';
+
+interface Props {
+  /** Repo-relative paths, optionally with #anchor. */
+  paths: string[];
+}
+const { paths } = Astro.props;
+const name = (p: string) => p.split('#')[0].split('/').slice(-2).join('/');
+---
+
+<>
+  {paths.map((p, i) => (<>{i > 0 && ', '}<a href={blob(p)}>{name(p)}</a></>))}
+</>
