@@ -70,7 +70,7 @@ Recovery is bounded by the lease, as designed: the lease runs from the last succ
 | `bench` (seeds 1–5), pre-audit harness | 1,000 | 20 SIGKILL, 5 conn-kill rounds, 2 stalls, all failpoints at 0.2% | **5/5 passed** I1–I7 |
 | Acceptance, post-audit harness (seeds 1000–1019) | 10,000 | 100 SIGKILL, 90–125 failpoint self-kills, 20 conn-kill rounds (227–323 connections), 5 stalls, 10 graceful restarts (67–87 jobs released) | **20/20 passed** I1–I7 |
 | `TestPostgresRestart`, 6 local runs (Docker PG 17) | 3,000 | 3 Postgres crash-restarts (`docker restart -t 0`), 10 SIGKILL; 179–209 attempts abandoned per run | **6/6 passed** I1–I7, 0 dead |
-| `durableq demo --seed 7` (README), post-audit | 10,000 | 120 SIGKILL, 103 self-kills, 30 conn-kill rounds, 5 stalls, 10 restarts | passed |
+| `durableq demo --seed 7` (transcript below), post-audit | 10,000 | 120 SIGKILL, 103 self-kills, 30 conn-kill rounds, 5 stalls, 10 restarts | passed |
 
 The *post-audit harness* (see "Audit" below) counts a fault only when it took effect on a live worker, scopes faults to the run's own workers, and stops every worker before checking the invariants. The `bench` reliability figure predates it.
 
@@ -91,6 +91,45 @@ go test -tags chaos ./test/chaos/ -run 'TestChaos$' -timeout 0 -v -args \
 ```
 
 The seed fixes the harness's fault schedule. Worker-side randomness (failure rate, failpoints, jitter) is not seeded.
+
+## Chaos demo transcript
+
+```sh
+docker compose run --rm demo            # Postgres + 10,000 jobs, 6 workers, 120 SIGKILLs
+# port 5432 already taken by a local Postgres?  DURABLEQ_PG_PORT=55432 docker compose run --rm demo
+# or, against your own Postgres:
+go run ./cmd/durableq demo --jobs 10000 --workers 6 --kills 120 --seed 7
+```
+
+Real output (`durableq demo --seed 7`, Apple M3 Pro, PostgreSQL 17.11):
+
+```
+Enqueued 10000 jobs · 6 workers × 10 · lease 2s · failpoints "after_claim=0.002,during_run=0.002,before_complete=0.002,in_complete_tx=0.002,after_commit=0.002"
+[00:01] SIGKILL worker-4 (pid 66498) … respawned
+[00:01] SIGKILL worker-5 (pid 66441) … respawned
+[00:01] SIGKILL worker-5 (pid 66548) … respawned
+[00:01] SIGKILL worker-3 (pid 66500) … respawned
+[00:01] SIGKILL worker-2 (pid 66438) … respawned
+…
+Drained in 40.4s (seed 7, schema chaos_7_1793947041373928000)
+  Jobs succeeded       9996     dead 4 (2 after a failed final attempt, 2 with the budget exhausted by abandoned attempts)
+  Worker kills         120      self-kills (failpoints) 103
+  Connection kills     30       (578 connections terminated)
+  Worker stalls        5        graceful restarts 10 (jobs released 74)
+  Abandoned attempts   2346     jobs possibly executed more than once 1941
+  Retries              622      stale transitions rejected 24
+  Leases lost (worker abandoned job on its local deadline) 23
+  I1 PASS no lost jobs: every job is terminal
+  I2 PASS no duplicate effects
+  I3 PASS every succeeded demo.effect job has exactly one effect, and every effect's job succeeded
+  I4 PASS dead jobs have no effects
+  I5 PASS each effect was written by the job's final owner
+  I6 PASS attempt budget respected
+  I7 PASS at most one terminal attempt per job
+All 7 invariants PASSED
+```
+
+"Jobs possibly executed more than once" counts at-least-once re-executions. Those are expected. Duplicate *effects* or acknowledgments would be bugs, and I2, I5 and I7 catch them. To show the checker works, removing the attempt check from completion makes I5 fail (see [results.md](#the-checker-catches-a-fencing-bug)).
 
 ## The checker catches a fencing bug
 
@@ -122,3 +161,12 @@ A self-review plus an independent Codex review (2026-11-05) found no critical is
 - **Workers claimed job kinds they had no handler for** and dead-lettered them. The claim now filters by registered kind (`TestWorkersClaimOnlyRegisteredKinds`).
 
 The other findings concerned the evidence itself: invariants checked before stalled workers stopped, fault counters that counted signals that didn't land, connection kills that reached other runs' workers, and a race test that could pass with completion broken. Each was fixed so the suite would catch the bugs it claims to catch. The full list is in [PROGRESS.md](PROGRESS.md#audit-2026-11-05-branch-audit-fixes).
+
+## Kubernetes charts
+
+The separate kind setup, workloads and replica matrix are documented in [Kubernetes results](results-k8s.md#throughput-by-replica-count). These measurements are not comparable to the host-Postgres benchmark above.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/charts/k8s-throughput-dark.svg">
+  <img src="assets/charts/k8s-throughput-light.svg" alt="Kind replica scaling for 0ms and 50ms work per job, with measured points and dashed linear references." width="880">
+</picture>
