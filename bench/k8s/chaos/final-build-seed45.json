@@ -1,0 +1,1059 @@
+[
+  {
+    "scenario": "RandomPodKill",
+    "seed": 45,
+    "params": {
+      "enqueued": 1200,
+      "max_attempts": 10,
+      "payload": "{\"sleep_ms\":500,\"fail_rate\":0.0,\"permanent\":false}",
+      "worker_config": {
+        "API_MAX_CONNS": "5",
+        "WORKER_CONCURRENCY": "10",
+        "WORKER_GRACE": "10s",
+        "WORKER_HEARTBEAT": "10s",
+        "WORKER_LEASE": "30s",
+        "WORKER_MAX_CONNS": "6",
+        "WORKER_POLL": "1s"
+      }
+    },
+    "started": "2026-11-13T02:33:30.876633Z",
+    "duration_seconds": 56.366016,
+    "enqueue_seconds": 0.863863833,
+    "drain_seconds": 49.96974975,
+    "faults_applied": {
+      "sigkill": 3
+    },
+    "events": [
+      {
+        "seconds": 13.669979,
+        "type": "sigkill",
+        "target": "durableq-worker-996c448bd-wzq4d",
+        "detail": "node=durableq-worker container=c8b5c17b90b584190812a027fd72bcb41e023b8b2a44fe25e98dfbad414d3729 pid=198415 exit=137 killed_at=2026-11-13T02:33:44.502787537Z"
+      },
+      {
+        "seconds": 18.580535,
+        "type": "sigkill",
+        "target": "durableq-worker-996c448bd-wzq4d",
+        "detail": "node=durableq-worker container=4a1278b59ad972fa94a8d1f574e74476ac6d120b4a1ca8fd5f187c7b22472400 pid=198724 exit=137 killed_at=2026-11-13T02:33:49.417536392Z"
+      },
+      {
+        "seconds": 23.517652,
+        "type": "sigkill",
+        "target": "durableq-worker-996c448bd-nsm2d",
+        "detail": "node=durableq-worker2 container=87dcbb3b12866177818eb0e062e8a098c26f26b6fd70028683d6b81a011a2e6c pid=66696 exit=137 killed_at=2026-11-13T02:33:54.357306049Z"
+      }
+    ],
+    "invariant_violations": {
+      "I1": 0,
+      "I2": 0,
+      "I3": 0,
+      "I4": 0,
+      "I5": 0,
+      "I6": 0,
+      "I7": 0
+    },
+    "metrics": {
+      "abandoned_attempts": 30,
+      "attempts": 1230,
+      "dead": 0,
+      "duplicate_executions": 30,
+      "effects": 1200,
+      "failed_attempts": 0,
+      "released": 0,
+      "retried_attempts": 0,
+      "succeeded": 1200,
+      "total": 1200
+    },
+    "passed": true
+  },
+  {
+    "scenario": "GracefulTermination",
+    "seed": 45,
+    "params": {
+      "enqueued": 90,
+      "max_attempts": 1,
+      "payload": "{\"sleep_ms\":30000,\"fail_rate\":0.0,\"permanent\":false}",
+      "worker_config": {
+        "API_MAX_CONNS": "5",
+        "WORKER_CONCURRENCY": "10",
+        "WORKER_GRACE": "10s",
+        "WORKER_HEARTBEAT": "10s",
+        "WORKER_LEASE": "30s",
+        "WORKER_MAX_CONNS": "6",
+        "WORKER_POLL": "1s"
+      }
+    },
+    "started": "2026-11-13T02:34:27.242757Z",
+    "duration_seconds": 119.365832,
+    "enqueue_seconds": 0.239717917,
+    "drain_seconds": 113.923275667,
+    "faults_applied": {
+      "sigterm_delete": 1
+    },
+    "events": [
+      {
+        "seconds": 11.415816,
+        "type": "sigterm_delete",
+        "target": "durableq-worker-996c448bd-k5dvr"
+      }
+    ],
+    "invariant_violations": {
+      "I1": 0,
+      "I2": 0,
+      "I3": 0,
+      "I4": 0,
+      "I5": 0,
+      "I6": 0,
+      "I7": 0
+    },
+    "metrics": {
+      "abandoned_attempts": 0,
+      "attempts": 100,
+      "dead": 0,
+      "duplicate_executions": 0,
+      "effects": 90,
+      "failed_attempts": 0,
+      "released": 10,
+      "retried_attempts": 0,
+      "succeeded": 90,
+      "total": 90
+    },
+    "passed": true
+  },
+  {
+    "scenario": "PostgresRestart",
+    "seed": 45,
+    "params": {
+      "enqueued": 900,
+      "jobs_after_restart": 900,
+      "jobs_before_restart": 900,
+      "max_attempts": 10,
+      "payload": "{\"sleep_ms\":500,\"fail_rate\":0.0,\"permanent\":false}",
+      "worker_config": {
+        "API_MAX_CONNS": "5",
+        "WORKER_CONCURRENCY": "10",
+        "WORKER_GRACE": "10s",
+        "WORKER_HEARTBEAT": "10s",
+        "WORKER_LEASE": "30s",
+        "WORKER_MAX_CONNS": "6",
+        "WORKER_POLL": "1s"
+      }
+    },
+    "started": "2026-11-13T02:36:26.608725Z",
+    "duration_seconds": 58.570598,
+    "enqueue_seconds": 0.607564375,
+    "drain_seconds": 52.691349417,
+    "faults_applied": {
+      "postgres_restart": 1
+    },
+    "events": [
+      {
+        "seconds": 14.908419,
+        "type": "postgres_restart",
+        "target": "durableq-postgres-0",
+        "detail": "2026-11-13 00:22:20.479145+00 -\u003e 2026-11-13 02:36:40.741775+00"
+      }
+    ],
+    "invariant_violations": {
+      "I1": 0,
+      "I2": 0,
+      "I3": 0,
+      "I4": 0,
+      "I5": 0,
+      "I6": 0,
+      "I7": 0
+    },
+    "metrics": {
+      "abandoned_attempts": 30,
+      "attempts": 930,
+      "dead": 0,
+      "duplicate_executions": 30,
+      "effects": 900,
+      "failed_attempts": 0,
+      "released": 0,
+      "retried_attempts": 0,
+      "succeeded": 900,
+      "total": 900
+    },
+    "passed": true
+  },
+  {
+    "scenario": "KEDAAutoscale",
+    "seed": 45,
+    "params": {
+      "autoscaling": {
+        "MinReplicaCount": 3,
+        "MaxReplicaCount": 10,
+        "PollingInterval": 15,
+        "CooldownPeriod": 60
+      },
+      "enqueued": 3000,
+      "max_attempts": 10,
+      "payload": "{\"sleep_ms\":2000,\"fail_rate\":0.0,\"permanent\":false}",
+      "worker_config": {
+        "API_MAX_CONNS": "5",
+        "WORKER_CONCURRENCY": "10",
+        "WORKER_GRACE": "10s",
+        "WORKER_HEARTBEAT": "10s",
+        "WORKER_LEASE": "30s",
+        "WORKER_MAX_CONNS": "6",
+        "WORKER_POLL": "1s"
+      }
+    },
+    "started": "2026-11-13T02:37:25.179522Z",
+    "duration_seconds": 385.769576,
+    "enqueue_seconds": 1.716689917,
+    "drain_seconds": 79.35613175,
+    "faults_applied": {},
+    "events": null,
+    "invariant_violations": {
+      "I1": 0,
+      "I2": 0,
+      "I3": 0,
+      "I4": 0,
+      "I5": 0,
+      "I6": 0,
+      "I7": 0
+    },
+    "metrics": {
+      "abandoned_attempts": 0,
+      "attempts": 3000,
+      "dead": 0,
+      "duplicate_executions": 0,
+      "effects": 3000,
+      "failed_attempts": 0,
+      "released": 0,
+      "retried_attempts": 0,
+      "succeeded": 3000,
+      "total": 3000
+    },
+    "samples": [
+      {
+        "at": "2026-11-13T02:37:48.653596Z",
+        "desired": 3,
+        "ready": 3
+      },
+      {
+        "at": "2026-11-13T02:37:50.823991Z",
+        "desired": 3,
+        "ready": 3
+      },
+      {
+        "at": "2026-11-13T02:37:53.074434Z",
+        "desired": 3,
+        "ready": 3
+      },
+      {
+        "at": "2026-11-13T02:37:55.288686Z",
+        "desired": 3,
+        "ready": 3
+      },
+      {
+        "at": "2026-11-13T02:37:57.471513Z",
+        "desired": 3,
+        "ready": 3
+      },
+      {
+        "at": "2026-11-13T02:37:59.744411Z",
+        "desired": 3,
+        "ready": 3
+      },
+      {
+        "at": "2026-11-13T02:38:02.060082Z",
+        "desired": 7,
+        "ready": 3
+      },
+      {
+        "at": "2026-11-13T02:38:04.338178Z",
+        "desired": 7,
+        "ready": 3
+      },
+      {
+        "at": "2026-11-13T02:38:06.535991Z",
+        "desired": 7,
+        "ready": 7
+      },
+      {
+        "at": "2026-11-13T02:38:08.677428Z",
+        "desired": 7,
+        "ready": 7
+      },
+      {
+        "at": "2026-11-13T02:38:10.849434Z",
+        "desired": 7,
+        "ready": 7
+      },
+      {
+        "at": "2026-11-13T02:38:13.004785Z",
+        "desired": 7,
+        "ready": 7
+      },
+      {
+        "at": "2026-11-13T02:38:15.178454Z",
+        "desired": 7,
+        "ready": 7
+      },
+      {
+        "at": "2026-11-13T02:38:17.34811Z",
+        "desired": 10,
+        "ready": 7
+      },
+      {
+        "at": "2026-11-13T02:38:19.518638Z",
+        "desired": 10,
+        "ready": 9
+      },
+      {
+        "at": "2026-11-13T02:38:21.715567Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T02:38:23.884935Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T02:38:26.072895Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T02:38:28.272627Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T02:38:30.45046Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T02:38:32.626955Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T02:38:34.815996Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T02:38:37.023705Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T02:38:39.255536Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T02:38:41.43044Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T02:38:43.605411Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T02:38:45.798523Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T02:38:48.034562Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T02:38:50.240674Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T02:38:52.462474Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T02:38:54.640129Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T02:38:56.8149Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T02:38:59.025119Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T02:39:01.195114Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T02:39:03.381253Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T02:39:05.608502Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T02:39:07.836335Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T02:39:10.037401Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T02:39:12.248103Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T02:39:14.426307Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T02:39:16.609283Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T02:39:18.813429Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T02:39:20.998204Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T02:39:23.171355Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T02:39:25.368948Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T02:39:27.576673Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T02:39:29.804966Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T02:39:32.02943Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T02:39:34.205208Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T02:39:36.443227Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T02:39:38.625883Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T02:39:40.866018Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T02:39:43.081444Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T02:39:45.242659Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T02:39:47.480873Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T02:39:49.688343Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T02:39:51.93958Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T02:39:54.199682Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T02:39:56.38439Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T02:39:58.579179Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T02:40:00.821448Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T02:40:03.013396Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T02:40:05.210745Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T02:40:07.431122Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T02:40:09.661165Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T02:40:11.885353Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T02:40:14.132513Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T02:40:16.320163Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T02:40:18.533842Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T02:40:20.784582Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T02:40:23.020927Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T02:40:25.211931Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T02:40:27.426411Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T02:40:29.651969Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T02:40:31.878164Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T02:40:34.131486Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T02:40:36.321637Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T02:40:38.532594Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T02:40:40.749993Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T02:40:42.937848Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T02:40:45.139761Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T02:40:47.387453Z",
+        "desired": 8,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T02:40:49.682906Z",
+        "desired": 8,
+        "ready": 8
+      },
+      {
+        "at": "2026-11-13T02:40:51.913221Z",
+        "desired": 8,
+        "ready": 8
+      },
+      {
+        "at": "2026-11-13T02:40:54.139028Z",
+        "desired": 8,
+        "ready": 8
+      },
+      {
+        "at": "2026-11-13T02:40:56.320898Z",
+        "desired": 8,
+        "ready": 8
+      },
+      {
+        "at": "2026-11-13T02:40:58.513013Z",
+        "desired": 8,
+        "ready": 8
+      },
+      {
+        "at": "2026-11-13T02:41:00.736088Z",
+        "desired": 8,
+        "ready": 8
+      },
+      {
+        "at": "2026-11-13T02:41:02.959654Z",
+        "desired": 8,
+        "ready": 8
+      },
+      {
+        "at": "2026-11-13T02:41:05.173911Z",
+        "desired": 8,
+        "ready": 8
+      },
+      {
+        "at": "2026-11-13T02:41:07.431525Z",
+        "desired": 8,
+        "ready": 8
+      },
+      {
+        "at": "2026-11-13T02:41:09.6342Z",
+        "desired": 8,
+        "ready": 8
+      },
+      {
+        "at": "2026-11-13T02:41:11.85919Z",
+        "desired": 8,
+        "ready": 8
+      },
+      {
+        "at": "2026-11-13T02:41:14.117995Z",
+        "desired": 8,
+        "ready": 8
+      },
+      {
+        "at": "2026-11-13T02:41:16.382103Z",
+        "desired": 8,
+        "ready": 8
+      },
+      {
+        "at": "2026-11-13T02:41:18.600564Z",
+        "desired": 8,
+        "ready": 8
+      },
+      {
+        "at": "2026-11-13T02:41:20.856309Z",
+        "desired": 8,
+        "ready": 8
+      },
+      {
+        "at": "2026-11-13T02:41:23.03381Z",
+        "desired": 8,
+        "ready": 8
+      },
+      {
+        "at": "2026-11-13T02:41:25.196692Z",
+        "desired": 8,
+        "ready": 8
+      },
+      {
+        "at": "2026-11-13T02:41:27.447523Z",
+        "desired": 8,
+        "ready": 8
+      },
+      {
+        "at": "2026-11-13T02:41:29.674197Z",
+        "desired": 8,
+        "ready": 8
+      },
+      {
+        "at": "2026-11-13T02:41:31.873514Z",
+        "desired": 8,
+        "ready": 8
+      },
+      {
+        "at": "2026-11-13T02:41:34.143262Z",
+        "desired": 8,
+        "ready": 8
+      },
+      {
+        "at": "2026-11-13T02:41:36.294793Z",
+        "desired": 8,
+        "ready": 8
+      },
+      {
+        "at": "2026-11-13T02:41:38.500103Z",
+        "desired": 8,
+        "ready": 8
+      },
+      {
+        "at": "2026-11-13T02:41:40.705666Z",
+        "desired": 8,
+        "ready": 8
+      },
+      {
+        "at": "2026-11-13T02:41:42.903134Z",
+        "desired": 8,
+        "ready": 8
+      },
+      {
+        "at": "2026-11-13T02:41:45.102869Z",
+        "desired": 8,
+        "ready": 8
+      },
+      {
+        "at": "2026-11-13T02:41:47.360118Z",
+        "desired": 8,
+        "ready": 8
+      },
+      {
+        "at": "2026-11-13T02:41:49.575986Z",
+        "desired": 6,
+        "ready": 6
+      },
+      {
+        "at": "2026-11-13T02:41:51.762323Z",
+        "desired": 6,
+        "ready": 6
+      },
+      {
+        "at": "2026-11-13T02:41:54.017364Z",
+        "desired": 6,
+        "ready": 6
+      },
+      {
+        "at": "2026-11-13T02:41:56.267346Z",
+        "desired": 6,
+        "ready": 6
+      },
+      {
+        "at": "2026-11-13T02:41:58.446469Z",
+        "desired": 6,
+        "ready": 6
+      },
+      {
+        "at": "2026-11-13T02:42:00.709656Z",
+        "desired": 6,
+        "ready": 6
+      },
+      {
+        "at": "2026-11-13T02:42:02.999162Z",
+        "desired": 6,
+        "ready": 6
+      },
+      {
+        "at": "2026-11-13T02:42:05.181814Z",
+        "desired": 6,
+        "ready": 6
+      },
+      {
+        "at": "2026-11-13T02:42:07.418709Z",
+        "desired": 6,
+        "ready": 6
+      },
+      {
+        "at": "2026-11-13T02:42:09.643835Z",
+        "desired": 6,
+        "ready": 6
+      },
+      {
+        "at": "2026-11-13T02:42:11.836591Z",
+        "desired": 6,
+        "ready": 6
+      },
+      {
+        "at": "2026-11-13T02:42:14.043164Z",
+        "desired": 6,
+        "ready": 6
+      },
+      {
+        "at": "2026-11-13T02:42:16.273142Z",
+        "desired": 6,
+        "ready": 6
+      },
+      {
+        "at": "2026-11-13T02:42:18.482981Z",
+        "desired": 6,
+        "ready": 6
+      },
+      {
+        "at": "2026-11-13T02:42:20.72718Z",
+        "desired": 6,
+        "ready": 6
+      },
+      {
+        "at": "2026-11-13T02:42:22.982425Z",
+        "desired": 6,
+        "ready": 6
+      },
+      {
+        "at": "2026-11-13T02:42:25.163319Z",
+        "desired": 6,
+        "ready": 6
+      },
+      {
+        "at": "2026-11-13T02:42:27.409946Z",
+        "desired": 6,
+        "ready": 6
+      },
+      {
+        "at": "2026-11-13T02:42:29.657102Z",
+        "desired": 6,
+        "ready": 6
+      },
+      {
+        "at": "2026-11-13T02:42:31.849067Z",
+        "desired": 6,
+        "ready": 6
+      },
+      {
+        "at": "2026-11-13T02:42:34.143633Z",
+        "desired": 6,
+        "ready": 6
+      },
+      {
+        "at": "2026-11-13T02:42:36.332214Z",
+        "desired": 6,
+        "ready": 6
+      },
+      {
+        "at": "2026-11-13T02:42:38.501539Z",
+        "desired": 6,
+        "ready": 6
+      },
+      {
+        "at": "2026-11-13T02:42:40.723266Z",
+        "desired": 6,
+        "ready": 6
+      },
+      {
+        "at": "2026-11-13T02:42:42.874555Z",
+        "desired": 6,
+        "ready": 6
+      },
+      {
+        "at": "2026-11-13T02:42:45.054575Z",
+        "desired": 6,
+        "ready": 6
+      },
+      {
+        "at": "2026-11-13T02:42:47.274241Z",
+        "desired": 6,
+        "ready": 6
+      },
+      {
+        "at": "2026-11-13T02:42:49.50302Z",
+        "desired": 4,
+        "ready": 4
+      },
+      {
+        "at": "2026-11-13T02:42:51.702572Z",
+        "desired": 4,
+        "ready": 4
+      },
+      {
+        "at": "2026-11-13T02:42:53.927745Z",
+        "desired": 4,
+        "ready": 4
+      },
+      {
+        "at": "2026-11-13T02:42:56.118526Z",
+        "desired": 4,
+        "ready": 4
+      },
+      {
+        "at": "2026-11-13T02:42:58.323844Z",
+        "desired": 4,
+        "ready": 4
+      },
+      {
+        "at": "2026-11-13T02:43:00.511696Z",
+        "desired": 4,
+        "ready": 4
+      },
+      {
+        "at": "2026-11-13T02:43:02.668926Z",
+        "desired": 4,
+        "ready": 4
+      },
+      {
+        "at": "2026-11-13T02:43:04.86448Z",
+        "desired": 4,
+        "ready": 4
+      },
+      {
+        "at": "2026-11-13T02:43:07.087109Z",
+        "desired": 4,
+        "ready": 4
+      },
+      {
+        "at": "2026-11-13T02:43:09.29042Z",
+        "desired": 4,
+        "ready": 4
+      },
+      {
+        "at": "2026-11-13T02:43:11.525677Z",
+        "desired": 4,
+        "ready": 4
+      },
+      {
+        "at": "2026-11-13T02:43:13.748416Z",
+        "desired": 4,
+        "ready": 4
+      },
+      {
+        "at": "2026-11-13T02:43:15.947473Z",
+        "desired": 4,
+        "ready": 4
+      },
+      {
+        "at": "2026-11-13T02:43:18.163308Z",
+        "desired": 4,
+        "ready": 4
+      },
+      {
+        "at": "2026-11-13T02:43:20.364974Z",
+        "desired": 4,
+        "ready": 4
+      },
+      {
+        "at": "2026-11-13T02:43:22.589266Z",
+        "desired": 4,
+        "ready": 4
+      },
+      {
+        "at": "2026-11-13T02:43:24.825408Z",
+        "desired": 4,
+        "ready": 4
+      },
+      {
+        "at": "2026-11-13T02:43:27.131239Z",
+        "desired": 4,
+        "ready": 4
+      },
+      {
+        "at": "2026-11-13T02:43:29.372024Z",
+        "desired": 4,
+        "ready": 4
+      },
+      {
+        "at": "2026-11-13T02:43:31.594896Z",
+        "desired": 4,
+        "ready": 4
+      },
+      {
+        "at": "2026-11-13T02:43:33.875282Z",
+        "desired": 4,
+        "ready": 4
+      },
+      {
+        "at": "2026-11-13T02:43:36.091064Z",
+        "desired": 4,
+        "ready": 4
+      },
+      {
+        "at": "2026-11-13T02:43:38.310754Z",
+        "desired": 4,
+        "ready": 4
+      },
+      {
+        "at": "2026-11-13T02:43:40.540118Z",
+        "desired": 4,
+        "ready": 4
+      },
+      {
+        "at": "2026-11-13T02:43:42.708412Z",
+        "desired": 4,
+        "ready": 4
+      },
+      {
+        "at": "2026-11-13T02:43:44.927357Z",
+        "desired": 4,
+        "ready": 4
+      },
+      {
+        "at": "2026-11-13T02:43:47.167312Z",
+        "desired": 4,
+        "ready": 4
+      },
+      {
+        "at": "2026-11-13T02:43:49.369288Z",
+        "desired": 3,
+        "ready": 3
+      }
+    ],
+    "benchmark": {
+      "drain_to_min_seconds": 283.531279,
+      "first_scale_up_seconds": 13.457327,
+      "max_ready_seconds": 33.112812
+    },
+    "passed": true
+  }
+]
