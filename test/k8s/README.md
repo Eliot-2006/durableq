@@ -31,7 +31,8 @@ removed on ordinary exit; after SIGKILL of the harness, remove
 
 KEDA's `autoscaling.keda.sh/paused-replicas` annotation fixes replicas for chaos
 and benchmarks. The original annotation and deployment replica count are restored
-on cleanup. KEDA is unpaused for the autoscale scenario; it is explicitly skipped
+on cleanup. The benchmark matrix holds the pause across all replica counts,
+then restores it once; this avoids racing KEDA stop/start loops between rows. KEDA is unpaused for the autoscale scenario; it is explicitly skipped
 if its ScaledObject is absent. Workers are stopped before TRUNCATE, so old handlers
 cannot write into a new run. Chaos workloads have an initial delay; their drain time is observed from enqueue
 completion. Benchmark batches use a single due-time gate after all jobs are

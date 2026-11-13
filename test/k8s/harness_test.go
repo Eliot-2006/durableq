@@ -23,6 +23,8 @@ var seed = flag.Int64("seed", 42, "seed for fault progress and pod selection")
 var reportPath = flag.String("report", "", "JSON report path, relative to repository root")
 var reports []*report
 var root string
+var clusterLocked bool
+var clusterLockPath = filepath.Join(os.TempDir(), "durableq-k8s.lock")
 
 const selector = "app.kubernetes.io/instance=durableq,app.kubernetes.io/component=worker"
 const pauseKey = "autoscaling.keda.sh/paused-replicas"
@@ -61,16 +63,17 @@ type report struct {
 	Errors         []string       `json:"errors,omitempty"`
 }
 type harness struct {
-	t          *testing.T
-	r          *report
-	rng        *rand.Rand
-	keda       bool
-	pause      string
-	replicas   int
-	enqueued   int
-	enqueueEnd time.Time
-	delay      string
-	config     map[string]string
+	t              *testing.T
+	r              *report
+	rng            *rand.Rand
+	keda           bool
+	pause          string
+	replicas       int
+	enqueued       int
+	enqueueEnd     time.Time
+	delay          string
+	config         map[string]string
+	parentRestores bool
 }
 type deployment struct {
 	Spec   struct{ Replicas int }
@@ -121,6 +124,12 @@ func TestMain(m *testing.M) {
 			code = 1
 		}
 		fmt.Printf("REPORT %s\n", *reportPath)
+	}
+	if clusterLocked {
+		if err := os.Remove(clusterLockPath); err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			code = 1
+		}
 	}
 	os.Exit(code)
 }
@@ -193,11 +202,7 @@ func newHarness(t *testing.T) *harness {
 	t.Helper()
 	h := &harness{t: t, rng: rand.New(rand.NewSource(*seed)), r: &report{Scenario: strings.TrimPrefix(t.Name(), "Test"), Seed: *seed, Params: map[string]any{}, Started: time.Now().UTC(), Faults: map[string]int{}}}
 	reports = append(reports, h.r)
-	lock := filepath.Join(os.TempDir(), "durableq-k8s.lock")
-	if err := os.Mkdir(lock, 0700); err != nil {
-		t.Fatalf("exclusive cluster lock %s: %v", lock, err)
-	}
-	t.Cleanup(func() { os.Remove(lock) })
+	acquireCluster(t)
 	t.Cleanup(func() {
 		h.r.Duration = time.Since(h.r.Started).Seconds()
 		if t.Failed() && len(h.r.Errors) == 0 {
@@ -226,19 +231,11 @@ func newHarness(t *testing.T) *harness {
 	h.config = config.Data
 	h.r.Params["worker_config"] = config.Data
 	t.Cleanup(func() {
-		var err error
-		if h.keda {
-			arg := pauseKey + "-"
-			if h.pause != "" {
-				arg = pauseKey + "=" + h.pause
+		if !h.parentRestores {
+			if err := h.restore(); err != nil {
+				h.r.Errors = append(h.r.Errors, "restore: "+err.Error())
+				t.Error(err)
 			}
-			_, err = kube("annotate", "scaledobject", "durableq-worker", arg, "--overwrite")
-		} else {
-			_, err = kube("scale", "deploy/durableq-worker", fmt.Sprintf("--replicas=%d", h.replicas))
-		}
-		if err != nil {
-			h.r.Errors = append(h.r.Errors, "restore: "+err.Error())
-			t.Error(err)
 		}
 	})
 	h.fixed(0)
@@ -262,7 +259,14 @@ func (h *harness) fixed(n int) {
 		h.must(kube("annotate", "scaledobject", "durableq-worker", pauseKey+"="+strconv.Itoa(n), "--overwrite"))
 	}
 	h.must(kube("scale", "deploy/durableq-worker", fmt.Sprintf("--replicas=%d", n)))
-	h.wait(3*time.Minute, fmt.Sprintf("%d ready workers", n), func() bool { desired, ready := h.replicasNow(); return desired == n && ready == n })
+	h.wait(3*time.Minute, fmt.Sprintf("%d ready workers", n), func() bool {
+		desired, ready := h.replicasNow()
+		if desired != n {
+			h.must(kube("scale", "deploy/durableq-worker", fmt.Sprintf("--replicas=%d", n)))
+			return false
+		}
+		return ready == n
+	})
 }
 func (h *harness) enqueue(n, sleep, budget int, fail float64, permanent bool) {
 	payload := fmt.Sprintf(`{"sleep_ms":%d,"fail_rate":%.1f,"permanent":%t}`, sleep, fail, permanent)
@@ -494,4 +498,28 @@ func containerTime(s string) (time.Time, error) {
 		return time.Unix(0, ns).UTC(), nil
 	}
 	return time.Parse(time.RFC3339Nano, s)
+}
+
+func acquireCluster(t *testing.T) {
+	t.Helper()
+	if clusterLocked {
+		return
+	}
+	if err := os.Mkdir(clusterLockPath, 0700); err != nil {
+		t.Fatalf("exclusive cluster lock %s: %v", clusterLockPath, err)
+	}
+	clusterLocked = true
+}
+func (h *harness) restore() error {
+	var err error
+	if h.keda {
+		arg := pauseKey + "-"
+		if h.pause != "" {
+			arg = pauseKey + "=" + h.pause
+		}
+		_, err = kube("annotate", "scaledobject", "durableq-worker", arg, "--overwrite")
+	} else {
+		_, err = kube("scale", "deploy/durableq-worker", fmt.Sprintf("--replicas=%d", h.replicas))
+	}
+	return err
 }

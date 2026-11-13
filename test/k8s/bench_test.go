@@ -14,12 +14,27 @@ import (
 )
 
 func TestBenchMatrix(t *testing.T) {
+	acquireCluster(t)
 	captureEnv(t)
 	t.Cleanup(func() { writeCSV(t) })
+	var owner *harness
+	t.Cleanup(func() {
+		if owner != nil {
+			if err := owner.restore(); err != nil {
+				owner.r.Errors = append(owner.r.Errors, "matrix restore: "+err.Error())
+				owner.r.Passed = false
+				t.Error(err)
+			}
+		}
+	})
 	for _, sleep := range []int{0, 50} {
 		for _, replicas := range []int{1, 2, 5, 10} {
 			t.Run(fmt.Sprintf("sleep%d/replicas%d", sleep, replicas), func(t *testing.T) {
 				h := newHarness(t)
+				if owner == nil {
+					owner = h
+				}
+				h.parentRestores = true
 				h.fixed(replicas)
 				h.r.Params["replicas"] = replicas
 				h.r.Params["sleep_ms"] = sleep
