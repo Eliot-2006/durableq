@@ -1,0 +1,64 @@
+[
+  {
+    "scenario": "RandomPodKill",
+    "seed": 41,
+    "params": {
+      "enqueued": 1200,
+      "max_attempts": 10,
+      "payload": "{\"sleep_ms\":500,\"fail_rate\":0.0,\"permanent\":false}",
+      "worker_config": {
+        "apiVersion": "v1",
+        "data": {
+          "API_MAX_CONNS": "5",
+          "WORKER_CONCURRENCY": "10",
+          "WORKER_GRACE": "10s",
+          "WORKER_HEARTBEAT": "10s",
+          "WORKER_LEASE": "30s",
+          "WORKER_MAX_CONNS": "6",
+          "WORKER_POLL": "1s"
+        },
+        "kind": "ConfigMap",
+        "metadata": {
+          "annotations": {
+            "meta.helm.sh/release-name": "durableq",
+            "meta.helm.sh/release-namespace": "durableq"
+          },
+          "creationTimestamp": "2026-11-12T23:09:39Z",
+          "labels": {
+            "app.kubernetes.io/component": "config",
+            "app.kubernetes.io/instance": "durableq",
+            "app.kubernetes.io/managed-by": "Helm",
+            "app.kubernetes.io/name": "durableq",
+            "app.kubernetes.io/version": "dev",
+            "helm.sh/chart": "durableq-0.1.0"
+          },
+          "name": "durableq",
+          "namespace": "durableq",
+          "resourceVersion": "1547",
+          "uid": "d5d56f3d-4312-4da0-abd7-3706261fa046"
+        }
+      }
+    },
+    "started": "2026-11-12T23:29:21.229092Z",
+    "duration_seconds": 18.85666,
+    "enqueue_seconds": 0.876453083,
+    "drain_seconds": 0,
+    "faults_applied": {
+      "sigkill": 1
+    },
+    "events": [
+      {
+        "seconds": 15.083532,
+        "type": "sigkill",
+        "target": "durableq-worker-57c676645-vq7wr",
+        "detail": "node=durableq-worker2 container=00adc0864540eea72ea4a7b4494b91694a77ab50ab73383f66d2a7c2ec08253c pid=4220 exit=137 killed_at=0001-01-01T00:00:00Z"
+      }
+    ],
+    "invariant_violations": null,
+    "metrics": null,
+    "passed": false,
+    "errors": [
+      "SIGKILL exit code=0"
+    ]
+  }
+]

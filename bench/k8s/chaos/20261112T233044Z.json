@@ -1,0 +1,1142 @@
+[
+  {
+    "scenario": "RandomPodKill",
+    "seed": 42,
+    "params": {
+      "enqueued": 1200,
+      "max_attempts": 10,
+      "payload": "{\"sleep_ms\":500,\"fail_rate\":0.0,\"permanent\":false}",
+      "worker_config": {
+        "apiVersion": "v1",
+        "data": {
+          "API_MAX_CONNS": "5",
+          "WORKER_CONCURRENCY": "10",
+          "WORKER_GRACE": "10s",
+          "WORKER_HEARTBEAT": "10s",
+          "WORKER_LEASE": "30s",
+          "WORKER_MAX_CONNS": "6",
+          "WORKER_POLL": "1s"
+        },
+        "kind": "ConfigMap",
+        "metadata": {
+          "annotations": {
+            "meta.helm.sh/release-name": "durableq",
+            "meta.helm.sh/release-namespace": "durableq"
+          },
+          "creationTimestamp": "2026-11-12T23:09:39Z",
+          "labels": {
+            "app.kubernetes.io/component": "config",
+            "app.kubernetes.io/instance": "durableq",
+            "app.kubernetes.io/managed-by": "Helm",
+            "app.kubernetes.io/name": "durableq",
+            "app.kubernetes.io/version": "dev",
+            "helm.sh/chart": "durableq-0.1.0"
+          },
+          "name": "durableq",
+          "namespace": "durableq",
+          "resourceVersion": "1547",
+          "uid": "d5d56f3d-4312-4da0-abd7-3706261fa046"
+        }
+      }
+    },
+    "started": "2026-11-12T23:30:45.150788Z",
+    "duration_seconds": 54.817991,
+    "enqueue_seconds": 0.817491875,
+    "drain_seconds": 48.7266625,
+    "faults_applied": {
+      "sigkill": 3
+    },
+    "events": [
+      {
+        "seconds": 13.44804,
+        "type": "sigkill",
+        "target": "durableq-worker-57c676645-t98ts",
+        "detail": "node=durableq-worker2 container=c40ecdf86b70bf460ae5b6a264fa5f935b1188850fed950184d54898c89cccf1 pid=5220 exit=137 killed_at=2026-11-12T23:30:58.479582168Z"
+      },
+      {
+        "seconds": 17.23951,
+        "type": "sigkill",
+        "target": "durableq-worker-57c676645-rwfqp",
+        "detail": "node=durableq-worker container=9deffcb11944e7dc6b529e7215fdf81bde82f6f2aa5430cd14f87e0e34674139 pid=13658 exit=137 killed_at=2026-11-12T23:31:02.308534165Z"
+      },
+      {
+        "seconds": 22.187025,
+        "type": "sigkill",
+        "target": "durableq-worker-57c676645-t98ts",
+        "detail": "node=durableq-worker2 container=27c37dddccab33f2235098c8a1813b80d4f3321cd4bd04a6e352c5cafb967344 pid=5328 exit=137 killed_at=2026-11-12T23:31:07.294290336Z"
+      }
+    ],
+    "invariant_violations": {
+      "I1": 0,
+      "I2": 0,
+      "I3": 0,
+      "I4": 0,
+      "I5": 0,
+      "I6": 0,
+      "I7": 0
+    },
+    "metrics": {
+      "abandoned_attempts": 30,
+      "attempts": 1230,
+      "dead": 0,
+      "duplicate_executions": 30,
+      "effects": 1200,
+      "failed_attempts": 0,
+      "released": 0,
+      "succeeded": 1200,
+      "total": 1200
+    },
+    "passed": true
+  },
+  {
+    "scenario": "GracefulTermination",
+    "seed": 42,
+    "params": {
+      "enqueued": 90,
+      "max_attempts": 1,
+      "payload": "{\"sleep_ms\":30000,\"fail_rate\":0.0,\"permanent\":false}",
+      "worker_config": {
+        "apiVersion": "v1",
+        "data": {
+          "API_MAX_CONNS": "5",
+          "WORKER_CONCURRENCY": "10",
+          "WORKER_GRACE": "10s",
+          "WORKER_HEARTBEAT": "10s",
+          "WORKER_LEASE": "30s",
+          "WORKER_MAX_CONNS": "6",
+          "WORKER_POLL": "1s"
+        },
+        "kind": "ConfigMap",
+        "metadata": {
+          "annotations": {
+            "meta.helm.sh/release-name": "durableq",
+            "meta.helm.sh/release-namespace": "durableq"
+          },
+          "creationTimestamp": "2026-11-12T23:09:39Z",
+          "labels": {
+            "app.kubernetes.io/component": "config",
+            "app.kubernetes.io/instance": "durableq",
+            "app.kubernetes.io/managed-by": "Helm",
+            "app.kubernetes.io/name": "durableq",
+            "app.kubernetes.io/version": "dev",
+            "helm.sh/chart": "durableq-0.1.0"
+          },
+          "name": "durableq",
+          "namespace": "durableq",
+          "resourceVersion": "1547",
+          "uid": "d5d56f3d-4312-4da0-abd7-3706261fa046"
+        }
+      }
+    },
+    "started": "2026-11-12T23:31:39.969323Z",
+    "duration_seconds": 125.440431,
+    "enqueue_seconds": 0.157527958,
+    "drain_seconds": 121.169435,
+    "faults_applied": {
+      "sigterm_delete": 1
+    },
+    "events": [
+      {
+        "seconds": 10.173988,
+        "type": "sigterm_delete",
+        "target": "durableq-worker-57c676645-gdqrq"
+      }
+    ],
+    "invariant_violations": {
+      "I1": 0,
+      "I2": 0,
+      "I3": 0,
+      "I4": 0,
+      "I5": 0,
+      "I6": 0,
+      "I7": 0
+    },
+    "metrics": {
+      "abandoned_attempts": 0,
+      "attempts": 100,
+      "dead": 0,
+      "duplicate_executions": 0,
+      "effects": 90,
+      "failed_attempts": 0,
+      "released": 10,
+      "succeeded": 90,
+      "total": 90
+    },
+    "passed": true
+  },
+  {
+    "scenario": "RollingUpdate",
+    "seed": 42,
+    "params": {
+      "enqueued": 2400,
+      "max_attempts": 5,
+      "payload": "{\"sleep_ms\":1000,\"fail_rate\":0.0,\"permanent\":false}",
+      "worker_config": {
+        "apiVersion": "v1",
+        "data": {
+          "API_MAX_CONNS": "5",
+          "WORKER_CONCURRENCY": "10",
+          "WORKER_GRACE": "10s",
+          "WORKER_HEARTBEAT": "10s",
+          "WORKER_LEASE": "30s",
+          "WORKER_MAX_CONNS": "6",
+          "WORKER_POLL": "1s"
+        },
+        "kind": "ConfigMap",
+        "metadata": {
+          "annotations": {
+            "meta.helm.sh/release-name": "durableq",
+            "meta.helm.sh/release-namespace": "durableq"
+          },
+          "creationTimestamp": "2026-11-12T23:09:39Z",
+          "labels": {
+            "app.kubernetes.io/component": "config",
+            "app.kubernetes.io/instance": "durableq",
+            "app.kubernetes.io/managed-by": "Helm",
+            "app.kubernetes.io/name": "durableq",
+            "app.kubernetes.io/version": "dev",
+            "helm.sh/chart": "durableq-0.1.0"
+          },
+          "name": "durableq",
+          "namespace": "durableq",
+          "resourceVersion": "1547",
+          "uid": "d5d56f3d-4312-4da0-abd7-3706261fa046"
+        }
+      }
+    },
+    "started": "2026-11-12T23:33:45.410776Z",
+    "duration_seconds": 86.341584,
+    "enqueue_seconds": 1.5641504579999999,
+    "drain_seconds": 80.642008625,
+    "faults_applied": {
+      "rollout_restart": 3
+    },
+    "events": [
+      {
+        "seconds": 20.926268,
+        "type": "rollout_restart",
+        "target": "deploy/durableq-worker",
+        "detail": "1"
+      },
+      {
+        "seconds": 31.00536,
+        "type": "rollout_restart",
+        "target": "deploy/durableq-worker",
+        "detail": "2"
+      },
+      {
+        "seconds": 42.089357,
+        "type": "rollout_restart",
+        "target": "deploy/durableq-worker",
+        "detail": "3"
+      }
+    ],
+    "invariant_violations": {
+      "I1": 0,
+      "I2": 0,
+      "I3": 0,
+      "I4": 0,
+      "I5": 0,
+      "I6": 0,
+      "I7": 0
+    },
+    "metrics": {
+      "abandoned_attempts": 0,
+      "attempts": 2400,
+      "dead": 0,
+      "duplicate_executions": 0,
+      "effects": 2400,
+      "failed_attempts": 0,
+      "released": 0,
+      "succeeded": 2400,
+      "total": 2400
+    },
+    "passed": true
+  },
+  {
+    "scenario": "ScaleUpDown",
+    "seed": 42,
+    "params": {
+      "enqueued": 4000,
+      "max_attempts": 5,
+      "payload": "{\"sleep_ms\":1000,\"fail_rate\":0.0,\"permanent\":false}",
+      "worker_config": {
+        "apiVersion": "v1",
+        "data": {
+          "API_MAX_CONNS": "5",
+          "WORKER_CONCURRENCY": "10",
+          "WORKER_GRACE": "10s",
+          "WORKER_HEARTBEAT": "10s",
+          "WORKER_LEASE": "30s",
+          "WORKER_MAX_CONNS": "6",
+          "WORKER_POLL": "1s"
+        },
+        "kind": "ConfigMap",
+        "metadata": {
+          "annotations": {
+            "meta.helm.sh/release-name": "durableq",
+            "meta.helm.sh/release-namespace": "durableq"
+          },
+          "creationTimestamp": "2026-11-12T23:09:39Z",
+          "labels": {
+            "app.kubernetes.io/component": "config",
+            "app.kubernetes.io/instance": "durableq",
+            "app.kubernetes.io/managed-by": "Helm",
+            "app.kubernetes.io/name": "durableq",
+            "app.kubernetes.io/version": "dev",
+            "helm.sh/chart": "durableq-0.1.0"
+          },
+          "name": "durableq",
+          "namespace": "durableq",
+          "resourceVersion": "1547",
+          "uid": "d5d56f3d-4312-4da0-abd7-3706261fa046"
+        }
+      }
+    },
+    "started": "2026-11-12T23:35:11.753223Z",
+    "duration_seconds": 349.000226,
+    "enqueue_seconds": 2.311253375,
+    "drain_seconds": 340.543009166,
+    "faults_applied": {
+      "scale": 4
+    },
+    "events": [
+      {
+        "seconds": 21.998009,
+        "type": "scale",
+        "target": "deploy/durableq-worker",
+        "detail": "10"
+      },
+      {
+        "seconds": 22.463896,
+        "type": "scale",
+        "target": "deploy/durableq-worker",
+        "detail": "2"
+      },
+      {
+        "seconds": 27.213807,
+        "type": "scale",
+        "target": "deploy/durableq-worker",
+        "detail": "8"
+      },
+      {
+        "seconds": 27.599496,
+        "type": "scale",
+        "target": "deploy/durableq-worker",
+        "detail": "1"
+      }
+    ],
+    "invariant_violations": {
+      "I1": 0,
+      "I2": 0,
+      "I3": 0,
+      "I4": 0,
+      "I5": 0,
+      "I6": 0,
+      "I7": 0
+    },
+    "metrics": {
+      "abandoned_attempts": 0,
+      "attempts": 4000,
+      "dead": 0,
+      "duplicate_executions": 0,
+      "effects": 4000,
+      "failed_attempts": 0,
+      "released": 0,
+      "succeeded": 4000,
+      "total": 4000
+    },
+    "passed": true
+  },
+  {
+    "scenario": "PostgresRestart",
+    "seed": 42,
+    "params": {
+      "enqueued": 900,
+      "jobs_after_restart": 900,
+      "jobs_before_restart": 900,
+      "max_attempts": 10,
+      "payload": "{\"sleep_ms\":500,\"fail_rate\":0.0,\"permanent\":false}",
+      "worker_config": {
+        "apiVersion": "v1",
+        "data": {
+          "API_MAX_CONNS": "5",
+          "WORKER_CONCURRENCY": "10",
+          "WORKER_GRACE": "10s",
+          "WORKER_HEARTBEAT": "10s",
+          "WORKER_LEASE": "30s",
+          "WORKER_MAX_CONNS": "6",
+          "WORKER_POLL": "1s"
+        },
+        "kind": "ConfigMap",
+        "metadata": {
+          "annotations": {
+            "meta.helm.sh/release-name": "durableq",
+            "meta.helm.sh/release-namespace": "durableq"
+          },
+          "creationTimestamp": "2026-11-12T23:09:39Z",
+          "labels": {
+            "app.kubernetes.io/component": "config",
+            "app.kubernetes.io/instance": "durableq",
+            "app.kubernetes.io/managed-by": "Helm",
+            "app.kubernetes.io/name": "durableq",
+            "app.kubernetes.io/version": "dev",
+            "helm.sh/chart": "durableq-0.1.0"
+          },
+          "name": "durableq",
+          "namespace": "durableq",
+          "resourceVersion": "1547",
+          "uid": "d5d56f3d-4312-4da0-abd7-3706261fa046"
+        }
+      }
+    },
+    "started": "2026-11-12T23:41:00.756807Z",
+    "duration_seconds": 69.375116,
+    "enqueue_seconds": 0.725442916,
+    "drain_seconds": 61.00001175,
+    "faults_applied": {
+      "postgres_restart": 1
+    },
+    "events": [
+      {
+        "seconds": 18.375548,
+        "type": "postgres_restart",
+        "target": "durableq-postgres-0",
+        "detail": "2026-11-12 23:10:03.45181+00 -\u003e 2026-11-12 23:41:18.223289+00"
+      }
+    ],
+    "invariant_violations": {
+      "I1": 0,
+      "I2": 0,
+      "I3": 0,
+      "I4": 0,
+      "I5": 0,
+      "I6": 0,
+      "I7": 0
+    },
+    "metrics": {
+      "abandoned_attempts": 29,
+      "attempts": 929,
+      "dead": 0,
+      "duplicate_executions": 29,
+      "effects": 900,
+      "failed_attempts": 0,
+      "released": 0,
+      "succeeded": 900,
+      "total": 900
+    },
+    "passed": true
+  },
+  {
+    "scenario": "ConnectionKill",
+    "seed": 42,
+    "params": {
+      "enqueued": 900,
+      "max_attempts": 10,
+      "payload": "{\"sleep_ms\":500,\"fail_rate\":0.0,\"permanent\":false}",
+      "worker_config": {
+        "apiVersion": "v1",
+        "data": {
+          "API_MAX_CONNS": "5",
+          "WORKER_CONCURRENCY": "10",
+          "WORKER_GRACE": "10s",
+          "WORKER_HEARTBEAT": "10s",
+          "WORKER_LEASE": "30s",
+          "WORKER_MAX_CONNS": "6",
+          "WORKER_POLL": "1s"
+        },
+        "kind": "ConfigMap",
+        "metadata": {
+          "annotations": {
+            "meta.helm.sh/release-name": "durableq",
+            "meta.helm.sh/release-namespace": "durableq"
+          },
+          "creationTimestamp": "2026-11-12T23:09:39Z",
+          "labels": {
+            "app.kubernetes.io/component": "config",
+            "app.kubernetes.io/instance": "durableq",
+            "app.kubernetes.io/managed-by": "Helm",
+            "app.kubernetes.io/name": "durableq",
+            "app.kubernetes.io/version": "dev",
+            "helm.sh/chart": "durableq-0.1.0"
+          },
+          "name": "durableq",
+          "namespace": "durableq",
+          "resourceVersion": "1547",
+          "uid": "d5d56f3d-4312-4da0-abd7-3706261fa046"
+        }
+      }
+    },
+    "started": "2026-11-12T23:42:10.132745Z",
+    "duration_seconds": 58.822489,
+    "enqueue_seconds": 1.302430292,
+    "drain_seconds": 44.390917458,
+    "faults_applied": {
+      "connection_kill_round": 3,
+      "connections_terminated": 25
+    },
+    "events": [
+      {
+        "seconds": 20.255849,
+        "type": "connection_kill_round",
+        "target": "durableq-worker-%",
+        "detail": "terminated=6"
+      },
+      {
+        "seconds": 23.000144,
+        "type": "connection_kill_round",
+        "target": "durableq-worker-%",
+        "detail": "terminated=9"
+      },
+      {
+        "seconds": 27.02955,
+        "type": "connection_kill_round",
+        "target": "durableq-worker-%",
+        "detail": "terminated=10"
+      }
+    ],
+    "invariant_violations": {
+      "I1": 0,
+      "I2": 0,
+      "I3": 0,
+      "I4": 0,
+      "I5": 0,
+      "I6": 0,
+      "I7": 0
+    },
+    "metrics": {
+      "abandoned_attempts": 9,
+      "attempts": 910,
+      "dead": 0,
+      "duplicate_executions": 9,
+      "effects": 900,
+      "failed_attempts": 1,
+      "released": 0,
+      "succeeded": 900,
+      "total": 900
+    },
+    "passed": true
+  },
+  {
+    "scenario": "RetryExhaustionDLQ",
+    "seed": 42,
+    "params": {
+      "enqueued": 240,
+      "max_attempts": 3,
+      "payload": "{\"sleep_ms\":0,\"fail_rate\":0.0,\"permanent\":true}",
+      "worker_config": {
+        "apiVersion": "v1",
+        "data": {
+          "API_MAX_CONNS": "5",
+          "WORKER_CONCURRENCY": "10",
+          "WORKER_GRACE": "10s",
+          "WORKER_HEARTBEAT": "10s",
+          "WORKER_LEASE": "30s",
+          "WORKER_MAX_CONNS": "6",
+          "WORKER_POLL": "1s"
+        },
+        "kind": "ConfigMap",
+        "metadata": {
+          "annotations": {
+            "meta.helm.sh/release-name": "durableq",
+            "meta.helm.sh/release-namespace": "durableq"
+          },
+          "creationTimestamp": "2026-11-12T23:09:39Z",
+          "labels": {
+            "app.kubernetes.io/component": "config",
+            "app.kubernetes.io/instance": "durableq",
+            "app.kubernetes.io/managed-by": "Helm",
+            "app.kubernetes.io/name": "durableq",
+            "app.kubernetes.io/version": "dev",
+            "helm.sh/chart": "durableq-0.1.0"
+          },
+          "name": "durableq",
+          "namespace": "durableq",
+          "resourceVersion": "1547",
+          "uid": "d5d56f3d-4312-4da0-abd7-3706261fa046"
+        }
+      },
+      "workloads": [
+        {
+          "count": 180,
+          "fail_rate": 1,
+          "max_attempts": 3,
+          "sleep_ms": 200
+        },
+        {
+          "count": 60,
+          "max_attempts": 3,
+          "permanent": true
+        }
+      ]
+    },
+    "started": "2026-11-12T23:43:08.956224Z",
+    "duration_seconds": 45.09872,
+    "enqueue_seconds": 0.43130262499999994,
+    "drain_seconds": 39.283456,
+    "faults_applied": {
+      "sigkill": 1
+    },
+    "events": [
+      {
+        "seconds": 14.020026,
+        "type": "sigkill",
+        "target": "durableq-worker-64f7d48f76-xsgk8",
+        "detail": "node=durableq-worker container=42288fd7dc5d74c9e6104f20af96b2ec954af52343eebccdb5f211e68c183117 pid=33474 exit=137 killed_at=2026-11-12T23:43:21.797955414Z"
+      }
+    ],
+    "invariant_violations": {
+      "I1": 0,
+      "I2": 0,
+      "I3": 0,
+      "I4": 0,
+      "I5": 0,
+      "I6": 0,
+      "I7": 0
+    },
+    "metrics": {
+      "abandoned_attempts": 10,
+      "attempts": 601,
+      "dead": 240,
+      "duplicate_executions": 10,
+      "effects": 0,
+      "failed_attempts": 591,
+      "released": 0,
+      "succeeded": 0,
+      "total": 240
+    },
+    "passed": true
+  },
+  {
+    "scenario": "RepeatedCrashRecovery",
+    "seed": 42,
+    "params": {
+      "enqueued": 3600,
+      "max_attempts": 10,
+      "payload": "{\"sleep_ms\":1000,\"fail_rate\":0.0,\"permanent\":false}",
+      "worker_config": {
+        "apiVersion": "v1",
+        "data": {
+          "API_MAX_CONNS": "5",
+          "WORKER_CONCURRENCY": "10",
+          "WORKER_GRACE": "10s",
+          "WORKER_HEARTBEAT": "10s",
+          "WORKER_LEASE": "30s",
+          "WORKER_MAX_CONNS": "6",
+          "WORKER_POLL": "1s"
+        },
+        "kind": "ConfigMap",
+        "metadata": {
+          "annotations": {
+            "meta.helm.sh/release-name": "durableq",
+            "meta.helm.sh/release-namespace": "durableq"
+          },
+          "creationTimestamp": "2026-11-12T23:09:39Z",
+          "labels": {
+            "app.kubernetes.io/component": "config",
+            "app.kubernetes.io/instance": "durableq",
+            "app.kubernetes.io/managed-by": "Helm",
+            "app.kubernetes.io/name": "durableq",
+            "app.kubernetes.io/version": "dev",
+            "helm.sh/chart": "durableq-0.1.0"
+          },
+          "name": "durableq",
+          "namespace": "durableq",
+          "resourceVersion": "1547",
+          "uid": "d5d56f3d-4312-4da0-abd7-3706261fa046"
+        }
+      }
+    },
+    "started": "2026-11-12T23:43:54.056068Z",
+    "duration_seconds": 195.077579,
+    "enqueue_seconds": 2.399996625,
+    "drain_seconds": 0,
+    "faults_applied": {
+      "sigkill": 3
+    },
+    "events": [
+      {
+        "seconds": 14.210268,
+        "type": "sigkill",
+        "target": "durableq-worker-64f7d48f76-rfgqt",
+        "detail": "node=durableq-worker2 container=4bfe60c3081a55574c924028b6fdc6da831ab3ed5398e18a2115475bbe829694 pid=13479 exit=137 killed_at=2026-11-12T23:44:07.088382727Z"
+      },
+      {
+        "seconds": 14.494648,
+        "type": "sigkill",
+        "target": "durableq-worker-64f7d48f76-n88p5",
+        "detail": "node=durableq-worker container=304f83b9a70e77b9b57447bdb1ca59b94239aa49b4f28ec63c81e2fa23fbca60 pid=34829 exit=137 killed_at=2026-11-12T23:44:08.499006213Z"
+      },
+      {
+        "seconds": 14.72336,
+        "type": "sigkill",
+        "target": "durableq-worker-64f7d48f76-hv26d",
+        "detail": "node=durableq-worker2 container=b024e0faac41d0270eadab533642ef125815334a7dcff3521f5f23fd5b16032f pid=13486 exit=137 killed_at=2026-11-12T23:44:08.723285691Z"
+      }
+    ],
+    "invariant_violations": null,
+    "metrics": null,
+    "passed": false,
+    "errors": [
+      "timeout: every killed job reclaimed"
+    ]
+  },
+  {
+    "scenario": "KEDAAutoscale",
+    "seed": 42,
+    "params": {
+      "autoscaling": {
+        "MinReplicaCount": 3,
+        "MaxReplicaCount": 10,
+        "PollingInterval": 15,
+        "CooldownPeriod": 60
+      },
+      "enqueued": 3000,
+      "max_attempts": 10,
+      "payload": "{\"sleep_ms\":2000,\"fail_rate\":0.0,\"permanent\":false}",
+      "worker_config": {
+        "apiVersion": "v1",
+        "data": {
+          "API_MAX_CONNS": "5",
+          "WORKER_CONCURRENCY": "10",
+          "WORKER_GRACE": "10s",
+          "WORKER_HEARTBEAT": "10s",
+          "WORKER_LEASE": "30s",
+          "WORKER_MAX_CONNS": "6",
+          "WORKER_POLL": "1s"
+        },
+        "kind": "ConfigMap",
+        "metadata": {
+          "annotations": {
+            "meta.helm.sh/release-name": "durableq",
+            "meta.helm.sh/release-namespace": "durableq"
+          },
+          "creationTimestamp": "2026-11-12T23:09:39Z",
+          "labels": {
+            "app.kubernetes.io/component": "config",
+            "app.kubernetes.io/instance": "durableq",
+            "app.kubernetes.io/managed-by": "Helm",
+            "app.kubernetes.io/name": "durableq",
+            "app.kubernetes.io/version": "dev",
+            "helm.sh/chart": "durableq-0.1.0"
+          },
+          "name": "durableq",
+          "namespace": "durableq",
+          "resourceVersion": "1547",
+          "uid": "d5d56f3d-4312-4da0-abd7-3706261fa046"
+        }
+      }
+    },
+    "started": "2026-11-12T23:47:09.134625Z",
+    "duration_seconds": 183.631066,
+    "enqueue_seconds": 1.779404375,
+    "drain_seconds": 74.510972125,
+    "faults_applied": {},
+    "events": null,
+    "invariant_violations": null,
+    "metrics": null,
+    "samples": [
+      {
+        "at": "2026-11-12T23:47:16.257461Z",
+        "desired": 3,
+        "ready": 3
+      },
+      {
+        "at": "2026-11-12T23:47:18.431848Z",
+        "desired": 3,
+        "ready": 3
+      },
+      {
+        "at": "2026-11-12T23:47:20.623065Z",
+        "desired": 3,
+        "ready": 3
+      },
+      {
+        "at": "2026-11-12T23:47:22.785989Z",
+        "desired": 3,
+        "ready": 3
+      },
+      {
+        "at": "2026-11-12T23:47:24.937257Z",
+        "desired": 7,
+        "ready": 3
+      },
+      {
+        "at": "2026-11-12T23:47:27.111234Z",
+        "desired": 7,
+        "ready": 3
+      },
+      {
+        "at": "2026-11-12T23:47:29.301352Z",
+        "desired": 7,
+        "ready": 7
+      },
+      {
+        "at": "2026-11-12T23:47:31.503212Z",
+        "desired": 7,
+        "ready": 7
+      },
+      {
+        "at": "2026-11-12T23:47:33.811269Z",
+        "desired": 7,
+        "ready": 7
+      },
+      {
+        "at": "2026-11-12T23:47:35.980945Z",
+        "desired": 7,
+        "ready": 7
+      },
+      {
+        "at": "2026-11-12T23:47:38.153789Z",
+        "desired": 7,
+        "ready": 7
+      },
+      {
+        "at": "2026-11-12T23:47:40.342796Z",
+        "desired": 10,
+        "ready": 7
+      },
+      {
+        "at": "2026-11-12T23:47:42.491307Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-12T23:47:44.663698Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-12T23:47:46.862916Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-12T23:47:49.056452Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-12T23:47:51.186832Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-12T23:47:53.360639Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-12T23:47:55.619329Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-12T23:47:57.795172Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-12T23:48:00.031229Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-12T23:48:02.224704Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-12T23:48:04.423356Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-12T23:48:06.644896Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-12T23:48:08.800183Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-12T23:48:10.990886Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-12T23:48:13.211843Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-12T23:48:15.389979Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-12T23:48:17.544779Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-12T23:48:19.745596Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-12T23:48:21.900036Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-12T23:48:24.073566Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-12T23:48:26.295748Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-12T23:48:28.47954Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-12T23:48:30.634359Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-12T23:48:32.847237Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-12T23:48:35.019494Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-12T23:48:37.2252Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-12T23:48:39.512906Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-12T23:48:41.85781Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-12T23:48:44.029077Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-12T23:48:46.25828Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-12T23:48:48.450372Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-12T23:48:50.63319Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-12T23:48:52.870606Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-12T23:48:55.08015Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-12T23:48:57.275476Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-12T23:48:59.510988Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-12T23:49:01.74539Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-12T23:49:03.942698Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-12T23:49:06.299243Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-12T23:49:08.508515Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-12T23:49:10.702211Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-12T23:49:12.94764Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-12T23:49:15.159278Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-12T23:49:17.363241Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-12T23:49:19.624739Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-12T23:49:21.896813Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-12T23:49:24.281977Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-12T23:49:26.497551Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-12T23:49:28.681233Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-12T23:49:30.868506Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-12T23:49:33.077924Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-12T23:49:35.249816Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-12T23:49:37.424725Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-12T23:49:39.649696Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-12T23:49:41.883718Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-12T23:49:44.093605Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-12T23:49:46.41293Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-12T23:49:48.722994Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-12T23:49:51.003109Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-12T23:49:53.365156Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-12T23:49:55.590445Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-12T23:49:57.761979Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-12T23:49:59.994539Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-12T23:50:02.255354Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-12T23:50:04.518125Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-12T23:50:06.739925Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-12T23:50:08.988265Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-12T23:50:11.31953Z",
+        "desired": 3,
+        "ready": 3
+      }
+    ],
+    "passed": false
+  }
+]

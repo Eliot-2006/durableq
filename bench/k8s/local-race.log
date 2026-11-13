@@ -1,0 +1,108 @@
+=== RUN   TestEvents
+=== RUN   TestEvents/succeeded
+=== RUN   TestEvents/retried
+=== RUN   TestEvents/dead
+=== RUN   TestEvents/released
+=== RUN   TestEvents/stale
+=== RUN   TestEvents/error
+=== RUN   TestEvents/lease_lost
+=== RUN   TestEvents/budget
+=== RUN   TestEvents/commit_retry
+--- PASS: TestEvents (0.50s)
+    --- PASS: TestEvents/succeeded (0.21s)
+    --- PASS: TestEvents/retried (0.04s)
+    --- PASS: TestEvents/dead (0.02s)
+    --- PASS: TestEvents/released (0.02s)
+    --- PASS: TestEvents/stale (0.02s)
+    --- PASS: TestEvents/error (0.02s)
+    --- PASS: TestEvents/lease_lost (0.13s)
+    --- PASS: TestEvents/budget (0.03s)
+    --- PASS: TestEvents/commit_retry (0.02s)
+=== RUN   TestClaimObservations
+--- PASS: TestClaimObservations (0.02s)
+=== RUN   TestTransitionErrorEvents
+=== RUN   TestTransitionErrorEvents/complete/stale
+=== RUN   TestTransitionErrorEvents/complete/error
+=== RUN   TestTransitionErrorEvents/fail/stale
+=== RUN   TestTransitionErrorEvents/fail/error
+=== RUN   TestTransitionErrorEvents/release/stale
+=== RUN   TestTransitionErrorEvents/release/error
+--- PASS: TestTransitionErrorEvents (0.09s)
+    --- PASS: TestTransitionErrorEvents/complete/stale (0.02s)
+    --- PASS: TestTransitionErrorEvents/complete/error (0.02s)
+    --- PASS: TestTransitionErrorEvents/fail/stale (0.02s)
+    --- PASS: TestTransitionErrorEvents/fail/error (0.01s)
+    --- PASS: TestTransitionErrorEvents/release/stale (0.01s)
+    --- PASS: TestTransitionErrorEvents/release/error (0.01s)
+=== RUN   TestActiveDuringHandler
+--- PASS: TestActiveDuringHandler (0.02s)
+=== RUN   TestExpiredLeaseReclaimedAndStaleWorkerFenced
+--- PASS: TestExpiredLeaseReclaimedAndStaleWorkerFenced (0.02s)
+=== RUN   TestHeartbeatKeepsLongJobAlive
+--- PASS: TestHeartbeatKeepsLongJobAlive (1.55s)
+=== RUN   TestLocalDeadlineCancelsJobWhenDatabaseUnreachable
+--- PASS: TestLocalDeadlineCancelsJobWhenDatabaseUnreachable (0.96s)
+=== RUN   TestCrashingJobDeadAfterBudgetWithoutExtraExecution
+--- PASS: TestCrashingJobDeadAfterBudgetWithoutExtraExecution (0.05s)
+=== RUN   TestShutdownReleasesInFlightJobs
+--- PASS: TestShutdownReleasesInFlightJobs (0.37s)
+=== RUN   TestHeartbeatVsReclaimRace
+    lease_test.go:386: during the race: owner won 292, reclaimer won 708, stale owner completions rejected 708
+--- PASS: TestHeartbeatVsReclaimRace (5.71s)
+=== RUN   TestHeartbeatMustBeUnderHalfLease
+--- PASS: TestHeartbeatMustBeUnderHalfLease (0.00s)
+=== RUN   TestShutdownBoundedWithUncooperativeHandler
+--- PASS: TestShutdownBoundedWithUncooperativeHandler (0.25s)
+=== RUN   TestReleaseOnLastAttemptDoesNotDeadLetter
+--- PASS: TestReleaseOnLastAttemptDoesNotDeadLetter (0.06s)
+=== RUN   TestBackoff
+--- PASS: TestBackoff (0.00s)
+=== RUN   TestEnqueueValidation
+--- PASS: TestEnqueueValidation (0.00s)
+=== RUN   TestIdempotencyKeyConcurrent
+--- PASS: TestIdempotencyKeyConcurrent (0.06s)
+=== RUN   TestEnqueueTxRollbackNeverRuns
+--- PASS: TestEnqueueTxRollbackNeverRuns (0.24s)
+=== RUN   TestEveryJobClaimedExactlyOnce
+--- PASS: TestEveryJobClaimedExactlyOnce (1.35s)
+=== RUN   TestAlwaysFailingJobDeadAfterMaxAttempts
+--- PASS: TestAlwaysFailingJobDeadAfterMaxAttempts (0.27s)
+=== RUN   TestPermanentErrorDeadAfterOneAttempt
+--- PASS: TestPermanentErrorDeadAfterOneAttempt (0.09s)
+=== RUN   TestFutureJobNotClaimedEarly
+--- PASS: TestFutureJobNotClaimedEarly (0.72s)
+=== RUN   TestCommitFuncAtomicWithCompletion
+--- PASS: TestCommitFuncAtomicWithCompletion (0.10s)
+=== RUN   TestWorkersClaimOnlyRegisteredKinds
+--- PASS: TestWorkersClaimOnlyRegisteredKinds (0.28s)
+PASS
+ok  	github.com/Eliot-2006/durableq	14.026s
+=== RUN   TestHealthcheck
+=== RUN   TestHealthcheck/OK
+=== RUN   TestHealthcheck/No_Content
+=== RUN   TestHealthcheck/Found
+=== RUN   TestHealthcheck/Service_Unavailable
+--- PASS: TestHealthcheck (0.00s)
+    --- PASS: TestHealthcheck/OK (0.00s)
+    --- PASS: TestHealthcheck/No_Content (0.00s)
+    --- PASS: TestHealthcheck/Found (0.00s)
+    --- PASS: TestHealthcheck/Service_Unavailable (0.00s)
+=== RUN   TestHTTPListenerAndShutdown
+--- PASS: TestHTTPListenerAndShutdown (0.00s)
+PASS
+ok  	github.com/Eliot-2006/durableq/cmd/durableq	1.225s
+=== RUN   TestAPI
+--- PASS: TestAPI (0.04s)
+PASS
+ok  	github.com/Eliot-2006/durableq/internal/api	1.268s
+?   	github.com/Eliot-2006/durableq/internal/demo	[no test files]
+?   	github.com/Eliot-2006/durableq/internal/failpoint	[no test files]
+=== RUN   TestWorkerMetrics
+--- PASS: TestWorkerMetrics (0.00s)
+PASS
+ok  	github.com/Eliot-2006/durableq/internal/metrics	1.195s
+=== RUN   TestUpIsIdempotentAndConcurrencySafe
+--- PASS: TestUpIsIdempotentAndConcurrencySafe (0.03s)
+PASS
+ok  	github.com/Eliot-2006/durableq/internal/migrate	1.232s
+?   	github.com/Eliot-2006/durableq/internal/testdb	[no test files]

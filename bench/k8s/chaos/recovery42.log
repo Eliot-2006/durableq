@@ -1,0 +1,6 @@
+=== RUN   TestRepeatedCrashRecovery
+CHAOS RepeatedCrashRecovery    seed=42 pass=true faults=map[crash_recovery_cycle:3 sigkill:9] drain=160.54s duplicates=90 effects_violations=0 report=/Users/eliotboda/.paradev/worktrees/durableq/feat/k8s-chaos/bench/k8s/chaos/20261112T235033Z-recovery42.json
+--- PASS: TestRepeatedCrashRecovery (169.36s)
+PASS
+REPORT /Users/eliotboda/.paradev/worktrees/durableq/feat/k8s-chaos/bench/k8s/chaos/20261112T235033Z-recovery42.json
+ok  	github.com/Eliot-2006/durableq/test/k8s	169.674s
