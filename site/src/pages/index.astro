@@ -22,8 +22,8 @@ const k0one = row(0, 1);
 
     <div class="row">
       <div>
-        <p class="lead">DurableQ is a durable job queue in Go with PostgreSQL as its only dependency. Workers claim jobs with <code>FOR UPDATE SKIP LOCKED</code> and hold leases timed on the database clock, renewing them with heartbeats; when a worker dies, its leases expire and other workers reclaim the jobs. Every state transition is fenced by an attempt number, so a stale or partitioned worker cannot complete a job it no longer owns. It also runs on Kubernetes: an HTTP API and workers from one image, a Helm chart, KEDA autoscaling on the eligible backlog, and Prometheus metrics with a Grafana dashboard.</p>
-        <p>
+        <p class="lead">DurableQ is a durable job queue in Go with PostgreSQL as its only dependency. Workers hold leases timed on the database clock, and every state transition is fenced by an attempt number, so a stale worker cannot complete a job it no longer owns.</p>
+        <p class="actions">
           <a class="btn primary" href={href('reliability/')}>Break a worker in the simulation</a>
           <a class="btn" href={REPO}>View the source</a>
         </p>
@@ -63,7 +63,7 @@ const k0one = row(0, 1);
       <li>
         <div>
           <p class="claim">{c.passed} of {c.runs} acceptance chaos runs passed all seven invariants</p>
-          <p class="detail">Each run: {nf(c.jobs_per_run)} jobs and {c.sigkills_per_run} SIGKILLs, plus connection kills, stalls, graceful restarts and failpoint self-kills. Across the {c.runs} runs: 0 lost jobs, 0 duplicate effects, 0 duplicate terminal transitions. 41,131 attempts were abandoned and re-executed, which at-least-once allows.</p>
+          <p class="detail">Each run: {nf(c.jobs_per_run)} jobs and {c.sigkills_per_run} SIGKILLs, plus connection kills, stalls, graceful restarts and failpoint self-kills. Across the {c.runs} runs: 0 lost jobs, 0 duplicate effects, 0 duplicate terminal transitions. 41,131 attempts were abandoned across 34,549 jobs that may have executed more than once, which at-least-once allows.</p>
         </div>
         <div class="meta">
           <Env env="process" />
@@ -72,10 +72,11 @@ const k0one = row(0, 1);
       </li>
       <li>
         <div>
-          <p class="claim">A crashed worker’s jobs come back after one lease</p>
+          <p class="claim">A crashed worker’s jobs come back after about one lease</p>
           <p class="detail">
             <Env env="process" /> 2 s lease: p50 {nf(bare.recovery.p50_ms)} ms, max {nf(bare.recovery.max_ms)} ms ({bare.recovery.jobs} jobs).<br />
-            <Env env="kind" /> 30 s lease: {nf(k8s.recovery.min_s, 2)} to {nf(k8s.recovery.max_s, 2)} s ({k8s.recovery.claims} claims).
+            <Env env="kind" /> 30 s lease: {nf(k8s.recovery.min_s, 2)} to {nf(k8s.recovery.max_s, 2)} s ({k8s.recovery.claims} claims).<br />
+            Jobs become eligible once the lease expires and are reclaimed at the next worker poll.
           </p>
         </div>
         <div class="meta">
@@ -84,8 +85,8 @@ const k0one = row(0, 1);
       </li>
       <li>
         <div>
-          <p class="claim">Peak claim throughput {nf(peakProcess.jobs_per_sec)} jobs/s</p>
-          <p class="detail"><code>demo.noop</code> on a pre-enqueued backlog of {nf(peakProcess.jobs)} jobs, {peakProcess.procs} worker processes × {peakProcess.concurrency} slots, {peakProcess.max_worker_conns} connections, PostgreSQL on the same host.</p>
+          <p class="claim">Peak completed-job throughput {nf(peakProcess.jobs_per_sec)} jobs/s</p>
+          <p class="detail"><code>demo.noop</code> on a pre-enqueued backlog of {nf(peakProcess.jobs)} jobs, {peakProcess.procs} worker processes × {peakProcess.concurrency} slots, {peakProcess.max_worker_conns} connections, PostgreSQL on the same host. Measured as jobs divided by the interval from first claim to last completion.</p>
         </div>
         <div class="meta">
           <Env env="process" />
@@ -116,6 +117,7 @@ const k0one = row(0, 1);
     <p class="small muted">Setups. <Env env="process" /> {bare.environment}. <Env env="kind" /> {k8s.environment}.</p>
 
     <h2>How it fits together</h2>
+    <p class="muted">It also runs on Kubernetes: an HTTP API and workers from one image, a Helm chart, KEDA autoscaling on the eligible backlog, and Prometheus metrics with a Grafana dashboard.</p>
     <div class="explorer">
       <ArchDiagram compact />
       <div>
