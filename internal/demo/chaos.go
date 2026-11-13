@@ -15,6 +15,8 @@ import (
 	"sync/atomic"
 	"syscall"
 	"time"
+
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 // ChaosConfig drives one chaos run. Exactly Kills SIGKILLs, ConnKills
@@ -102,6 +104,32 @@ func (p *proc) live() bool {
 
 type exit struct{ p *proc }
 
+// busiest returns the live worker holding the most running jobs, or nil if
+// none holds one. Worker IDs embed the pid (durableq-worker-<tag>-host-pid-hex).
+func busiest(ctx context.Context, pool *pgxpool.Pool, tag string, live []*proc) (*proc, error) {
+	rows, err := pool.Query(ctx, `SELECT lease_owner, count(*) FROM jobs
+		WHERE state = 'running' AND lease_owner LIKE $1 GROUP BY lease_owner`, "durableq-worker-"+tag+"-%")
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var best *proc
+	most := int64(0)
+	for rows.Next() {
+		var owner string
+		var n int64
+		if err := rows.Scan(&owner, &n); err != nil {
+			return nil, err
+		}
+		for _, p := range live {
+			if n > most && strings.HasSuffix(owner[:strings.LastIndexByte(owner, '-')], fmt.Sprintf("-%d", p.cmd.Process.Pid)) {
+				best, most = p, n
+			}
+		}
+	}
+	return best, rows.Err()
+}
+
 // RunChaos migrates a fresh schema, enqueues demo.effect jobs, runs worker
 // processes while injecting faults, waits for the queue to drain, and checks
 // every invariant. An error means the run could not complete (e.g. drain
@@ -145,8 +173,11 @@ func RunChaos(ctx context.Context, cfg ChaosConfig) (rep ChaosReport, err error)
 	stopping := make(chan struct{})
 	procs := make([]*proc, cfg.Workers)
 	spawn := func(slot int) error {
+		// A 1ms grace makes a SIGTERM release whatever is in flight; with
+		// 10–30ms jobs a longer grace often lets everything finish, so a
+		// restart may release nothing. lease_test.go covers draining in grace.
 		cmd := exec.Command(cfg.WorkerBin, "worker", "--tag", tag,
-			"--concurrency", strconv.Itoa(cfg.Concurrency), "--grace", "20ms",
+			"--concurrency", strconv.Itoa(cfg.Concurrency), "--grace", "1ms",
 			"--lease", cfg.Lease.String(), "--heartbeat", cfg.Heartbeat.String(), "--poll", "100ms")
 		cmd.Env = append(os.Environ(), "DATABASE_URL="+dbURL, "DURABLEQ_FAILPOINTS="+cfg.Failpoints)
 		stderr, err := cmd.StderrPipe()
@@ -287,6 +318,15 @@ func RunChaos(ctx context.Context, cfg ChaosConfig) (rep ChaosReport, err error)
 			return false, nil
 		}
 		p := live[rng.IntN(len(live))]
+		if kind == restart {
+			var err error
+			// Restart the live worker holding the most running jobs, so the
+			// restart exercises the release path instead of stopping an idle or
+			// just-respawned worker.
+			if p, err = busiest(ctx, pool, tag, live); p == nil || err != nil {
+				return false, err
+			}
+		}
 		switch kind {
 		case kill:
 			if p.cmd.Process.Kill() != nil {
