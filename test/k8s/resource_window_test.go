@@ -21,7 +21,7 @@ func TestResourceWindowsExcludeOtherBatches(t *testing.T) {
 		raw := fmt.Sprintf(`{"items":[{"metadata":{"name":"durableq-worker-a"},"timestamp":"2026-01-01T00:%02d:%02dZ","window":%q,"containers":[{"usage":{"cpu":%q,"memory":%q}}]},{"metadata":{"name":"durableq-postgres-0"},"timestamp":"2026-01-01T00:%02d:%02dZ","window":%q,"containers":[{"usage":{"cpu":%q,"memory":%q}}]}]}`, v.sec/60, v.sec%60, v.window, v.cpu, v.memory, v.sec/60, v.sec%60, v.window, v.cpu, v.memory)
 		samples = append(samples, sample{PodMetrics: json.RawMessage(raw)})
 	}
-	peak, coverage, err := windowPeaks(samples, start, end, 1)
+	peak, coverage, err := windowPeaks(samples, start.Add(-10*time.Second), start, end, 1)
 	if err != nil || peak.WorkerCPU != 1000 || peak.PostgresCPU != 1000 || peak.WorkerMiB != 30 || peak.PostgresMiB != 30 {
 		t.Fatalf("foreign windows must not inflate resource peaks: %+v %v", peak, err)
 	}
@@ -61,7 +61,7 @@ func metricsPublished(raw json.RawMessage, finish time.Time, replicas int) bool 
 	return workers == replicas && postgres == 1
 }
 
-func windowPeaks(samples []sample, start, finish time.Time, replicas int) (resourceUsage, map[string]int, error) {
+func windowPeaks(samples []sample, caseStart, start, finish time.Time, replicas int) (resourceUsage, map[string]int, error) {
 	peak := resourceUsage{Workers: replicas, Postgres: 1}
 	coverage := map[string]int{"worker_cpu": 0, "worker_memory": 0, "postgres_cpu": 0, "postgres_memory": 0}
 	for _, s := range samples {
@@ -97,9 +97,13 @@ func windowPeaks(samples []sample, start, finish time.Time, replicas int) (resou
 				podMem += v
 			}
 			windowStart := p.Timestamp.Add(-window)
-			// Exclude averages containing setup/previous batches, but retain final
-			// windows published after drain that overlap this workload.
-			if !windowStart.Before(start) && windowStart.Before(finish) {
+			// Fresh workers may include this case's idle setup; persistent Postgres
+			// must exclude setup/previous batches. Both must overlap the workload.
+			cpuStart := start
+			if worker {
+				cpuStart = caseStart
+			}
+			if !windowStart.Before(cpuStart) && p.Timestamp.After(start) && windowStart.Before(finish) {
 				if worker {
 					cpu += podCPU
 					cpus++
@@ -128,4 +132,13 @@ func windowPeaks(samples []sample, start, finish time.Time, replicas int) (resou
 		}
 	}
 	return peak, coverage, nil
+}
+
+func TestFreshWorkerWindowIncludesItsOwnIdleSetup(t *testing.T) {
+	start := time.Date(2026, 1, 1, 0, 0, 20, 0, time.UTC)
+	raw := json.RawMessage(`{"items":[{"metadata":{"name":"durableq-worker-new"},"timestamp":"2026-01-01T00:00:30Z","window":"15s","containers":[{"usage":{"cpu":"100m","memory":"20Mi"}}]},{"metadata":{"name":"durableq-postgres-0"},"timestamp":"2026-01-01T00:00:30Z","window":"15s","containers":[{"usage":{"cpu":"1000m","memory":"30Mi"}}]}]}`)
+	peak, coverage, err := windowPeaks([]sample{{PodMetrics: raw}}, start.Add(-10*time.Second), start, start.Add(40*time.Second), 1)
+	if err != nil || peak.WorkerCPU != 100 || coverage["worker_cpu"] != 1 || peak.PostgresCPU != 0 || coverage["postgres_cpu"] != 0 {
+		t.Fatalf("fresh worker has no previous workload; persistent postgres does: %+v %v %v", peak, coverage, err)
+	}
 }

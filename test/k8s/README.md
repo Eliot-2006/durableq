@@ -68,11 +68,13 @@ Benchmark methodology:
   retries can change run_at, so clean throughput runs assert zero retries).
 - Every ~2s sample records pg_stat_activity connections, raw `kubectl top pods`,
   and the underlying timestamped PodMetrics API. Sampling continues until all
-  worker/postgres metric timestamps pass the DB drain time. CPU peaks use only
-  averaging windows that start within this workload; memory peaks use points
-  timestamped during it. This excludes setup/previous-batch CPU carryover and
-  retains the final loaded window published after drain. Final CPU windows can
-  include idle time after drain; these remain observed averages, not instantaneous
+  worker/postgres metric timestamps pass the DB drain time. Postgres CPU peaks
+  use averaging windows that start within this workload. Workers are recreated
+  for each case, so their windows may include that case's idle setup, but must
+  start after case creation and overlap the workload. Memory peaks use points
+  timestamped during the workload. This excludes previous-batch CPU carryover
+  and retains the final loaded window published after drain. CPU windows can
+  include idle time around the batch; these remain observed averages, not instantaneous
   maxima. Coverage counts and raw timestamps/windows are retained, and every
   worker/postgres CPU/memory category must have a relevant sample. The matrix uses
   60,000 jobs at 0ms and 40,000 at 50ms to outlast metrics-server windows.

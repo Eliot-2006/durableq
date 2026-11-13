@@ -74,7 +74,7 @@ func TestBenchMatrix(t *testing.T) {
 					}
 					return published
 				})
-				peaks, coverage, err := windowPeaks(h.r.Samples, start, finish, replicas)
+				peaks, coverage, err := windowPeaks(h.r.Samples, h.r.Started, start, finish, replicas)
 				if err != nil {
 					t.Fatal(err)
 				}
