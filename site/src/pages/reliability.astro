@@ -1,0 +1,285 @@
+---
+import Base from '../layouts/Base.astro';
+import Env from '../components/Env.astro';
+import Note from '../components/Note.astro';
+import { blob, href } from '../lib/url';
+---
+
+<Base title="Reliability" description="A deterministic simulation of a DurableQ worker stalling, its lease expiring, another worker reclaiming the job, and the stale completion being rejected by the attempt fence.">
+  <div class="page">
+    <header>
+      <h1>What happens when a worker stalls</h1>
+      <p class="lead">A worker holds a job under a lease. If it stops heartbeating, whether it crashed, was paused, or lost the network, Postgres cannot tell the difference. The lease expires, another worker takes the job, and the first worker’s late completion is rejected by the fence.</p>
+    </header>
+
+    <section class="sim" aria-labelledby="sim-title" data-sim>
+      <div class="sim-head">
+        <Env env="sim" label="deterministic simulation" />
+        <p id="sim-title"><strong>This is not a live cluster.</strong> It steps through one scripted scenario that follows the semantics documented in <a href={blob('docs/design.md')}>design.md</a>. No Postgres is running and nothing on this page was measured. Times are simulated seconds on the database clock.</p>
+      </div>
+
+      <noscript><p class="callout">The simulation needs JavaScript. The sequence it shows is written out below.</p></noscript>
+
+      <div class="sim-controls" role="group" aria-label="Simulation controls">
+        <button type="button" class="btn primary" data-act="play">Start</button>
+        <button type="button" class="btn" data-act="pause" disabled>Pause</button>
+        <button type="button" class="btn" data-act="step">Step</button>
+        <button type="button" class="btn danger" data-act="inject" disabled>Inject failure: stall worker A</button>
+        <button type="button" class="btn" data-act="reset">Reset</button>
+      </div>
+
+      <p class="caption-live" aria-live="polite" data-bind="caption"></p>
+
+      <div class="sim-grid">
+        <section class="panel" aria-labelledby="p-job">
+          <h3 id="p-job">Job row in Postgres</h3>
+          <dl>
+            <dt>state</dt><dd data-bind="state"></dd>
+            <dt>attempt</dt><dd data-bind="attempt"></dd>
+            <dt>lease owner</dt><dd data-bind="owner"></dd>
+            <dt>database clock</dt><dd data-bind="clock"></dd>
+            <dt>lease expires</dt><dd data-bind="expires"></dd>
+          </dl>
+          <div class="lease">
+            <div class="lease-bar" role="img" aria-label="Remaining lease" data-bind="leasebar"><div class="lease-fill" data-bind="leasefill"></div></div>
+            <p class="lease-text" data-bind="leasetext"></p>
+          </div>
+        </section>
+
+        <section class="panel" aria-labelledby="p-workers">
+          <h3 id="p-workers">Workers</h3>
+          <div class="workers">
+            <div class="worker" data-worker="A"><b>Worker A</b><span data-bind="A-status"></span><span class="small" data-bind="A-local"></span></div>
+            <div class="worker" data-worker="B"><b>Worker B</b><span data-bind="B-status"></span><span class="small" data-bind="B-local"></span></div>
+          </div>
+        </section>
+
+        <section class="panel" aria-labelledby="p-attempts">
+          <h3 id="p-attempts">Attempts (<code>job_attempts</code>)</h3>
+          <div class="table-wrap">
+            <table class="attempts">
+              <thead><tr><th>attempt</th><th>worker</th><th class="num">claimed</th><th>outcome</th></tr></thead>
+              <tbody data-bind="attempts"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="panel" aria-labelledby="p-effects">
+          <h3 id="p-effects">Transactional effects (<code>effects</code>)</h3>
+          <div class="table-wrap">
+            <table class="effects">
+              <thead><tr><th>attempt</th><th>written by</th></tr></thead>
+              <tbody data-bind="effects"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="panel span" aria-labelledby="p-log">
+          <h3 id="p-log">Event log</h3>
+          <ol class="log" data-bind="log" tabindex="0" aria-label="Event log"></ol>
+        </section>
+
+        <section class="panel span" aria-labelledby="p-inv">
+          <h3 id="p-inv">Invariants (a subset of I1–I7, checked on the finished run)</h3>
+          <ul class="invariants" data-bind="invariants"></ul>
+        </section>
+      </div>
+    </section>
+
+    <h2>Reading the run</h2>
+    <ol>
+      <li><strong>Claim.</strong> Worker A’s claim is one short transaction: it sets <code>state = 'running'</code>, increments <code>attempt</code> to 1 and writes a lease on the database clock.</li>
+      <li><strong>Heartbeat.</strong> While A is healthy, each heartbeat is a fenced <code>UPDATE</code> that pushes <code>lease_expires_at</code> forward.</li>
+      <li><strong>Stall.</strong> A stops sending anything. Nothing in the database changes: no row says “A crashed”.</li>
+      <li><strong>Expiry and reclaim.</strong> There is no reaper. The lease simply passes, and B’s ordinary claim query takes the expired <code>running</code> row, incrementing <code>attempt</code> to 2. Attempt 1 now counts as abandoned.</li>
+      <li><strong>Stale completion.</strong> A resumes and tries to complete attempt 1. The fenced <code>UPDATE</code> runs first, matches zero rows because <code>attempt</code> is now 2, and the transaction rolls back before the <code>CommitFunc</code> insert ever runs.</li>
+      <li><strong>Completion.</strong> B completes attempt 2. Its completion and its one transactional effect commit together.</li>
+    </ol>
+
+    <div class="row">
+      <div>
+        <h2>What fencing does not undo</h2>
+        <div class="callout">
+          <strong>Fencing rejects the stale database transition and its transactional effect.</strong>
+          <p>It cannot undo an external side effect that the stale handler already performed. While its lease was running out, A may have called an API or sent an email, and B will perform that work again. Execution is at-least-once, so handlers that touch the outside world must be idempotent, for example keyed on the job id.</p>
+        </div>
+        <p>Writes made through <code>CommitFunc</code> are different: they share the completion’s transaction, so they commit if and only if that attempt’s completion commits. That is why this run ends with exactly one effect, written by attempt 2.</p>
+      </div>
+      <Note title="Checked for real" env="process" sources={['docs/results.md#the-checker-catches-a-fencing-bug']}>
+        <p>Removing <code>AND attempt = $2</code> from the completion made invariant I5 fail in the chaos workload (8 violations at seed 4242). With the fence in place, the same workload passed with 19 stale completions rejected.</p>
+      </Note>
+    </div>
+
+    <h2>The real tests</h2>
+    <p>The chaos suite runs real worker processes and injects SIGKILL, <code>pg_terminate_backend</code>, SIGSTOP stalls past the lease, graceful SIGTERM restarts and Postgres crash-restarts, then checks seven invariants directly in SQL. The simulation above shows one of those mechanisms in isolation. See <a href={blob('docs/results.md#chaos-reliability')}>the chaos results</a> and <a href={blob('docs/design.md#6-failure-model-and-what-each-failure-does')}>the failure model</a>.</p>
+
+    <figure class="figure">
+      <picture>
+        <source media="(prefers-reduced-motion: reduce)" srcset={href('media/terminal-demo-last-frame.png')} />
+        <img class="shot" src={href('media/terminal-demo.gif')} width="1200" height="640" loading="lazy" decoding="async" alt="Terminal recording of a durableq demo run. Worker processes are SIGKILLed and respawned, stalled with SIGSTOP and restarted gracefully while their database connections are terminated. The queue drains, and the checker prints I1 to I7 as PASS and finishes with 'All 7 invariants PASSED'." />
+      </picture>
+      <figcaption><Env env="process" label="bare process" /> A real <code>durableq demo</code> run, not the simulation: 3,000 jobs, 4 worker processes, 12 SIGKILLs, 3 connection-kill rounds, 2 SIGSTOP stalls past the lease and 3 graceful restarts (seed 7) against local PostgreSQL 17. The report lists 507 abandoned attempts, with 427 jobs possibly executed more than once, which at-least-once allows, and still 3,000 succeeded, 0 dead and no duplicate effects. Provenance and the recording script: <a href={blob('docs/demo/README.md')}>docs/demo</a>. With reduced motion enabled, the final frame is shown instead of the animation.</figcaption>
+    </figure>
+  </div>
+</Base>
+
+<script>
+  import { initialState, step, injectFailure, canInjectFailure, defaultConfig, type SimState } from '../sim/engine';
+
+  const root = document.querySelector<HTMLElement>('[data-sim]')!;
+  const el = <T extends HTMLElement = HTMLElement>(name: string) => root.querySelector<T>(`[data-bind="${name}"]`)!;
+  const btn = (act: string) => root.querySelector<HTMLButtonElement>(`[data-act="${act}"]`)!;
+  const num = (n: number) => String(Number(n.toFixed(1)));
+
+  let s: SimState = initialState(defaultConfig);
+  let timer: number | undefined;
+  let logged = 0;
+
+  const pill = (text: string, v: string) => {
+    const p = document.createElement('span');
+    p.className = 'pill';
+    p.dataset.v = v;
+    p.textContent = text;
+    return p;
+  };
+  const cell = (tag: 'td' | 'th', text: string, cls?: string) => {
+    const c = document.createElement(tag);
+    c.textContent = text;
+    if (cls) c.className = cls;
+    return c;
+  };
+  const fill = (target: HTMLElement, ...kids: (Node | string)[]) => target.replaceChildren(...kids);
+
+  function render() {
+    const { job, t, config } = s;
+    const focused = root.contains(document.activeElement) ? (document.activeElement as HTMLElement) : null;
+    el('caption').textContent = s.caption;
+    fill(el('state'), pill(job.state, job.state));
+    el('attempt').textContent = String(job.attempt);
+    el('owner').textContent = job.leaseOwner ?? 'none';
+    el('clock').textContent = `t = ${num(t)} s`;
+    el('expires').textContent = job.leaseExpiresAt === null ? 'none' : `t = ${num(job.leaseExpiresAt)} s`;
+
+    const left = job.leaseExpiresAt === null ? null : job.leaseExpiresAt - t;
+    const fillEl = el('leasefill');
+    fillEl.style.width = left === null ? '0%' : `${Math.max(0, Math.min(1, left / config.lease)) * 100}%`;
+    fillEl.classList.toggle('expired', left !== null && left <= 0);
+    el('leasebar').setAttribute('aria-label', left === null ? 'No lease' : left > 0 ? `${num(left)} seconds of lease left` : 'Lease expired');
+    el('leasetext').textContent =
+      left === null ? 'No lease: the job is not running.' : left > 0 ? `${num(left)} s of ${config.lease} s lease left.` : `Lease expired ${num(-left)} s ago; any claim may take the job.`;
+
+    for (const id of ['A', 'B'] as const) {
+      const w = s.workers[id];
+      fill(el(`${id}-status`), pill(w.status, w.status));
+      root.querySelector(`[data-worker="${id}"]`)!.classList.toggle('holds', job.leaseOwner === id);
+      el(`${id}-local`).textContent =
+        w.heldAttempt === null
+          ? 'Holds no job.'
+          : `Believes it holds attempt ${w.heldAttempt}.` + (job.leaseOwner === id ? ' Owns the lease.' : ` Postgres says attempt ${job.attempt} is ${job.leaseOwner ?? 'nobody'}’s.`);
+    }
+
+    fill(
+      el('attempts'),
+      ...(s.attempts.length
+        ? s.attempts.map((a) => {
+            const tr = document.createElement('tr');
+            tr.append(cell('td', String(a.attempt)), cell('td', a.worker), cell('td', num(a.claimedAt) + ' s', 'num'), cell('td', a.outcome ?? 'open'));
+            return tr;
+          })
+        : [Object.assign(document.createElement('tr'), { innerHTML: '<td colspan="4" class="muted">No claims yet.</td>' })]),
+    );
+    fill(
+      el('effects'),
+      ...(s.effects.length
+        ? s.effects.map((e) => {
+            const tr = document.createElement('tr');
+            tr.append(cell('td', String(e.attempt)), cell('td', e.worker));
+            return tr;
+          })
+        : [Object.assign(document.createElement('tr'), { innerHTML: '<td colspan="2" class="muted">No effect committed yet.</td>' })]),
+    );
+
+    const log = el('log');
+    for (const entry of s.log.slice(logged)) {
+      const li = document.createElement('li');
+      const k = document.createElement('span');
+      k.className = `k ${entry.kind}`;
+      k.textContent = { info: 'info', ok: 'ok', reject: 'rejected', fault: 'fault' }[entry.kind];
+      const text = document.createElement('span');
+      text.textContent = entry.text;
+      const when = document.createElement('span');
+      when.className = 't';
+      when.textContent = `${num(entry.t)} s`;
+      li.append(when, k, text);
+      if (entry.detail) {
+        const d = document.createElement('details');
+        const sm = document.createElement('summary');
+        sm.textContent = 'SQL and detail';
+        const pre = document.createElement('pre');
+        pre.textContent = entry.detail;
+        d.append(sm, pre);
+        li.append(d);
+      }
+      log.append(li);
+    }
+    logged = s.log.length;
+    log.scrollTop = log.scrollHeight;
+
+    fill(
+      el('invariants'),
+      ...s.invariants.map((inv) => {
+        const li = document.createElement('li');
+        const mark = document.createElement('span');
+        const state = !s.done ? 'pending' : inv.ok ? 'pass' : 'FAIL';
+        mark.className = `mark ${!s.done ? 'muted' : inv.ok ? 'ok' : 'bad'}`;
+        mark.textContent = state;
+        li.append(mark, `${inv.id}: ${inv.label}`);
+        return li;
+      }),
+    );
+
+    const playing = timer !== undefined;
+    btn('play').disabled = s.done || playing;
+    btn('play').textContent = s.t === 0 && s.log.length === 1 ? 'Start' : 'Play';
+    btn('pause').disabled = !playing;
+    btn('step').disabled = s.done || playing;
+    btn('inject').disabled = !canInjectFailure(s);
+
+    // A control that just disabled itself would drop keyboard focus to <body>; hand it on.
+    if (focused instanceof HTMLButtonElement && focused.disabled) {
+      [btn('pause'), btn('step'), btn('play'), btn('reset')].find((b) => !b.disabled)?.focus();
+    }
+  }
+
+  const stop = () => {
+    if (timer !== undefined) clearInterval(timer);
+    timer = undefined;
+  };
+  const advance = () => {
+    s = step(s);
+    if (s.done) stop();
+    render();
+  };
+
+  btn('play').addEventListener('click', () => {
+    timer = window.setInterval(advance, 1200);
+    advance();
+  });
+  btn('pause').addEventListener('click', () => {
+    stop();
+    render();
+  });
+  btn('step').addEventListener('click', advance);
+  btn('inject').addEventListener('click', () => {
+    s = injectFailure(s);
+    render();
+  });
+  btn('reset').addEventListener('click', () => {
+    stop();
+    s = initialState(defaultConfig);
+    logged = 0;
+    el('log').replaceChildren();
+    render();
+  });
+  render();
+</script>
