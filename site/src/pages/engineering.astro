@@ -1,0 +1,71 @@
+---
+import Base from '../layouts/Base.astro';
+import { blob, href } from '../lib/url';
+import { nf, row, speedup } from '../lib/data';
+
+const trade = [
+  {
+    h: 'Why Postgres',
+    body: 'One dependency holds the queue, the leases and the application’s own data, so EnqueueTx commits a job atomically with the business write that submits it, and later the CommitFunc writes commit atomically with that attempt’s completion. The invariants are plain SQL that can be checked after any run.',
+    cost: 'The database is the ceiling and, in this deployment, a single point of failure: one replica, no backups, no replication, and nothing progresses while it is down.',
+    link: ['docs/design.md', 'design.md: guarantees and limitations'],
+  },
+  {
+    h: 'Why SKIP LOCKED',
+    body: 'Concurrent claimers split the due rows instead of queueing behind one another. In the bare-process sweep, no heavyweight tuple or transactionid lock wait appeared in the top three wait events, even at 400 concurrent jobs.',
+    cost: 'Contention moves to buffer pages at the head of the queue (LWLock:BufferContent grew from 3% to 10% of sampled waits between 8 × 10 and 8 × 50 slots). Ordering is not guaranteed: there is no FIFO under concurrency or retries.',
+    link: ['docs/results.md#throughput', 'results.md: throughput'],
+  },
+  {
+    h: 'Why leases on the database clock',
+    body: 'A long-running transaction per job would pin a connection and an open transaction for the job’s whole duration, and a half-open TCP connection can keep a lock for minutes. A lease writes ownership into the row instead, and every comparison uses clock_timestamp() on the database, so worker clock skew cannot decide ownership.',
+    cost: 'DurableQ has to implement expiry, renewal and fencing itself, and recovery from a crash takes about one lease: the remaining lease decides when a killed worker’s jobs become eligible for reclaim, and a worker then has to poll and claim them. Database outages or workers without a free slot delay it further.',
+    link: ['docs/design.md#3-leases-not-long-transactions-d2', 'design.md §3 and §4'],
+  },
+  {
+    h: 'Why fencing',
+    body: 'A paused worker can wake up after its lease has been taken over. Every transition carries the attempt number, and the fenced UPDATE runs first, so the stale transition and its CommitFunc effects are rejected. The checker is shown to catch the bug: removing the attempt check from completion made invariant I5 fail.',
+    cost: 'Fencing only protects the database. It cannot undo what a stale handler already did outside it.',
+    link: ['docs/results.md#the-checker-catches-a-fencing-bug', 'results.md: the checker catches a fencing bug'],
+  },
+  {
+    h: 'Why at-least-once',
+    body: 'The database cannot tell a stalled worker from a crashed one, so the only safe response to a silent worker is to run the job again. That gives at-least-once execution, at most one terminal transition, and exactly-once transactional effects.',
+    cost: 'Across 20 deliberately fault-heavy chaos runs, 41,131 attempts were abandoned across 34,549 jobs that may have executed more than once. A job whose workers crash max_attempts times in a row is dead-lettered even if its handler never failed, because crashes spend attempts. That price bounds poison pills.',
+    link: ['docs/design.md#1-guarantees', 'design.md §1 and §5'],
+  },
+  {
+    h: 'Why external effects must be idempotent',
+    body: 'An HTTP call or an email happens outside the transaction, so a re-executed job can repeat it. The receiving side should deduplicate, for example by keying on the job id. The attempt number can act as a fencing token there, but only if the external system checks it.',
+    cost: 'Pushed onto the handler author. DurableQ gives the means, a stable job id and a monotonic attempt, not the guarantee.',
+    link: ['docs/design.md#1-guarantees', 'design.md §1'],
+  },
+  {
+    h: 'Why scaling becomes database-limited',
+    body: `Each job costs a claim, an effect insert and a fenced completion transaction. On kind, ten replicas gave ${nf(speedup(50), 1)}× the throughput of one with 50 ms of work per job, but only ${nf(speedup(0), 1)}× with none, where Postgres used ${nf(row(0, 10).postgres_cpu_millicores / 1000, 1)} of the VM’s 11 cores and all workers together used under half a core.`,
+    cost: 'Past that point more workers mostly add contention. Ten of twelve bare-process cells ended with an estimated 40,000 dead tuples in jobs for 20,000 jobs (the claim and the completion UPDATE each leave one); autovacuum reduced the counts during the other two runs. With no retention yet, the tables grow without bound.',
+    link: ['docs/results-k8s.md#throughput-by-replica-count', 'results-k8s.md: where it stops scaling'],
+  },
+];
+---
+
+<Base title="Engineering" description="The trade-offs behind DurableQ: why Postgres, SKIP LOCKED, database-clock leases, fencing, at-least-once delivery, idempotent external effects, and why scaling becomes database-limited.">
+  <div class="page">
+    <header>
+      <h1>Engineering trade-offs</h1>
+      <p class="lead">Each decision below is stated with what it costs. The reasoning is in the documents on GitHub; this page does not copy it.</p>
+    </header>
+
+    {trade.map((t) => (
+      <section>
+        <h2 style="margin-top: 2.5rem">{t.h}</h2>
+        <p>{t.body}</p>
+        <p class="muted"><strong>Cost.</strong> {t.cost}</p>
+        <p class="small"><a href={blob(t.link[0])}>{t.link[1]} →</a></p>
+      </section>
+    ))}
+
+    <hr />
+    <p>The measurements behind these claims are on the <a href={href('performance/')}>performance page</a>, and the behaviour under failure is in the <a href={href('reliability/')}>reliability simulation</a>.</p>
+  </div>
+</Base>

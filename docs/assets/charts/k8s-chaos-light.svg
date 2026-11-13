@@ -1,0 +1,89 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="1220" viewBox="0 0 720 1220" role="img" aria-labelledby="title desc">
+<title id="title">Kind cluster chaos</title><desc id="desc">Seed 44, nine fault scenarios with different workloads and job counts. Each scenario shows drain seconds and jobs re-executed under at-least-once delivery on separate scales. Every invariant I1 through I7 has zero violations. Drain times are not a controlled comparison between scenarios.</desc>
+<rect width="720" height="1220" fill="#ffffff"/>
+<g font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="22" fill="#24292f">
+<text x="24.00" y="34.00" font-size="26" font-weight="650">Kind cluster chaos</text>
+<text x="24.00" y="76.00" >At-least-once redelivery; I1–I7 hold in every scenario.</text>
+<text x="24.00" y="116.00" font-weight="600">Drain time (s)</text>
+<text x="384.00" y="116.00" font-weight="600">Re-executed (jobs)</text>
+<text x="24.00" y="148.00" font-size="20">0</text>
+<text x="142.00" y="148.00" font-size="20">180</text>
+<text x="260.00" y="148.00" font-size="20">360</text>
+<text x="384.00" y="148.00" font-size="20">0</text>
+<text x="502.00" y="148.00" font-size="20">50</text>
+<text x="620.00" y="148.00" font-size="20">100</text>
+<text x="24.00" y="184.00" font-size="24" font-weight="600">RandomPodKill</text>
+<text x="696.00" y="184.00" text-anchor="end" font-size="20">I1–I7: 0 each</text>
+<line x1="24.00" y1="214.00" x2="260.00" y2="214.00" stroke="#d0d7de" stroke-width="3" stroke-dasharray=""/>
+<line x1="384.00" y1="214.00" x2="620.00" y2="214.00" stroke="#d0d7de" stroke-width="3" stroke-dasharray=""/>
+<rect x="24" y="206.00" width="32.10" height="16" fill="#0065a8"/>
+<text x="342.00" y="221.00" text-anchor="end">48.97</text>
+<rect x="384" y="206.00" width="70.80" height="16" fill="#a34500"/>
+<text x="696.00" y="221.00" text-anchor="end">30</text>
+<text x="24.00" y="290.00" font-size="24" font-weight="600">GracefulTermination</text>
+<text x="696.00" y="290.00" text-anchor="end" font-size="20">I1–I7: 0 each</text>
+<line x1="24.00" y1="320.00" x2="260.00" y2="320.00" stroke="#d0d7de" stroke-width="3" stroke-dasharray=""/>
+<line x1="384.00" y1="320.00" x2="620.00" y2="320.00" stroke="#d0d7de" stroke-width="3" stroke-dasharray=""/>
+<rect x="24" y="312.00" width="79.33" height="16" fill="#0065a8"/>
+<text x="342.00" y="327.00" text-anchor="end">121.01</text>
+<text x="696.00" y="327.00" text-anchor="end">0</text>
+<text x="24.00" y="396.00" font-size="24" font-weight="600">RollingUpdate</text>
+<text x="696.00" y="396.00" text-anchor="end" font-size="20">I1–I7: 0 each</text>
+<line x1="24.00" y1="426.00" x2="260.00" y2="426.00" stroke="#d0d7de" stroke-width="3" stroke-dasharray=""/>
+<line x1="384.00" y1="426.00" x2="620.00" y2="426.00" stroke="#d0d7de" stroke-width="3" stroke-dasharray=""/>
+<rect x="24" y="418.00" width="52.38" height="16" fill="#0065a8"/>
+<text x="342.00" y="433.00" text-anchor="end">79.91</text>
+<text x="696.00" y="433.00" text-anchor="end">0</text>
+<text x="24.00" y="502.00" font-size="24" font-weight="600">ScaleUpDown</text>
+<text x="696.00" y="502.00" text-anchor="end" font-size="20">I1–I7: 0 each</text>
+<line x1="24.00" y1="532.00" x2="260.00" y2="532.00" stroke="#d0d7de" stroke-width="3" stroke-dasharray=""/>
+<line x1="384.00" y1="532.00" x2="620.00" y2="532.00" stroke="#d0d7de" stroke-width="3" stroke-dasharray=""/>
+<rect x="24" y="524.00" width="222.50" height="16" fill="#0065a8"/>
+<text x="342.00" y="539.00" text-anchor="end">339.40</text>
+<text x="696.00" y="539.00" text-anchor="end">0</text>
+<text x="24.00" y="608.00" font-size="24" font-weight="600">PostgresRestart</text>
+<text x="696.00" y="608.00" text-anchor="end" font-size="20">I1–I7: 0 each</text>
+<line x1="24.00" y1="638.00" x2="260.00" y2="638.00" stroke="#d0d7de" stroke-width="3" stroke-dasharray=""/>
+<line x1="384.00" y1="638.00" x2="620.00" y2="638.00" stroke="#d0d7de" stroke-width="3" stroke-dasharray=""/>
+<rect x="24" y="630.00" width="52.88" height="16" fill="#0065a8"/>
+<text x="342.00" y="645.00" text-anchor="end">80.67</text>
+<rect x="384" y="630.00" width="70.80" height="16" fill="#a34500"/>
+<text x="696.00" y="645.00" text-anchor="end">30</text>
+<text x="24.00" y="714.00" font-size="24" font-weight="600">ConnectionKill</text>
+<text x="696.00" y="714.00" text-anchor="end" font-size="20">I1–I7: 0 each</text>
+<line x1="24.00" y1="744.00" x2="260.00" y2="744.00" stroke="#d0d7de" stroke-width="3" stroke-dasharray=""/>
+<line x1="384.00" y1="744.00" x2="620.00" y2="744.00" stroke="#d0d7de" stroke-width="3" stroke-dasharray=""/>
+<rect x="24" y="736.00" width="28.09" height="16" fill="#0065a8"/>
+<text x="342.00" y="751.00" text-anchor="end">42.85</text>
+<rect x="384" y="736.00" width="21.24" height="16" fill="#a34500"/>
+<text x="696.00" y="751.00" text-anchor="end">9</text>
+<text x="24.00" y="820.00" font-size="24" font-weight="600">RetryExhaustionDLQ</text>
+<text x="696.00" y="820.00" text-anchor="end" font-size="20">I1–I7: 0 each</text>
+<line x1="24.00" y1="850.00" x2="260.00" y2="850.00" stroke="#d0d7de" stroke-width="3" stroke-dasharray=""/>
+<line x1="384.00" y1="850.00" x2="620.00" y2="850.00" stroke="#d0d7de" stroke-width="3" stroke-dasharray=""/>
+<rect x="24" y="842.00" width="25.98" height="16" fill="#0065a8"/>
+<text x="342.00" y="857.00" text-anchor="end">39.64</text>
+<rect x="384" y="842.00" width="23.60" height="16" fill="#a34500"/>
+<text x="696.00" y="857.00" text-anchor="end">10</text>
+<text x="24.00" y="926.00" font-size="24" font-weight="600">RepeatedCrashRecovery</text>
+<text x="696.00" y="926.00" text-anchor="end" font-size="20">I1–I7: 0 each</text>
+<line x1="24.00" y1="956.00" x2="260.00" y2="956.00" stroke="#d0d7de" stroke-width="3" stroke-dasharray=""/>
+<line x1="384.00" y1="956.00" x2="620.00" y2="956.00" stroke="#d0d7de" stroke-width="3" stroke-dasharray=""/>
+<rect x="24" y="948.00" width="108.16" height="16" fill="#0065a8"/>
+<text x="342.00" y="963.00" text-anchor="end">164.99</text>
+<rect x="384" y="948.00" width="207.68" height="16" fill="#a34500"/>
+<text x="696.00" y="963.00" text-anchor="end">88</text>
+<text x="24.00" y="1032.00" font-size="24" font-weight="600">KEDAAutoscale</text>
+<text x="696.00" y="1032.00" text-anchor="end" font-size="20">I1–I7: 0 each</text>
+<line x1="24.00" y1="1062.00" x2="260.00" y2="1062.00" stroke="#d0d7de" stroke-width="3" stroke-dasharray=""/>
+<line x1="384.00" y1="1062.00" x2="620.00" y2="1062.00" stroke="#d0d7de" stroke-width="3" stroke-dasharray=""/>
+<rect x="24" y="1054.00" width="48.17" height="16" fill="#0065a8"/>
+<text x="342.00" y="1069.00" text-anchor="end">73.48</text>
+<text x="696.00" y="1069.00" text-anchor="end">0</text>
+<text x="24.00" y="1096.00" font-size="16">Different workloads; drain times are not directly comparable.</text>
+<text x="24.00" y="1120.00" font-size="16">Zero re-executions have no bar. I1–I7 checked after drain.</text>
+<text x="24.00" y="1144.00" font-size="16">kind cluster · M3 Pro · demo.effect · seed 44</text>
+<text x="24.00" y="1168.00" font-size="16">Lease: 30s · heartbeat: 10s</text>
+<text x="24.00" y="1192.00" font-size="16">source: bench/k8s/chaos/20261113T001148Z.json</text>
+</g>
+</svg>

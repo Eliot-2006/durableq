@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="904" viewBox="0 0 720 904" role="img" aria-labelledby="title desc">
+<title id="title">Kind cluster CPU</title><desc id="desc">Postgres and total worker CPU for the same eight measured cells. Values are sampled maxima of metrics-server window averages, not instantaneous CPU peaks. Circles identify 0ms; squares identify 50ms. Solid lines are Postgres; dashed lines are all workers summed.</desc>
+<rect width="720" height="904" fill="#ffffff"/>
+<g font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="22" fill="#24292f">
+<text x="24.00" y="34.00" font-size="26" font-weight="650">Kind cluster CPU</text>
+<line x1="24.00" y1="81.00" x2="54.00" y2="81.00" stroke="#0065a8" stroke-width="3" stroke-dasharray=""/>
+<circle cx="39.00" cy="81.00" r="6" fill="#0065a8"/>
+<text x="64.00" y="86.00" >0ms Postgres</text>
+<line x1="24.00" y1="119.00" x2="54.00" y2="119.00" stroke="#a34500" stroke-width="3" stroke-dasharray=""/>
+<rect x="33.00" y="113.00" width="12" height="12" fill="#a34500"/>
+<text x="64.00" y="124.00" >50ms Postgres</text>
+<line x1="24.00" y1="157.00" x2="54.00" y2="157.00" stroke="#0065a8" stroke-width="3" stroke-dasharray="8 6"/>
+<circle cx="39.00" cy="157.00" r="6" fill="#0065a8"/>
+<text x="64.00" y="162.00" >0ms total workers</text>
+<line x1="24.00" y1="195.00" x2="54.00" y2="195.00" stroke="#a34500" stroke-width="3" stroke-dasharray="8 6"/>
+<rect x="33.00" y="189.00" width="12" height="12" fill="#a34500"/>
+<text x="64.00" y="200.00" >50ms total workers</text>
+<text x="24.00" y="254.00" font-weight="600">CPU (cores)</text>
+<line x1="80.00" y1="650.00" x2="660.00" y2="650.00" stroke="#d0d7de" stroke-width="3" stroke-dasharray=""/>
+<text x="68.00" y="657.00" text-anchor="end">0</text>
+<line x1="80.00" y1="560.00" x2="660.00" y2="560.00" stroke="#d0d7de" stroke-width="3" stroke-dasharray=""/>
+<text x="68.00" y="567.00" text-anchor="end">2</text>
+<line x1="80.00" y1="470.00" x2="660.00" y2="470.00" stroke="#d0d7de" stroke-width="3" stroke-dasharray=""/>
+<text x="68.00" y="477.00" text-anchor="end">4</text>
+<line x1="80.00" y1="380.00" x2="660.00" y2="380.00" stroke="#d0d7de" stroke-width="3" stroke-dasharray=""/>
+<text x="68.00" y="387.00" text-anchor="end">6</text>
+<line x1="80.00" y1="290.00" x2="660.00" y2="290.00" stroke="#d0d7de" stroke-width="3" stroke-dasharray=""/>
+<text x="68.00" y="297.00" text-anchor="end">8</text>
+<line x1="80.00" y1="290.00" x2="80.00" y2="650.00" stroke="#57606a" stroke-width="3" stroke-dasharray=""/>
+<line x1="80.00" y1="650.00" x2="660.00" y2="650.00" stroke="#57606a" stroke-width="3" stroke-dasharray=""/>
+<line x1="80.00" y1="650.00" x2="80.00" y2="658.00" stroke="#57606a" stroke-width="3" stroke-dasharray=""/>
+<text x="80.00" y="686.00" text-anchor="middle">1</text>
+<line x1="144.44" y1="650.00" x2="144.44" y2="658.00" stroke="#57606a" stroke-width="3" stroke-dasharray=""/>
+<text x="144.44" y="686.00" text-anchor="middle">2</text>
+<line x1="337.78" y1="650.00" x2="337.78" y2="658.00" stroke="#57606a" stroke-width="3" stroke-dasharray=""/>
+<text x="337.78" y="686.00" text-anchor="middle">5</text>
+<line x1="660.00" y1="650.00" x2="660.00" y2="658.00" stroke="#57606a" stroke-width="3" stroke-dasharray=""/>
+<text x="660.00" y="686.00" text-anchor="middle">10</text>
+<text x="370.00" y="730.00" text-anchor="middle">Worker replicas (pods)</text>
+<defs><clipPath id="plot-frame"><rect x="80" y="290" width="580" height="360"/></clipPath></defs>
+<circle cx="80.00" cy="603.77" r="6" fill="#0065a8"/>
+<line x1="80.00" y1="603.77" x2="144.44" y2="564.24" stroke="#0065a8" stroke-width="3" stroke-dasharray=""/>
+<circle cx="144.44" cy="564.24" r="6" fill="#0065a8"/>
+<line x1="144.44" y1="564.24" x2="337.78" y2="434.99" stroke="#0065a8" stroke-width="3" stroke-dasharray=""/>
+<circle cx="337.78" cy="434.99" r="6" fill="#0065a8"/>
+<line x1="337.78" y1="434.99" x2="660.00" y2="339.76" stroke="#0065a8" stroke-width="3" stroke-dasharray=""/>
+<circle cx="660.00" cy="339.76" r="6" fill="#0065a8"/>
+<circle cx="80.00" cy="646.77" r="6" fill="#0065a8"/>
+<line x1="80.00" y1="646.77" x2="144.44" y2="643.41" stroke="#0065a8" stroke-width="3" stroke-dasharray="8 6"/>
+<circle cx="144.44" cy="643.41" r="6" fill="#0065a8"/>
+<line x1="144.44" y1="643.41" x2="337.78" y2="633.46" stroke="#0065a8" stroke-width="3" stroke-dasharray="8 6"/>
+<circle cx="337.78" cy="633.46" r="6" fill="#0065a8"/>
+<line x1="337.78" y1="633.46" x2="660.00" y2="627.78" stroke="#0065a8" stroke-width="3" stroke-dasharray="8 6"/>
+<circle cx="660.00" cy="627.78" r="6" fill="#0065a8"/>
+<rect x="74.00" y="605.43" width="12" height="12" fill="#a34500"/>
+<line x1="80.00" y1="611.43" x2="144.44" y2="574.66" stroke="#a34500" stroke-width="3" stroke-dasharray=""/>
+<rect x="138.44" y="568.66" width="12" height="12" fill="#a34500"/>
+<line x1="144.44" y1="574.66" x2="337.78" y2="493.09" stroke="#a34500" stroke-width="3" stroke-dasharray=""/>
+<rect x="331.78" y="487.09" width="12" height="12" fill="#a34500"/>
+<line x1="337.78" y1="493.09" x2="660.00" y2="387.00" stroke="#a34500" stroke-width="3" stroke-dasharray=""/>
+<rect x="654.00" y="381.00" width="12" height="12" fill="#a34500"/>
+<rect x="74.00" y="642.08" width="12" height="12" fill="#a34500"/>
+<line x1="80.00" y1="648.08" x2="144.44" y2="645.53" stroke="#a34500" stroke-width="3" stroke-dasharray="8 6"/>
+<rect x="138.44" y="639.53" width="12" height="12" fill="#a34500"/>
+<line x1="144.44" y1="645.53" x2="337.78" y2="638.54" stroke="#a34500" stroke-width="3" stroke-dasharray="8 6"/>
+<rect x="331.78" y="632.54" width="12" height="12" fill="#a34500"/>
+<line x1="337.78" y1="638.54" x2="660.00" y2="629.90" stroke="#a34500" stroke-width="3" stroke-dasharray="8 6"/>
+<rect x="654.00" y="623.90" width="12" height="12" fill="#a34500"/>
+<text x="24.00" y="790.00" font-size="16">kind cluster · M3 Pro · Docker: 11 CPUs</text>
+<text x="24.00" y="814.00" font-size="16">demo.effect · 10 slots, 6 DB connections per pod</text>
+<text x="24.00" y="838.00" font-size="16">Sampled metrics-server window averages; eight measured cells.</text>
+<text x="24.00" y="862.00" font-size="16">source: bench/k8s/results/20261113T020847Z/accepted-matrix.csv</text>
+</g>
+</svg>

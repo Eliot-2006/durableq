@@ -20,6 +20,11 @@ Fixed-replica runs pause KEDA with its `paused-replicas` annotation and restore 
 
 Each scenario injects real faults into the running cluster, waits for the queue to drain, then runs the seven invariant checks (`durableq check`) in-cluster. Every scenario passed in at least two full runs (seeds 42/43 and 44) with zero violations of all seven invariants: no lost jobs, no duplicate effects. The table shows the seed-44 run.
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/charts/k8s-chaos-dark.svg">
+  <img src="assets/charts/k8s-chaos-light.svg" alt="Seed-44 chaos results: drain time and at-least-once re-executed jobs for all nine scenarios; each of I1–I7 has zero violations." width="880">
+</picture>
+
 | Scenario | Fault | Jobs | Drain (s) | Jobs re-executed |
 |---|---|---:|---:|---:|
 | RandomPodKill | 3 × SIGKILL of a worker container, via the kind node | 1,200 | 48.97 | 30 |
@@ -37,6 +42,11 @@ Each scenario injects real faults into the running cluster, waits for the queue 
 ## Throughput by replica count
 
 A batch is enqueued up front with one shared due time, so throughput is measured from that due time to drain and excludes enqueueing. Every row passed I1–I7 with zero failed, retried or abandoned attempts.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/charts/k8s-throughput-dark.svg">
+  <img src="assets/charts/k8s-throughput-light.svg" alt="Eight measured replica/workload cells with separate dashed linear references: 4.0× speed-up at 0ms and 8.1× at 50ms from one to ten replicas." width="880">
+</picture>
 
 | Work per job | Replicas | Jobs | Jobs/s | Speed-up vs 1 | Processing p50 / p95 / p99 (ms) |
 |---|---:|---:|---:|---:|---|
@@ -60,6 +70,11 @@ Queue wait in these runs mostly measures time spent behind the up-front backlog,
 
 CPU values are metrics-server window averages, summed across worker pods at the same moment; all eight rows are in the evidence log.
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/charts/k8s-postgres-cpu-dark.svg">
+  <img src="assets/charts/k8s-postgres-cpu-light.svg" alt="Postgres and total worker CPU in cores for eight measured cells; Postgres CPU rises much faster than worker CPU." width="880">
+</picture>
+
 **Where it stops scaling.** With 50ms of work per job, ten replicas give 8.1× the throughput of one. With no work per job, they give 4.0×, while Postgres reaches 6.9 of the VM's 11 cores and the workers together use under half a core. Each job costs a claim, an effect insert and a fenced completion transaction, so when handlers do no work the database is the bottleneck, and more workers mostly add contention. Real handlers that spend time on work scale close to linearly until Postgres saturates.
 
 These numbers are not comparable to the [bare-process benchmark](results.md) (about 11,000 jobs/s), which used 8 workers × 50 slots and 80 connections against Postgres running directly on the host. Here Postgres runs inside a kind node on the Docker VM, and each worker pod is limited to 6 connections.
@@ -73,7 +88,7 @@ These numbers are not comparable to the [bare-process benchmark](results.md) (ab
 | Burst enqueued → 10 ready workers | 26.15s | 33.11s |
 | Queue drained → back to 3 ready workers | 100.54s | 283.53s |
 
-The burst's jobs become due 5s after enqueue, and both scale-up times include that delay. Crash recovery takes one lease, as designed: a killed worker cannot release its jobs, so they wait for their lease to expire. A shorter lease recovers faster at the cost of more frequent heartbeats. The scale-up delay is KEDA's 15s polling plus pod start-up. Scale-up varies between runs by up to one 15s polling interval. Scale-down differs because the chart changed between the two runs: the benchmark's chart had only the 120s stabilization window, after which the HPA dropped from 10 to 3 replicas in one step. The final chart also sheds at most 2 pods per minute, so 10 → 3 takes the window plus about 3.5 minutes. The slower scale-down is deliberate: it keeps the cluster from shedding workers that are still finishing jobs (see [kubernetes.md](kubernetes.md#autoscaling-keda)).
+The burst's jobs become due 5s after enqueue, and both scale-up times include that delay. Crash recovery takes about one lease, as designed: a killed worker cannot release its jobs, so they become claimable when the remaining lease expires and are taken at a worker's next poll (here 29.46–30.23s on a 30s lease). A shorter lease recovers faster at the cost of more frequent heartbeats. The scale-up delay is KEDA's 15s polling plus pod start-up. Scale-up varies between runs by up to one 15s polling interval. Scale-down differs because the chart changed between the two runs: the benchmark's chart had only the 120s stabilization window, after which the HPA dropped from 10 to 3 replicas in one step. The final chart combines the 120s stabilization window with removing at most 2 pods per minute, so replicas step down over several minutes; the measured drain-to-three time is in the table, and it isn't a fixed sum starting when the queue drains. The slower scale-down is deliberate: it keeps the cluster from shedding workers that are still finishing jobs (see [kubernetes.md](kubernetes.md#autoscaling-keda)).
 
 ## Reproduce
 

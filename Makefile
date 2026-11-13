@@ -60,3 +60,8 @@ k8s-chaos:
 
 k8s-bench:
 	scripts/k8s-bench.sh
+
+.PHONY: results
+
+results:
+	go run ./tools/resultsgen

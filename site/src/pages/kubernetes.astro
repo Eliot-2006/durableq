@@ -1,0 +1,94 @@
+---
+import Base from '../layouts/Base.astro';
+import Env from '../components/Env.astro';
+import Note from '../components/Note.astro';
+import { blob, href } from '../lib/url';
+---
+
+<Base title="Kubernetes" description="Running DurableQ on Kubernetes: Deployments, the Helm chart, KEDA autoscaling on the eligible backlog, Prometheus metrics, a Grafana dashboard, and graceful termination.">
+  <div class="page">
+    <header>
+      <h1>Running on Kubernetes</h1>
+      <p class="lead">An HTTP API and N worker pods, all from one image. Helm deploys them, KEDA scales the workers on the backlog in Postgres, and Prometheus and Grafana show what the queue is doing. Postgres is still the only coordinator.</p>
+    </header>
+
+    <div class="row">
+      <div>
+        <h2 style="margin-top: 0">Try it locally</h2>
+        <p>No cloud account is needed. It requires Docker, kind, kubectl and Helm.</p>
+        <pre><code>make kind-up     # kind cluster, metrics-server, KEDA, Prometheus/Grafana, image, Helm chart
+make k8s-smoke   # 200 jobs through the API, drain, invariants I1–I7 in-cluster
+make kind-down</code></pre>
+      </div>
+      <Note title="What is tested" env="kind" sources={['docs/results-k8s.md']}>
+        <p>Everything below was exercised on a local kind cluster. The in-chart Postgres is a dev-only single replica; it is not a production database.</p>
+      </Note>
+    </div>
+
+    <h2>Deployments</h2>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Component</th><th>What it is</th><th>Health</th></tr></thead>
+      <tbody>
+        <tr><th scope="row"><code>durableq-api</code></th><td><code>durableq serve</code>: job submission and status, plus queue-wide gauges on <code>/metrics</code></td><td><code>/healthz</code> is process-alive and never checks the database; <code>/readyz</code> pings it (under 1 s)</td></tr>
+        <tr><th scope="row"><code>durableq-worker</code></th><td><code>durableq worker</code> with the demo handlers, metrics on <code>:9090</code></td><td>A database outage makes the pod unready but never kills it; it keeps retrying and recovers on its own</td></tr>
+        <tr><th scope="row"><code>durableq-postgres</code></th><td>Dev-only single-replica StatefulSet, <code>postgres:17</code>, 1 Gi PVC</td><td><code>pg_isready</code> probes</td></tr>
+        <tr><th scope="row">Migrations</th><td>An init container on API and worker pods, advisory-locked and idempotent</td><td>A pod does not start until the schema is current</td></tr>
+      </tbody>
+    </table></div>
+    <p class="small muted">The worker image runs the demo handlers (<code>demo.effect</code>, <code>demo.noop</code>); a real deployment builds its own binary around <code>durableq.NewWorker</code>. The API has no authentication or TLS: the Service is ClusterIP-only.</p>
+
+    <h2>Helm</h2>
+    <p>The chart lives in <code>deploy/helm/durableq</code>, with <code>values.yaml</code> (documented defaults), <code>values-kind.yaml</code> (KEDA, PodMonitor and dashboards on) and <code>values-ci.yaml</code>. Worker defaults: concurrency 10, 6 database connections per pod, lease 30 s, heartbeat 10 s, grace 10 s.</p>
+    <p>Three render-time guards make <code>helm template</code> fail rather than deploy a bad configuration:</p>
+    <ul>
+      <li><strong>Connection budget.</strong> Worker replicas × <code>worker.maxConns</code> + API replicas × <code>api.maxConns</code> + 10 must fit within <code>postgresql.maxConnections</code> (default 200). The guard uses <code>autoscaling.maxReplicas</code> when autoscaling is enabled, otherwise <code>worker.replicas</code>. The budget is 38 with the chart defaults, 75 with the kind values, and 80 when autoscaling is enabled with otherwise default values.</li>
+      <li><strong>Grace.</strong> The current template requires <code>terminationGracePeriodSeconds</code> to be greater than <code>worker.grace</code> + 5 s, so the kubelet does not SIGKILL a worker that is still draining.</li>
+      <li><strong>Database.</strong> Either <code>database.existingSecret</code> or the in-chart Postgres, not both.</li>
+    </ul>
+    <p>Pods run non-root with a read-only root filesystem, all capabilities dropped and the default seccomp profile. The connection string lives only in a Secret. <code>make helm-lint</code> runs <code>helm lint</code> and <code>kubeconform</code> on every values file.</p>
+
+    <h2>Graceful termination</h2>
+    <p>Kubernetes events change which processes are alive; they never change who owns a job. What a worker’s jobs go through depends on how it is stopped.</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Event</th><th>The worker sees</th><th>What happens to its jobs</th></tr></thead>
+      <tbody>
+        <tr><th scope="row">Scale-down, rolling update, pod delete, node drain</th><td>SIGTERM</td><td><code>/readyz</code> turns 503 at once; the worker stops claiming, waits up to <code>worker.grace</code> (10 s) for in-flight jobs, then <strong>releases</strong> the rest back to <code>queued</code> and exits. A successful release raises <code>max_attempts</code> by one, preserving the remaining budget. If the release cannot commit before the worker exits or is killed, the lease expires and the abandoned attempt remains spent.</td></tr>
+        <tr><th scope="row">OOM kill, node loss, <code>kill -9</code>, grace exceeded</th><td>SIGKILL</td><td>Nothing runs. The lease expires on the database clock (30 s here), and once it has, the next claim by a worker with a free slot takes the job with <code>attempt + 1</code>. This does spend an attempt.</td></tr>
+        <tr><th scope="row">Network partition or database outage</th><td>Failing heartbeats</td><td>The worker cancels the job at its local deadline and abandons it without a transition; the database reclaims it after the lease.</td></tr>
+        <tr><th scope="row">Paused past its lease, then resumed</th><td>A late completion</td><td>Rejected by the fence, because <code>attempt</code> no longer matches or the lease expired.</td></tr>
+      </tbody>
+    </table></div>
+    <div class="row">
+      <div>
+        <p>A release that commits spends no budget, but the work still restarts from the beginning on another worker. A job shorter than the grace period finishes during the drain; a longer one is released. For long jobs, raise <code>worker.grace</code> and <code>terminationGracePeriodSeconds</code>.</p>
+        <p>The worker chart defines no <code>preStop</code> hook, because no Service routes traffic to workers; the worker handles SIGTERM itself. The API pods do use one: a 5 s sleep keeps them serving while the endpoint is removed from Services, within a 20 s termination grace period.</p>
+      </div>
+      <Note title="Not a SIGKILL" sources={['docs/kubernetes.md#what-happens-to-jobs-when-kubernetes-stops-a-worker']}>
+        <p><code>kubectl delete pod --grace-period=0 --force</code> still sends SIGTERM first. The chaos suite delivers real SIGKILLs separately.</p>
+      </Note>
+    </div>
+
+    <h2>Autoscaling</h2>
+    <p>KEDA counts the eligible backlog in Postgres every 15 s, and the HPA targets 50 eligible jobs per replica: <code>desired = ceil(backlog / 50)</code>, clamped to <strong>3 to 10 replicas in the kind values</strong>. Scale-down is deliberately slow: a 120 s stabilization window, then at most 2 pods per minute. The backlog metric excludes running jobs whose leases are still valid (it includes only running jobs whose leases have expired), so once the queue drains the HPA can remove workers that are still busy; released jobs are back in the queue at once, and killed ones return after their lease. How the query works is on the <a href={href('architecture/')}>architecture page</a>, and the measured response of two runs is on the <a href={href('performance/')}>performance page</a>.</p>
+
+    <h2>Metrics and dashboard</h2>
+    <p>Workers export per-process counters and histograms on <code>:9090/metrics</code>; the API exports queue-wide gauges on <code>:8080/metrics</code>, from one SQL query per scrape. Labels are only <code>kind</code>, <code>outcome</code>, <code>route</code> and <code>code</code>. The <a href={blob('deploy/helm/durableq/dashboards/durableq.json')}>“DurableQ overview” dashboard</a> is shipped as a ConfigMap that the Grafana sidecar loads.</p>
+
+    <figure class="figure wide">
+      <a href={href('media/grafana-keda.png')}>
+        <img class="shot" src={href('media/grafana-keda-summary.png')} width="1600" height="886" loading="lazy" decoding="async" alt="Grafana dashboard 'DurableQ overview' in dark theme, covering the last 15 minutes. Top row of stat panels: 10 active workers, 0% slot utilization, eligible backlog 0, 0.00 completed per second, 6.30% failure ratio, 0 dead jobs. Below, queue depth by state rises to about 20 thousand pending jobs and drains to zero, and throughput climbs to about 95 jobs per second. The bottom row shows slot utilization at about 100% during the run, worker replicas stepping from 3 to 10, and the eligible backlog draining." />
+      </a>
+      <figcaption><Env env="kind" /> The repository’s dashboard on the local kind cluster, captured right after the queue drained: 30,000 <code>demo.effect</code> jobs of about 1 s each with a 5% injected failure rate, enqueued as 6,000 and then 24,000 jobs about 90 s later, with KEDA enabled (min 3, max 10). Workers scale from 3 to 10, throughput is about 95 jobs/s at full slot utilization, and no job ended dead. The stat panels show values at capture time, after the drain; their sparklines show the run. Failed attempts come from the injected 5% failure rate and are retried. This is a different workload from the <a href={href('performance/')}>benchmarks</a>, so its throughput is not comparable to them. <a href={href('media/grafana-keda.png')}>Full dashboard, 1600 × 2300</a>. Provenance: <a href={blob('docs/demo/README.md')}>docs/demo</a>.</figcaption>
+    </figure>
+
+    <h2>Known limitations</h2>
+    <ul>
+      <li>No API authentication or TLS, by design for a ClusterIP-only demo. Exposing it needs an authenticating proxy.</li>
+      <li>The in-chart Postgres is one replica with no backups and no high availability. Use <code>database.existingSecret</code> for a managed or operator-run database.</li>
+      <li>At-least-once, not exactly-once: external side effects can repeat, and ordering is not guaranteed.</li>
+      <li>Lease expiry counts as an attempt, so a healthy job whose workers are SIGKILLed <code>max_attempts</code> times in a row is dead-lettered. A graceful release that commits does not count; one that cannot commit before the worker exits falls back to lease expiry, and the attempt stays spent.</li>
+      <li>There is no NetworkPolicy, and nothing deletes finished jobs.</li>
+    </ul>
+    <p>The full list, the metrics table and a troubleshooting table are in <a href={blob('docs/kubernetes.md')}>docs/kubernetes.md</a>.</p>
+  </div>
+</Base>

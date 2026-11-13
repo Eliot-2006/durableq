@@ -91,7 +91,7 @@ capabilities:
 {{- end -}}
 {{- $grace := .Values.worker.grace | trimSuffix "s" | int -}}
 {{- if le (.Values.worker.terminationGracePeriodSeconds | int) (add $grace 5) -}}
-{{- fail (printf "worker.terminationGracePeriodSeconds (%v) must exceed worker.grace (%s) by at least 5s" .Values.worker.terminationGracePeriodSeconds .Values.worker.grace) -}}
+{{- fail (printf "worker.terminationGracePeriodSeconds (%v) must be more than worker.grace (%s) + 5s" .Values.worker.terminationGracePeriodSeconds .Values.worker.grace) -}}
 {{- end -}}
 {{- if .Values.postgresql.enabled -}}
 {{- $workers := ternary .Values.autoscaling.maxReplicas .Values.worker.replicas .Values.autoscaling.enabled | int -}}
