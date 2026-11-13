@@ -1,39 +1,113 @@
-# durableq
+# DurableQ
+
+**A PostgreSQL-backed durable job queue in Go, with database-clock leases and fenced transitions.**
+
+DurableQ uses `FOR UPDATE SKIP LOCKED` to distribute work across concurrent workers and reclaim jobs after crashes. Run it as a Go library or deploy the HTTP API and workers on Kubernetes with Helm, KEDA autoscaling, and Prometheus/Grafana observability; PostgreSQL remains the only coordinator.
 
 [![ci](https://github.com/Eliot-2006/durableq/actions/workflows/ci.yml/badge.svg)](https://github.com/Eliot-2006/durableq/actions/workflows/ci.yml)
+[![Go 1.27.3](https://img.shields.io/badge/Go-1.27.3-007d9c)](go.mod)
+[![PostgreSQL 17](https://img.shields.io/badge/PostgreSQL-17-4169e1)](docker-compose.yml)
+[![MIT license](https://img.shields.io/badge/license-MIT-555555)](LICENSE)
 
-A durable job queue in Go with PostgreSQL as its only dependency. Workers claim jobs with `FOR UPDATE SKIP LOCKED` and hold leases timed on the database clock, renewing them with heartbeats. When a worker crashes, its leases expire and other workers reclaim the jobs. Every state transition is fenced by an attempt number, so a stale or partitioned worker cannot complete a job it no longer owns. Correctness is demonstrated rather than asserted: chaos tests SIGKILL real worker processes, restart them gracefully mid-run, terminate their database connections and freeze them past their leases. Then seven invariants are checked directly in SQL.
+[Docs](docs/design.md) · [Benchmarks](docs/results.md) · [Kubernetes](docs/kubernetes.md) · [Site](https://eliot-2006.github.io/durableq/)
 
-It also runs on Kubernetes: an HTTP API and workers from one hardened image, a Helm chart, KEDA autoscaling on the eligible backlog, and Prometheus metrics with a Grafana dashboard. Postgres remains the only coordinator.
+## Engineering highlights
 
-**Results** (laptop, [details](docs/results.md)): about 11,000 jobs/s at peak. A crashed worker's jobs are back in about 2s, one lease. 20 of 20 chaos runs over 200,000 jobs (100 SIGKILLs each, plus connection kills, stalls and restarts) passed with 0 lost jobs and 0 duplicate effects. Postgres crash-restarts mid-run pass too. On a local kind cluster ([details](docs/results-k8s.md)), nine Kubernetes fault scenarios (pod SIGKILLs, rolling updates, scaling, a Postgres pod restart, KEDA scaling 3→10→3) all pass the same invariants, and throughput scales 8.1× from 1 to 10 worker replicas with 50ms of work per job.
+- **10,946 jobs/s** at 8 processes × 50 slots: `demo.noop`, host PostgreSQL 17.11, Apple M3 Pro. The recorded peak is 10,946.4 jobs/s. [Bare-process measurements](docs/results.md#throughput).
+- **8.1× throughput at 50ms of work per job; 4.0× at 0ms**, going from 1 to 10 worker replicas on kind. Each pod has 10 slots and 6 database connections; Postgres runs inside the Docker VM. [Replica matrix](docs/results-k8s.md#throughput-by-replica-count).
+- **20/20 process-chaos acceptance runs over 200,000 jobs**, with 100 SIGKILLs per run plus failpoints, connection kills and stalls. All seven SQL invariants passed. [Documented acceptance summary](docs/PROGRESS.md#m3-acceptance-2026-11-05-same-machine).
+- **Nine Kubernetes fault scenarios, each passing I1–I7 in at least two runs**: pod kills, graceful termination, rollouts, scaling, Postgres restart, connection kills, retry exhaustion, repeated crash recovery and KEDA autoscaling. [Kubernetes evidence](docs/results-k8s.md#chaos-nine-scenarios-i1i7-hold-in-every-run).
 
-## Guarantees
+## Architecture
 
-- **At-least-once execution.** Every committed job runs until it succeeds or is dead-lettered.
-- **At most one terminal transition per job.** A job reaches `succeeded` or `dead` at most once, never both and never twice.
-- **Fenced transitions.** Heartbeat, complete, fail and release succeed only for the current attempt, with a lease that is unexpired by the database clock.
-- **Exactly-once transactional effects.** Writes made in a handler's `CommitFunc` commit if and only if that attempt's completion commits.
-- **Bounded attempts.** A job's handler runs at most `max_attempts` times, plus once per graceful release (a deploy never dead-letters a job). A job that keeps crashing its worker still ends up `dead`. So, by design, can a healthy job whose workers crash `max_attempts` times in a row.
-
-**Not guaranteed:** exactly-once *external* side effects. HTTP calls and emails may happen more than once, so handlers must make them idempotent. Ordering is also not guaranteed. See [docs/design.md](docs/design.md) for the reasoning behind each guarantee and its limits.
-
-## Quickstart
-
-Requires Go 1.27+ and PostgreSQL 17 (Docker Compose, or a local install).
-
-```sh
-make up                                   # Postgres 17 in Docker (or use your own and set DATABASE_URL)
-                                          # 5432 taken? DURABLEQ_PG_PORT=55432 make up, and use :55432 below
-export DATABASE_URL=postgres://durableq:durableq@localhost:5432/durableq?sslmode=disable
-go run ./cmd/durableq migrate
-go run ./cmd/durableq enqueue --kind demo.effect --payload '{"sleep_ms":100,"fail_rate":0.2}' --count 1000
-go run ./cmd/durableq worker --concurrency 20      # Ctrl-C releases in-flight jobs and exits
-go run ./cmd/durableq status                       # counts by state;  status <id> shows attempt history
-go run ./cmd/durableq check                        # invariants I1–I7 (exit 1 on violation)
+```mermaid
+flowchart TB
+  producer[Producer / Go client]
+  subgraph cluster[Kubernetes · Helm deployment]
+    api[HTTP API]
+    pg[(PostgreSQL · jobs / attempts / effects)]
+    subgraph workers[Worker pods]
+      claim[Claim due jobs or expired leases]
+      handler[Run handler outside transaction]
+      complete[Fenced transition + CommitFunc transaction]
+      claim --> handler --> complete
+    end
+    keda[KEDA PostgreSQL scaler]
+    prom[Prometheus]
+    graf[Grafana]
+    api -->|Enqueue / status| pg
+    claim -->|FOR UPDATE SKIP LOCKED| pg
+    handler -->|Heartbeat · database-clock lease| pg
+    complete -->|Current attempt + running + unexpired lease| pg
+    keda -->|Read eligible backlog| pg
+    keda -->|HPA · adjust replicas| workers
+    prom -->|Scrape /metrics| api
+    prom -->|Scrape /metrics| workers
+    graf -->|Query metrics| prom
+  end
+  producer -->|POST /v1/jobs| api
+  producer -->|Enqueue / EnqueueTx| pg
 ```
 
-### Library
+Claiming and completion use short transactions. A handler holds a lease rather than a database connection while it works. The completion transaction runs its fenced update before the handler's transactional effects. [SQL contracts and failure model](docs/design.md).
+
+## Performance
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/charts/k8s-throughput-dark.svg">
+  <img src="docs/assets/charts/k8s-throughput-light.svg" alt="Measured kind throughput at 1, 2, 5 and 10 replicas: 0ms jobs scale 4.0× and 50ms jobs scale 8.1×. Dashed lines show one-replica linear references, not measurements." width="880">
+</picture>
+
+At 0ms, throughput grows more slowly as Postgres CPU rises. At 50ms, more handler time can overlap across pods. See the [CPU chart and full matrix](docs/results-k8s.md#throughput-by-replica-count), including latency, connections and resource samples.
+
+These are single-laptop measurements, one run per cell, without confidence intervals. The kind setup uses in-cluster Postgres and 6 connections per pod; the bare-process benchmark uses host Postgres and up to 80 worker connections. The two setups measure different workloads and are not a capacity comparison. [Methodology and limits](docs/results.md#setup).
+
+## Reliability
+
+The chaos harness kills real worker processes, stalls them past their leases, interrupts database connections and restarts Postgres. After draining, it checks I1–I7 in SQL, including final ownership of each transactional effect. Re-executions are expected under at-least-once delivery. A stale attempt cannot commit its database transition or transactional effects; fencing cannot undo an external side effect the handler already performed. See the [demo transcript](docs/results.md#chaos-demo-transcript), [injected fencing-bug experiment](docs/results.md#the-checker-catches-a-fencing-bug), and [Kubernetes chaos chart](docs/results-k8s.md#chaos-nine-scenarios-i1i7-hold-in-every-run).
+
+<!-- media:terminal-demo -->
+
+<!-- media:grafana -->
+
+## Quick start
+
+### Compose + Go
+
+Requires Go 1.27.3 and Docker Compose (or PostgreSQL 17 with your own `DATABASE_URL`).
+
+```sh
+make up
+export DATABASE_URL='postgres://durableq:durableq@localhost:5432/durableq?sslmode=disable'
+go run ./cmd/durableq migrate
+go run ./cmd/durableq enqueue --kind demo.effect --payload '{"sleep_ms":100,"fail_rate":0.2}' --count 1000
+go run ./cmd/durableq worker --concurrency 20   # Ctrl-C drains, releases unfinished jobs and exits
+# After stopping the worker:
+go run ./cmd/durableq status
+go run ./cmd/durableq check                   # run after the queue is drained
+```
+
+If port 5432 is occupied, use `DURABLEQ_PG_PORT=55432 make up` and change the URL to port 55432. For the API and workers entirely in Compose, see [the Compose guide](docs/kubernetes.md#docker-compose-no-kubernetes).
+
+### Kubernetes (kind)
+
+Requires Docker, kind, kubectl and Helm. No cloud account.
+
+```sh
+make kind-up       # cluster, addons, image and Helm chart
+make k8s-smoke     # submit via HTTP API, drain, check I1–I7 in-cluster
+kubectl -n durableq port-forward svc/durableq-api 8080:8080
+# In another terminal:
+curl -XPOST localhost:8080/v1/jobs -d '{"kind":"demo.effect","payload":{"sleep_ms":100}}'
+curl localhost:8080/v1/stats
+# Stop the port-forward, then clean up when finished:
+make kind-down
+```
+
+[Helm values, API, autoscaling and dashboard access](docs/kubernetes.md).
+
+<details>
+<summary>Use as a Go library</summary>
 
 ```go
 client := durableq.NewClient(pool)
@@ -53,100 +127,28 @@ w.Handle("email.send", func(ctx context.Context, job durableq.Job) (durableq.Com
 w.Run(ctx) // until ctx is cancelled; then drains for ShutdownGrace and releases the rest
 ```
 
-## Kubernetes
+</details>
 
-Requires Docker, kind, kubectl and Helm. No cloud account.
+<a id="guarantees"></a>
 
-```sh
-make kind-up        # kind cluster + metrics-server + KEDA + Prometheus/Grafana + image + Helm chart
-make k8s-smoke      # 200 jobs through the HTTP API, drain, invariants I1–I7 in-cluster
-kubectl -n durableq port-forward svc/durableq-api 8080:8080
-curl -XPOST localhost:8080/v1/jobs -d '{"kind":"demo.effect","payload":{"sleep_ms":100}}'
-curl localhost:8080/v1/stats
-make kind-down
-```
+## Guarantees and limitations
 
-Without Kubernetes, `docker compose up -d --build --wait --scale worker=3 api worker` runs the API and three workers. The chart, the KEDA scaler, the metrics, what happens to jobs when a pod is stopped, and the known limitations are covered in [docs/kubernetes.md](docs/kubernetes.md).
+- **At-least-once execution:** committed jobs run until success or dead-lettering, while workers and Postgres are available. Executions may repeat.
+- **At most one terminal transition per job:** `succeeded` or `dead` commits at most once.
+- **Fenced transitions:** heartbeat, completion, failure and release check the current attempt, running state and lease against the database clock. See the [row-lock nuance](docs/design.md#lock-wait-subtlety-from-the-independent-review).
+- **Exactly-once transactional effects:** `CommitFunc` writes commit if and only if that attempt's completion commits. External side effects, such as HTTP calls and emails, may repeat; handlers must make them idempotent.
+- **Bounded attempts:** crashes spend the attempt budget; a healthy job can dead-letter after repeated infrastructure faults. Graceful release raises the budget without decrementing the fencing token.
+- **No ordering guarantee.** No progress during a database outage, no protection against permanent database loss, and no built-in retention of finished jobs.
 
-## Chaos demo
+The Helm chart's single Postgres instance has no HA or backups, and the demo HTTP API has no authentication or TLS. See [design limits](docs/design.md#9-known-limitations) and [deployment limits](docs/kubernetes.md#known-limitations) before adapting it to an exposed service.
 
-```sh
-docker compose run --rm demo            # Postgres + 10,000 jobs, 6 workers, 120 SIGKILLs
-# port 5432 already taken by a local Postgres?  DURABLEQ_PG_PORT=55432 docker compose run --rm demo
-# or, against your own Postgres:
-go run ./cmd/durableq demo --jobs 10000 --workers 6 --kills 120 --seed 7
-```
+## Documentation
 
-Real output (`durableq demo --seed 7`, Apple M3 Pro, PostgreSQL 17.11):
+- [Design](docs/design.md) — state machine, SQL contracts, leases, fencing and failure model
+- [Bare-process results](docs/results.md) — setup, benchmarks, chaos transcript and checker experiments
+- [Kubernetes guide](docs/kubernetes.md) — Helm, API, KEDA, Prometheus and Grafana
+- [Kubernetes results](docs/results-k8s.md) — replica matrix, fault scenarios, recovery and autoscaling
+- [Requirements and decisions](docs/PRD.md) · [Kubernetes plan](docs/kubernetes-plan.md) · [Implementation plan](docs/IMPLEMENTATION_PLAN.md) · [Engineering log](docs/PROGRESS.md)
+- [GitHub Pages site](https://eliot-2006.github.io/durableq/) · [Regenerate results and charts](tools/resultsgen/README.md)
 
-```
-Enqueued 10000 jobs · 6 workers × 10 · lease 2s · failpoints "after_claim=0.002,during_run=0.002,before_complete=0.002,in_complete_tx=0.002,after_commit=0.002"
-[00:01] SIGKILL worker-4 (pid 66498) … respawned
-[00:01] SIGKILL worker-5 (pid 66441) … respawned
-[00:01] SIGKILL worker-5 (pid 66548) … respawned
-[00:01] SIGKILL worker-3 (pid 66500) … respawned
-[00:01] SIGKILL worker-2 (pid 66438) … respawned
-…
-Drained in 40.4s (seed 7, schema chaos_7_1793947041373928000)
-  Jobs succeeded       9996     dead 4 (2 after a failed final attempt, 2 with the budget exhausted by abandoned attempts)
-  Worker kills         120      self-kills (failpoints) 103
-  Connection kills     30       (578 connections terminated)
-  Worker stalls        5        graceful restarts 10 (jobs released 74)
-  Abandoned attempts   2346     jobs possibly executed more than once 1941
-  Retries              622      stale transitions rejected 24
-  Leases lost (worker abandoned job on its local deadline) 23
-  I1 PASS no lost jobs: every job is terminal
-  I2 PASS no duplicate effects
-  I3 PASS every succeeded demo.effect job has exactly one effect, and every effect's job succeeded
-  I4 PASS dead jobs have no effects
-  I5 PASS each effect was written by the job's final owner
-  I6 PASS attempt budget respected
-  I7 PASS at most one terminal attempt per job
-All 7 invariants PASSED
-```
-
-"Jobs possibly executed more than once" counts at-least-once re-executions. Those are expected. Duplicate *effects* or acknowledgments would be bugs, and I2, I5 and I7 catch them. To show the checker works, removing the attempt check from completion makes I5 fail (see [results.md](docs/results.md#the-checker-catches-a-fencing-bug)).
-
-## Tests
-
-```sh
-go test -race ./...                       # unit + integration (real Postgres via DATABASE_URL)
-go test -tags chaos ./test/chaos/...           # chaos: SIGKILL, SIGTERM restarts, pg_terminate_backend, SIGSTOP, all failpoints
-DURABLEQ_PG_RESTART_CMD='docker restart -t 0 <postgres-container>' \
-  go test -tags chaos ./test/chaos/ -run TestPostgresRestart   # also crash-restart Postgres mid-run
-make helm-lint                            # chart lint + kubeconform for each values file
-make k8s-chaos                            # nine fault scenarios on the kind cluster (~20 min)
-make k8s-bench                            # replica matrix, recovery and KEDA timing on kind (~40 min)
-```
-
-## Repository layout
-
-```
-*.go                 the durableq library (package durableq): client, worker, queries, backoff
-cmd/durableq/        CLI: migrate, enqueue, worker, serve, status, check, demo, bench
-internal/            api (HTTP), metrics (Prometheus), migrate, demo (handlers, chaos harness, checker), failpoint, testdb
-migrations/          SQL migrations, embedded in the binary
-test/chaos/          process-level chaos tests (build tag chaos)
-test/k8s/            Kubernetes chaos and benchmark suites (build tag k8s)
-deploy/helm/         Helm chart, Grafana dashboard
-deploy/kind/         kind cluster and monitoring config
-scripts/             kind setup, smoke, chaos and benchmark entry points
-bench/               raw benchmark and chaos evidence
-docs/                design, requirements, results, plans and progress notes
-```
-
-The library stays at the repository root so its import path is `github.com/Eliot-2006/durableq`.
-
-## Docs
-
-- [docs/PRD.md](docs/PRD.md): requirements and decisions
-- [docs/design.md](docs/design.md): state machine, SQL contracts, lease and fencing reasoning, failure model, limitations
-- [docs/results.md](docs/results.md): benchmarks and chaos results, with hardware and reproduction commands
-- [docs/kubernetes.md](docs/kubernetes.md): running on Kubernetes: architecture, Helm values, autoscaling, metrics, limitations
-- [docs/results-k8s.md](docs/results-k8s.md): Kubernetes chaos scenarios, replica scaling, recovery and KEDA timing
-- [docs/kubernetes-plan.md](docs/kubernetes-plan.md): the Kubernetes extension's plan and interface contract
-- [docs/IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.md) and [docs/PROGRESS.md](docs/PROGRESS.md): milestone status and the engineering log
-
-## License
-
-MIT. See [LICENSE](LICENSE).
+MIT licensed. See [LICENSE](LICENSE).
