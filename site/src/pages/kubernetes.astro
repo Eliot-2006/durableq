@@ -41,8 +41,8 @@ make kind-down</code></pre>
     <p>The chart lives in <code>deploy/helm/durableq</code>, with <code>values.yaml</code> (documented defaults), <code>values-kind.yaml</code> (KEDA, PodMonitor and dashboards on) and <code>values-ci.yaml</code>. Worker defaults: concurrency 10, 6 database connections per pod, lease 30 s, heartbeat 10 s, grace 10 s.</p>
     <p>Three render-time guards make <code>helm template</code> fail rather than deploy a bad configuration:</p>
     <ul>
-      <li><strong>Connection budget.</strong> Maximum worker replicas × <code>worker.maxConns</code> + API replicas × <code>api.maxConns</code> + 10 must fit within <code>postgresql.maxConnections</code>. With defaults, 80 ≤ 200.</li>
-      <li><strong>Grace.</strong> <code>terminationGracePeriodSeconds</code> must exceed <code>worker.grace</code> by at least 5 s, so the kubelet does not SIGKILL a worker that is still draining.</li>
+      <li><strong>Connection budget.</strong> Worker replicas × <code>worker.maxConns</code> + API replicas × <code>api.maxConns</code> + 10 must fit within <code>postgresql.maxConnections</code> (default 200). The guard uses <code>autoscaling.maxReplicas</code> when autoscaling is enabled, otherwise <code>worker.replicas</code>. The budget is 38 with the chart defaults, 75 with the kind values, and 80 when autoscaling is enabled with otherwise default values.</li>
+      <li><strong>Grace.</strong> The current template requires <code>terminationGracePeriodSeconds</code> to be greater than <code>worker.grace</code> + 5 s, so the kubelet does not SIGKILL a worker that is still draining.</li>
       <li><strong>Database.</strong> Either <code>database.existingSecret</code> or the in-chart Postgres, not both.</li>
     </ul>
     <p>Pods run non-root with a read-only root filesystem, all capabilities dropped and the default seccomp profile. The connection string lives only in a Secret. <code>make helm-lint</code> runs <code>helm lint</code> and <code>kubeconform</code> on every values file.</p>
@@ -52,15 +52,15 @@ make kind-down</code></pre>
     <div class="table-wrap"><table>
       <thead><tr><th>Event</th><th>The worker sees</th><th>What happens to its jobs</th></tr></thead>
       <tbody>
-        <tr><th scope="row">Scale-down, rolling update, pod delete, node drain</th><td>SIGTERM</td><td><code>/readyz</code> turns 503 at once; the worker stops claiming, waits up to <code>worker.grace</code> (10 s) for in-flight jobs, then <strong>releases</strong> the rest back to <code>queued</code> and exits. A release raises <code>max_attempts</code> by one, so a deploy never spends a job’s attempt budget.</td></tr>
-        <tr><th scope="row">OOM kill, node loss, <code>kill -9</code>, grace exceeded</th><td>SIGKILL</td><td>Nothing runs. The lease expires on the database clock (at most one lease, 30 s here) and any worker’s next claim takes the job with <code>attempt + 1</code>. This does spend an attempt.</td></tr>
+        <tr><th scope="row">Scale-down, rolling update, pod delete, node drain</th><td>SIGTERM</td><td><code>/readyz</code> turns 503 at once; the worker stops claiming, waits up to <code>worker.grace</code> (10 s) for in-flight jobs, then <strong>releases</strong> the rest back to <code>queued</code> and exits. A successful release raises <code>max_attempts</code> by one, preserving the remaining budget. If the release cannot commit before the worker exits or is killed, the lease expires and the abandoned attempt remains spent.</td></tr>
+        <tr><th scope="row">OOM kill, node loss, <code>kill -9</code>, grace exceeded</th><td>SIGKILL</td><td>Nothing runs. The lease expires on the database clock (30 s here), and once it has, the next claim by a worker with a free slot takes the job with <code>attempt + 1</code>. This does spend an attempt.</td></tr>
         <tr><th scope="row">Network partition or database outage</th><td>Failing heartbeats</td><td>The worker cancels the job at its local deadline and abandons it without a transition; the database reclaims it after the lease.</td></tr>
         <tr><th scope="row">Paused past its lease, then resumed</th><td>A late completion</td><td>Rejected by the fence, because <code>attempt</code> no longer matches or the lease expired.</td></tr>
       </tbody>
     </table></div>
     <div class="row">
       <div>
-        <p>Release spends no budget, but the work still restarts from the beginning on another worker. A job shorter than the grace period finishes during the drain; a longer one is released. For long jobs, raise <code>worker.grace</code> and <code>terminationGracePeriodSeconds</code>.</p>
+        <p>A release that commits spends no budget, but the work still restarts from the beginning on another worker. A job shorter than the grace period finishes during the drain; a longer one is released. For long jobs, raise <code>worker.grace</code> and <code>terminationGracePeriodSeconds</code>.</p>
         <p>The worker chart defines no <code>preStop</code> hook, because no Service routes traffic to workers; the worker handles SIGTERM itself. The API pods do use one: a 5 s sleep keeps them serving while the endpoint is removed from Services, within a 20 s termination grace period.</p>
       </div>
       <Note title="Not a SIGKILL" sources={['docs/kubernetes.md#what-happens-to-jobs-when-kubernetes-stops-a-worker']}>
@@ -69,7 +69,7 @@ make kind-down</code></pre>
     </div>
 
     <h2>Autoscaling</h2>
-    <p>KEDA counts the eligible backlog in Postgres every 15 s, and the HPA targets 50 eligible jobs per replica: <code>desired = ceil(backlog / 50)</code>, clamped to <strong>3 to 10 replicas in the kind values</strong>. Scale-down is deliberately slow: a 120 s stabilization window, then at most 2 pods per minute. The backlog metric does not count running jobs, so once the queue drains the HPA can remove workers that are still busy; released jobs are back in the queue at once, and killed ones return after their lease. How the query works is on the <a href={href('architecture/')}>architecture page</a>, and the measured response of two runs is on the <a href={href('performance/')}>performance page</a>.</p>
+    <p>KEDA counts the eligible backlog in Postgres every 15 s, and the HPA targets 50 eligible jobs per replica: <code>desired = ceil(backlog / 50)</code>, clamped to <strong>3 to 10 replicas in the kind values</strong>. Scale-down is deliberately slow: a 120 s stabilization window, then at most 2 pods per minute. The backlog metric excludes running jobs whose leases are still valid (it includes only running jobs whose leases have expired), so once the queue drains the HPA can remove workers that are still busy; released jobs are back in the queue at once, and killed ones return after their lease. How the query works is on the <a href={href('architecture/')}>architecture page</a>, and the measured response of two runs is on the <a href={href('performance/')}>performance page</a>.</p>
 
     <h2>Metrics and dashboard</h2>
     <p>Workers export per-process counters and histograms on <code>:9090/metrics</code>; the API exports queue-wide gauges on <code>:8080/metrics</code>, from one SQL query per scrape. Labels are only <code>kind</code>, <code>outcome</code>, <code>route</code> and <code>code</code>. The <a href={blob('deploy/helm/durableq/dashboards/durableq.json')}>“DurableQ overview” dashboard</a> is shipped as a ConfigMap that the Grafana sidecar loads.</p>
@@ -86,7 +86,7 @@ make kind-down</code></pre>
       <li>No API authentication or TLS, by design for a ClusterIP-only demo. Exposing it needs an authenticating proxy.</li>
       <li>The in-chart Postgres is one replica with no backups and no high availability. Use <code>database.existingSecret</code> for a managed or operator-run database.</li>
       <li>At-least-once, not exactly-once: external side effects can repeat, and ordering is not guaranteed.</li>
-      <li>Lease expiry counts as an attempt, so a healthy job whose workers are SIGKILLed <code>max_attempts</code> times in a row is dead-lettered. Graceful terminations never count.</li>
+      <li>Lease expiry counts as an attempt, so a healthy job whose workers are SIGKILLed <code>max_attempts</code> times in a row is dead-lettered. A graceful release that commits does not count; one that cannot commit before the worker exits falls back to lease expiry, and the attempt stays spent.</li>
       <li>There is no NetworkPolicy, and nothing deletes finished jobs.</li>
     </ul>
     <p>The full list, the metrics table and a troubleshooting table are in <a href={blob('docs/kubernetes.md')}>docs/kubernetes.md</a>.</p>

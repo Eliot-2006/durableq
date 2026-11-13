@@ -108,7 +108,7 @@ const lat = bare.latency[0];
         <h3>Recovery from a SIGKILLed worker (30 s lease)</h3>
         <div class="chart-meta"><Env env="kind" /><span>Source: <Sources paths={[k8s.recovery.source]} /></span></div>
         <div class="chart short" data-chart="recovery" role="img" aria-label={`Range of recovery times for ${k8s.recovery.claims} claims: ${k8s.recovery.min_s} to ${k8s.recovery.max_s} seconds, against a 30 second lease.`}></div>
-        <p class="caption">A worker holding {k8s.recovery.claims} claims was SIGKILLed; each job was claimed again {nf(k8s.recovery.min_s, 2)} to {nf(k8s.recovery.max_s, 2)} s later. A killed worker cannot release its jobs, so recovery takes one lease. A shorter lease recovers faster at the cost of more frequent heartbeats. The axis spans 28 to 31 s so the {nf(k8s.recovery.max_s - k8s.recovery.min_s, 2)} s spread is visible. This measurement was not rerun on the final build.</p>
+        <p class="caption">A worker holding {k8s.recovery.claims} claims was SIGKILLed; each job was claimed again {nf(k8s.recovery.min_s, 2)} to {nf(k8s.recovery.max_s, 2)} s later. A killed worker cannot release its jobs, so they become eligible again once the lease expires and are reclaimed at the next worker poll: about one lease here, with the slowest at {nf(k8s.recovery.max_s, 2)} s on a 30 s lease. A database outage or full worker slots would delay it further. A shorter lease recovers faster at the cost of more frequent heartbeats. The axis spans 28 to 31 s so the {nf(k8s.recovery.max_s - k8s.recovery.min_s, 2)} s spread is visible. This measurement was not rerun on the final build.</p>
       </div>
 
       <div class="chart-block">
@@ -127,7 +127,7 @@ const lat = bare.latency[0];
           </table></div>
         </details>
         <p>The burst’s jobs become due 5 s after enqueue, and both scale-up times include that delay. The scale-up delay is KEDA’s 15 s polling plus pod start-up, and it varies between runs by up to one polling interval.</p>
-        <p><strong>Why scale-down differs.</strong> The benchmark run used a chart with only the 120 s stabilization window, after which the HPA dropped from 10 to 3 replicas in one step ({kb.back_to_min_s} s). The final chart also sheds at most {kf.scale_down_limit_pods_per_min} pods per minute, so 10 → 3 takes the window plus about 3.5 minutes ({kf.back_to_min_s} s). The slower scale-down is deliberate: it keeps the cluster from shedding workers that are still finishing jobs. See <a href={blob('docs/kubernetes.md#autoscaling-keda')}>the autoscaling notes</a>.</p>
+        <p><strong>Why scale-down differs.</strong> The benchmark run used a chart with only the 120 s stabilization window, after which the HPA dropped from 10 to 3 replicas in one step ({kb.back_to_min_s} s). The final chart combines the 120 s stabilization window with a limit of {kf.scale_down_limit_pods_per_min} pods removed per 60 s, and took {kf.back_to_min_s} s. The measured times to return to three workers are shown above; they are not a fixed sum starting when the queue drains. The slower scale-down is deliberate: it keeps the cluster from shedding workers that are still finishing jobs. See <a href={blob('docs/kubernetes.md#autoscaling-keda')}>the autoscaling notes</a>.</p>
       </div>
     </section>
 
@@ -136,7 +136,7 @@ const lat = bare.latency[0];
       <p class="muted">{bare.environment}. Worker processes are separate OS processes, <code>--poll 100ms</code>, with Postgres on the same machine and default settings (<code>synchronous_commit=on</code>). Each job costs at least two committed transactions.</p>
 
       <div class="chart-block">
-        <h3>Claim throughput sweep</h3>
+        <h3>Completed-job throughput sweep</h3>
         <div class="chart-meta"><Env env="process" /><span>Source: <Sources paths={[bare.sources[0]]} /></span></div>
         <div class="chart" data-chart="sweep" role="img" aria-label="Jobs per second for 1, 2, 4 and 8 worker processes at 1, 10 and 50 slots per process. Values are in the table below."></div>
         <details>
@@ -150,7 +150,7 @@ const lat = bare.latency[0];
             </tbody>
           </table></div>
         </details>
-        <p class="caption">A pre-enqueued backlog of {nf(peakProcess.jobs)} <code>demo.noop</code> jobs; throughput is measured on the database clock. It plateaus around 10 to 11 thousand jobs/s from 200 concurrent jobs upward, at an 80-connection budget: {peakProcess.procs} × {peakProcess.concurrency} reached {nf(peakProcess.jobs_per_sec)} jobs/s.</p>
+        <p class="caption">A pre-enqueued backlog of {nf(peakProcess.jobs)} <code>demo.noop</code> jobs; throughput is jobs divided by the interval from first claim to last completion, on the database clock. It plateaus around 10 to 11 thousand jobs/s from 200 concurrent jobs upward, at an 80-connection budget: {peakProcess.procs} × {peakProcess.concurrency} reached {nf(peakProcess.jobs_per_sec)} jobs/s.</p>
       </div>
 
       <div class="row">
@@ -163,7 +163,7 @@ const lat = bare.latency[0];
               <tr><th scope="row">Recovery after SIGKILL</th><td>{bare.recovery.jobs} long jobs held by one worker, lease {bare.recovery.lease}, heartbeat 500 ms</td><td class="num">p50 {nf(bare.recovery.p50_ms, 1)} ms<br />max {nf(bare.recovery.max_ms, 1)} ms</td></tr>
             </tbody>
           </table></div>
-          <p class="caption">Polling sets the latency: an idle worker sleeps <code>poll ± 20%</code>. Recovery lands just under one lease. Sources: <Sources paths={[bare.sources[1], bare.sources[2]]} />.</p>
+          <p class="caption">Polling sets the latency: an idle worker sleeps <code>poll ± 20%</code>. Recovery took about one lease here: the lease runs from the last heartbeat, and a worker’s next poll then reclaims the job. Sources: <Sources paths={[bare.sources[1], bare.sources[2]]} />.</p>
         </div>
       </div>
     </section>

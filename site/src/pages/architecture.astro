@@ -20,7 +20,7 @@ import { blob, href } from '../lib/url';
     <h2>Submission</h2>
     <div class="row">
       <div>
-        <p>A job is a row. <code>Enqueue</code> runs <code>INSERT … ON CONFLICT (idempotency_key) DO NOTHING RETURNING id</code>; if no row comes back, the key already existed and the existing id is returned. <code>EnqueueTx</code> runs the same statement inside the caller’s own transaction, so a job can be committed atomically with the business write that caused it (a transactional outbox).</p>
+        <p>A job is a row. <code>Enqueue</code> runs <code>INSERT … ON CONFLICT (idempotency_key) WHERE idempotency_key IS NOT NULL DO NOTHING RETURNING id</code>; if no row comes back, the key already existed and the existing id is returned. <code>EnqueueTx</code> runs the same statement inside the caller’s own transaction, so a job can be committed atomically with the business write that caused it (a transactional outbox).</p>
         <p>Over HTTP the API wraps the same call as <code>POST /v1/jobs</code>.</p>
       </div>
       <Note sources={['docs/design.md#4-sql-contracts']}>
@@ -85,7 +85,7 @@ WHERE (state = 'queued'  AND run_at &lt;= clock_timestamp())
         <p>Measured reaction times are on the <a href={href('performance/')}>performance page</a>.</p>
       </div>
       <Note sources={['docs/kubernetes.md#autoscaling-keda']}>
-        <p>The query reads Postgres directly, so scaling still works when Prometheus is down. It does not count running jobs, and it has no kind filter, so jobs of a kind no worker handles can hold the workers at the maximum.</p>
+        <p>The query reads Postgres directly, so scaling still works when Prometheus is down. It excludes running jobs whose leases are still valid and includes running jobs whose leases have expired, and it has no kind filter, so jobs of a kind no worker handles can hold the workers at the maximum.</p>
       </Note>
     </div>
   </div>

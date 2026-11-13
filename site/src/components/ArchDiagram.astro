@@ -57,7 +57,7 @@ const parts: Part[] = [
     facts: [
       'Claiming is one statement with FOR UPDATE SKIP LOCKED, limited to the kinds this worker has a handler for.',
       'A heartbeat every 10 s extends a 30 s lease (chart defaults). Completion is a fenced UPDATE first, then the handler’s CommitFunc, in one transaction.',
-      'On SIGTERM a worker stops claiming, waits up to the 10 s grace for in-flight jobs, and releases the rest without spending their attempt budget.',
+      'On SIGTERM a worker stops claiming, waits up to the 10 s grace for in-flight jobs, and releases the rest. A release that commits raises max_attempts by one, so the budget is preserved.',
       'Defaults: 10 concurrent jobs and 6 database connections per pod.',
     ],
     doc: ['Design: the worker', 'docs/design.md#5-worker'],
