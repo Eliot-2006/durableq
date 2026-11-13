@@ -52,3 +52,11 @@ kind-down:
 
 k8s-smoke:
 	scripts/k8s-smoke.sh
+
+.PHONY: k8s-chaos k8s-bench
+
+k8s-chaos:
+	scripts/k8s-chaos.sh
+
+k8s-bench:
+	scripts/k8s-bench.sh

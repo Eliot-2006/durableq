@@ -1,0 +1,14 @@
+[
+  {
+    "scenario": "BenchMatrix/sleep0/replicas1",
+    "source_report": "bench/k8s/results/20261113T004916Z/report.json",
+    "recorded_worker_cpu_millicores": 71.870373,
+    "recomputed_with_fresh_worker_rule": 71.870373
+  },
+  {
+    "scenario": "BenchMatrix/sleep50/replicas1",
+    "source_report": "bench/k8s/results/20261113T004916Z/report.json",
+    "recorded_worker_cpu_millicores": 42.761635999999996,
+    "recomputed_with_fresh_worker_rule": 42.761635999999996
+  }
+]

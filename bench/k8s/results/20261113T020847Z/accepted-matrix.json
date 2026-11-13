@@ -1,0 +1,602 @@
+[
+  {
+    "source_report": "bench/k8s/results/20261113T004916Z/report.json",
+    "scenario": "BenchMatrix/sleep0/replicas1",
+    "params": {
+      "enqueued": 60000,
+      "max_attempts": 5,
+      "payload": "{\"sleep_ms\":0,\"fail_rate\":0.0,\"permanent\":false}",
+      "replicas": 1,
+      "sleep_ms": 0,
+      "worker_config": {
+        "API_MAX_CONNS": "5",
+        "WORKER_CONCURRENCY": "10",
+        "WORKER_GRACE": "10s",
+        "WORKER_HEARTBEAT": "10s",
+        "WORKER_LEASE": "30s",
+        "WORKER_MAX_CONNS": "6",
+        "WORKER_POLL": "1s"
+      }
+    },
+    "metrics": {
+      "abandoned_attempts": 0,
+      "attempts": 60000,
+      "dead": 0,
+      "duplicate_executions": 0,
+      "effects": 60000,
+      "failed_attempts": 0,
+      "released": 0,
+      "retried_attempts": 0,
+      "succeeded": 60000,
+      "total": 60000
+    },
+    "invariant_violations": {
+      "I1": 0,
+      "I2": 0,
+      "I3": 0,
+      "I4": 0,
+      "I5": 0,
+      "I6": 0,
+      "I7": 0
+    },
+    "benchmark": {
+      "duration_seconds": 121.261329,
+      "failure_rate": 0,
+      "finished_at": "2026-11-13T00:52:24.816898+00:00",
+      "jobs_per_second": 494.7991292425964,
+      "peak_postgres_connections": 8,
+      "peak_resources": {
+        "worker_cpu_millicores": 71.870373,
+        "worker_memory_mib": 11.953125,
+        "postgres_cpu_millicores": 1027.422934,
+        "postgres_memory_mib": 97.18359375,
+        "workers_in_sample": 1,
+        "postgres_in_sample": 1
+      },
+      "processing_ms": [
+        1.837,
+        4.922,
+        6.9660100000000025
+      ],
+      "queue_wait_ms": [
+        69322.5755,
+        116902.67605000001,
+        120391.61807000001
+      ],
+      "resource_window_coverage": {
+        "postgres_cpu": 46,
+        "postgres_memory": 52,
+        "worker_cpu": 53,
+        "worker_memory": 59
+      },
+      "retry_rate": 0,
+      "started_at": "2026-11-13T00:50:23.555569+00:00"
+    },
+    "passed": true
+  },
+  {
+    "source_report": "bench/k8s/results/20261113T020847Z/report.json",
+    "scenario": "BenchMatrix/sleep0/replicas2",
+    "params": {
+      "enqueued": 60000,
+      "max_attempts": 5,
+      "payload": "{\"sleep_ms\":0,\"fail_rate\":0.0,\"permanent\":false}",
+      "replicas": 2,
+      "sleep_ms": 0,
+      "worker_config": {
+        "API_MAX_CONNS": "5",
+        "WORKER_CONCURRENCY": "10",
+        "WORKER_GRACE": "10s",
+        "WORKER_HEARTBEAT": "10s",
+        "WORKER_LEASE": "30s",
+        "WORKER_MAX_CONNS": "6",
+        "WORKER_POLL": "1s"
+      }
+    },
+    "metrics": {
+      "abandoned_attempts": 0,
+      "attempts": 60000,
+      "dead": 0,
+      "duplicate_executions": 0,
+      "effects": 60000,
+      "failed_attempts": 0,
+      "released": 0,
+      "retried_attempts": 0,
+      "succeeded": 60000,
+      "total": 60000
+    },
+    "invariant_violations": {
+      "I1": 0,
+      "I2": 0,
+      "I3": 0,
+      "I4": 0,
+      "I5": 0,
+      "I6": 0,
+      "I7": 0
+    },
+    "benchmark": {
+      "duration_seconds": 68.941618,
+      "failure_rate": 0,
+      "finished_at": "2026-11-13T02:11:10.474541+00:00",
+      "jobs_per_second": 870.3015934438904,
+      "peak_postgres_connections": 15,
+      "peak_resources": {
+        "worker_cpu_millicores": 146.37340799999998,
+        "worker_memory_mib": 22.7265625,
+        "postgres_cpu_millicores": 1905.703484,
+        "postgres_memory_mib": 126.640625,
+        "workers_in_sample": 2,
+        "postgres_in_sample": 1
+      },
+      "processing_ms": [
+        2.526,
+        6.269,
+        10.719220000000044
+      ],
+      "queue_wait_ms": [
+        37803.591499999995,
+        66408.38949999999,
+        68437.025
+      ],
+      "resource_window_coverage": {
+        "postgres_cpu": 27,
+        "postgres_memory": 32,
+        "worker_cpu": 32,
+        "worker_memory": 26
+      },
+      "retry_rate": 0,
+      "started_at": "2026-11-13T02:10:01.532923+00:00"
+    },
+    "passed": true
+  },
+  {
+    "source_report": "bench/k8s/results/20261113T020847Z/report.json",
+    "scenario": "BenchMatrix/sleep0/replicas5",
+    "params": {
+      "enqueued": 60000,
+      "max_attempts": 5,
+      "payload": "{\"sleep_ms\":0,\"fail_rate\":0.0,\"permanent\":false}",
+      "replicas": 5,
+      "sleep_ms": 0,
+      "worker_config": {
+        "API_MAX_CONNS": "5",
+        "WORKER_CONCURRENCY": "10",
+        "WORKER_GRACE": "10s",
+        "WORKER_HEARTBEAT": "10s",
+        "WORKER_LEASE": "30s",
+        "WORKER_MAX_CONNS": "6",
+        "WORKER_POLL": "1s"
+      }
+    },
+    "metrics": {
+      "abandoned_attempts": 0,
+      "attempts": 60000,
+      "dead": 0,
+      "duplicate_executions": 0,
+      "effects": 60000,
+      "failed_attempts": 0,
+      "released": 0,
+      "retried_attempts": 0,
+      "succeeded": 60000,
+      "total": 60000
+    },
+    "invariant_violations": {
+      "I1": 0,
+      "I2": 0,
+      "I3": 0,
+      "I4": 0,
+      "I5": 0,
+      "I6": 0,
+      "I7": 0
+    },
+    "benchmark": {
+      "duration_seconds": 42.227302,
+      "failure_rate": 0,
+      "finished_at": "2026-11-13T02:14:04.325292+00:00",
+      "jobs_per_second": 1420.881684555646,
+      "peak_postgres_connections": 32,
+      "peak_resources": {
+        "worker_cpu_millicores": 367.564536,
+        "worker_memory_mib": 56.27734375,
+        "postgres_cpu_millicores": 4778.013993,
+        "postgres_memory_mib": 268.34765625,
+        "workers_in_sample": 5,
+        "postgres_in_sample": 1
+      },
+      "processing_ms": [
+        6.4895,
+        19.079049999999995,
+        32.35480000000016
+      ],
+      "queue_wait_ms": [
+        24803.6755,
+        41010.010050000004,
+        41972.82001
+      ],
+      "resource_window_coverage": {
+        "postgres_cpu": 15,
+        "postgres_memory": 19,
+        "worker_cpu": 19,
+        "worker_memory": 19
+      },
+      "retry_rate": 0,
+      "started_at": "2026-11-13T02:13:22.09799+00:00"
+    },
+    "passed": true
+  },
+  {
+    "source_report": "bench/k8s/results/20261113T020847Z/report.json",
+    "scenario": "BenchMatrix/sleep0/replicas10",
+    "params": {
+      "enqueued": 60000,
+      "max_attempts": 5,
+      "payload": "{\"sleep_ms\":0,\"fail_rate\":0.0,\"permanent\":false}",
+      "replicas": 10,
+      "sleep_ms": 0,
+      "worker_config": {
+        "API_MAX_CONNS": "5",
+        "WORKER_CONCURRENCY": "10",
+        "WORKER_GRACE": "10s",
+        "WORKER_HEARTBEAT": "10s",
+        "WORKER_LEASE": "30s",
+        "WORKER_MAX_CONNS": "6",
+        "WORKER_POLL": "1s"
+      }
+    },
+    "metrics": {
+      "abandoned_attempts": 0,
+      "attempts": 60000,
+      "dead": 0,
+      "duplicate_executions": 0,
+      "effects": 60000,
+      "failed_attempts": 0,
+      "released": 0,
+      "retried_attempts": 0,
+      "succeeded": 60000,
+      "total": 60000
+    },
+    "invariant_violations": {
+      "I1": 0,
+      "I2": 0,
+      "I3": 0,
+      "I4": 0,
+      "I5": 0,
+      "I6": 0,
+      "I7": 0
+    },
+    "benchmark": {
+      "duration_seconds": 30.040205,
+      "failure_rate": 0,
+      "finished_at": "2026-11-13T02:16:01.284249+00:00",
+      "jobs_per_second": 1997.3232539524947,
+      "peak_postgres_connections": 62,
+      "peak_resources": {
+        "worker_cpu_millicores": 493.686378,
+        "worker_memory_mib": 101.42578125,
+        "postgres_cpu_millicores": 6894.2307009999995,
+        "postgres_memory_mib": 406.546875,
+        "workers_in_sample": 10,
+        "postgres_in_sample": 1
+      },
+      "processing_ms": [
+        10.6725,
+        30.709099999999992,
+        43.63203000000001
+      ],
+      "queue_wait_ms": [
+        16531.5185,
+        29053.425049999998,
+        29837.02101
+      ],
+      "resource_window_coverage": {
+        "postgres_cpu": 14,
+        "postgres_memory": 13,
+        "worker_cpu": 14,
+        "worker_memory": 7
+      },
+      "retry_rate": 0,
+      "started_at": "2026-11-13T02:15:31.244044+00:00"
+    },
+    "passed": true
+  },
+  {
+    "source_report": "bench/k8s/results/20261113T004916Z/report.json",
+    "scenario": "BenchMatrix/sleep50/replicas1",
+    "params": {
+      "enqueued": 40000,
+      "max_attempts": 5,
+      "payload": "{\"sleep_ms\":50,\"fail_rate\":0.0,\"permanent\":false}",
+      "replicas": 1,
+      "sleep_ms": 50,
+      "worker_config": {
+        "API_MAX_CONNS": "5",
+        "WORKER_CONCURRENCY": "10",
+        "WORKER_GRACE": "10s",
+        "WORKER_HEARTBEAT": "10s",
+        "WORKER_LEASE": "30s",
+        "WORKER_MAX_CONNS": "6",
+        "WORKER_POLL": "1s"
+      }
+    },
+    "metrics": {
+      "abandoned_attempts": 0,
+      "attempts": 40000,
+      "dead": 0,
+      "duplicate_executions": 0,
+      "effects": 40000,
+      "failed_attempts": 0,
+      "released": 0,
+      "retried_attempts": 0,
+      "succeeded": 40000,
+      "total": 40000
+    },
+    "invariant_violations": {
+      "I1": 0,
+      "I2": 0,
+      "I3": 0,
+      "I4": 0,
+      "I5": 0,
+      "I6": 0,
+      "I7": 0
+    },
+    "benchmark": {
+      "duration_seconds": 250.855591,
+      "failure_rate": 0,
+      "finished_at": "2026-11-13T01:04:53.553545+00:00",
+      "jobs_per_second": 159.454289380379,
+      "peak_postgres_connections": 9,
+      "peak_resources": {
+        "worker_cpu_millicores": 42.761635999999996,
+        "worker_memory_mib": 10.609375,
+        "postgres_cpu_millicores": 857.202865,
+        "postgres_memory_mib": 102.83203125,
+        "workers_in_sample": 1,
+        "postgres_in_sample": 1
+      },
+      "processing_ms": [
+        52.053,
+        74.639,
+        77.15003000000002
+      ],
+      "queue_wait_ms": [
+        130302.6715,
+        239022.87404999995,
+        248460.88007
+      ],
+      "resource_window_coverage": {
+        "postgres_cpu": 98,
+        "postgres_memory": 104,
+        "worker_cpu": 98,
+        "worker_memory": 104
+      },
+      "retry_rate": 0,
+      "started_at": "2026-11-13T01:00:42.697954+00:00"
+    },
+    "passed": true
+  },
+  {
+    "source_report": "bench/k8s/results/20261113T020847Z/report.json",
+    "scenario": "BenchMatrix/sleep50/replicas2",
+    "params": {
+      "enqueued": 40000,
+      "max_attempts": 5,
+      "payload": "{\"sleep_ms\":50,\"fail_rate\":0.0,\"permanent\":false}",
+      "replicas": 2,
+      "sleep_ms": 50,
+      "worker_config": {
+        "API_MAX_CONNS": "5",
+        "WORKER_CONCURRENCY": "10",
+        "WORKER_GRACE": "10s",
+        "WORKER_HEARTBEAT": "10s",
+        "WORKER_LEASE": "30s",
+        "WORKER_MAX_CONNS": "6",
+        "WORKER_POLL": "1s"
+      }
+    },
+    "metrics": {
+      "abandoned_attempts": 0,
+      "attempts": 40000,
+      "dead": 0,
+      "duplicate_executions": 0,
+      "effects": 40000,
+      "failed_attempts": 0,
+      "released": 0,
+      "retried_attempts": 0,
+      "succeeded": 40000,
+      "total": 40000
+    },
+    "invariant_violations": {
+      "I1": 0,
+      "I2": 0,
+      "I3": 0,
+      "I4": 0,
+      "I5": 0,
+      "I6": 0,
+      "I7": 0
+    },
+    "benchmark": {
+      "duration_seconds": 131.163543,
+      "failure_rate": 0,
+      "finished_at": "2026-11-13T02:19:30.715773+00:00",
+      "jobs_per_second": 304.9627898508353,
+      "peak_postgres_connections": 14,
+      "peak_resources": {
+        "worker_cpu_millicores": 99.35054199999999,
+        "worker_memory_mib": 21.12109375,
+        "postgres_cpu_millicores": 1674.3272539999998,
+        "postgres_memory_mib": 138.43359375,
+        "workers_in_sample": 2,
+        "postgres_in_sample": 1
+      },
+      "processing_ms": [
+        52.914500000000004,
+        75.557,
+        78.505
+      ],
+      "queue_wait_ms": [
+        67247.208,
+        124928.63139999994,
+        129855.22344000002
+      ],
+      "resource_window_coverage": {
+        "postgres_cpu": 53,
+        "postgres_memory": 58,
+        "worker_cpu": 58,
+        "worker_memory": 51
+      },
+      "retry_rate": 0,
+      "started_at": "2026-11-13T02:17:19.55223+00:00"
+    },
+    "passed": true
+  },
+  {
+    "source_report": "bench/k8s/results/20261113T020847Z/report.json",
+    "scenario": "BenchMatrix/sleep50/replicas5",
+    "params": {
+      "enqueued": 40000,
+      "max_attempts": 5,
+      "payload": "{\"sleep_ms\":50,\"fail_rate\":0.0,\"permanent\":false}",
+      "replicas": 5,
+      "sleep_ms": 50,
+      "worker_config": {
+        "API_MAX_CONNS": "5",
+        "WORKER_CONCURRENCY": "10",
+        "WORKER_GRACE": "10s",
+        "WORKER_HEARTBEAT": "10s",
+        "WORKER_LEASE": "30s",
+        "WORKER_MAX_CONNS": "6",
+        "WORKER_POLL": "1s"
+      }
+    },
+    "metrics": {
+      "abandoned_attempts": 0,
+      "attempts": 40000,
+      "dead": 0,
+      "duplicate_executions": 0,
+      "effects": 40000,
+      "failed_attempts": 0,
+      "released": 0,
+      "retried_attempts": 0,
+      "succeeded": 40000,
+      "total": 40000
+    },
+    "invariant_violations": {
+      "I1": 0,
+      "I2": 0,
+      "I3": 0,
+      "I4": 0,
+      "I5": 0,
+      "I6": 0,
+      "I7": 0
+    },
+    "benchmark": {
+      "duration_seconds": 54.727329,
+      "failure_rate": 0,
+      "finished_at": "2026-11-13T02:21:45.736802+00:00",
+      "jobs_per_second": 730.8962584305914,
+      "peak_postgres_connections": 32,
+      "peak_resources": {
+        "worker_cpu_millicores": 254.703103,
+        "worker_memory_mib": 48.99609375,
+        "postgres_cpu_millicores": 3486.899938,
+        "postgres_memory_mib": 222.09375,
+        "workers_in_sample": 5,
+        "postgres_in_sample": 1
+      },
+      "processing_ms": [
+        53.745,
+        76.17209999999999,
+        80.55404000000001
+      ],
+      "queue_wait_ms": [
+        28109.688000000002,
+        52021.188899999994,
+        54177.755809999995
+      ],
+      "resource_window_coverage": {
+        "postgres_cpu": 20,
+        "postgres_memory": 19,
+        "worker_cpu": 26,
+        "worker_memory": 19
+      },
+      "retry_rate": 0,
+      "started_at": "2026-11-13T02:20:51.009473+00:00"
+    },
+    "passed": true
+  },
+  {
+    "source_report": "bench/k8s/results/20261113T020847Z/report.json",
+    "scenario": "BenchMatrix/sleep50/replicas10",
+    "params": {
+      "enqueued": 40000,
+      "max_attempts": 5,
+      "payload": "{\"sleep_ms\":50,\"fail_rate\":0.0,\"permanent\":false}",
+      "replicas": 10,
+      "sleep_ms": 50,
+      "worker_config": {
+        "API_MAX_CONNS": "5",
+        "WORKER_CONCURRENCY": "10",
+        "WORKER_GRACE": "10s",
+        "WORKER_HEARTBEAT": "10s",
+        "WORKER_LEASE": "30s",
+        "WORKER_MAX_CONNS": "6",
+        "WORKER_POLL": "1s"
+      }
+    },
+    "metrics": {
+      "abandoned_attempts": 0,
+      "attempts": 40000,
+      "dead": 0,
+      "duplicate_executions": 0,
+      "effects": 40000,
+      "failed_attempts": 0,
+      "released": 0,
+      "retried_attempts": 0,
+      "succeeded": 40000,
+      "total": 40000
+    },
+    "invariant_violations": {
+      "I1": 0,
+      "I2": 0,
+      "I3": 0,
+      "I4": 0,
+      "I5": 0,
+      "I6": 0,
+      "I7": 0
+    },
+    "benchmark": {
+      "duration_seconds": 31.033891,
+      "failure_rate": 0,
+      "finished_at": "2026-11-13T02:23:35.562077+00:00",
+      "jobs_per_second": 1288.9134656044257,
+      "peak_postgres_connections": 63,
+      "peak_resources": {
+        "worker_cpu_millicores": 446.6896479999999,
+        "worker_memory_mib": 93.79296875,
+        "postgres_cpu_millicores": 5844.498595,
+        "postgres_memory_mib": 355.28515625,
+        "workers_in_sample": 10,
+        "postgres_in_sample": 1
+      },
+      "processing_ms": [
+        54.6435,
+        77.37205,
+        81.38204000000002
+      ],
+      "queue_wait_ms": [
+        16351.286,
+        29463.998649999998,
+        30666.99604
+      ],
+      "resource_window_coverage": {
+        "postgres_cpu": 8,
+        "postgres_memory": 14,
+        "worker_cpu": 14,
+        "worker_memory": 7
+      },
+      "retry_rate": 0,
+      "started_at": "2026-11-13T02:23:04.528186+00:00"
+    },
+    "passed": true
+  }
+]

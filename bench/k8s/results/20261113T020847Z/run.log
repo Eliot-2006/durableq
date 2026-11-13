@@ -1,0 +1,37 @@
+=== RUN   TestBenchMatrix
+=== RUN   TestBenchMatrix/sleep0/replicas2
+BENCH replicas=2 sleep_ms=0 jobs=60000 jobs/s=870.30 processing_ms=[2.526 6.269 10.719220000000044] queue_wait_ms=[37803.591499999995 66408.38949999999 68437.025] peak_connections=15 resources={WorkerCPU:146.37340799999998 WorkerMiB:22.7265625 PostgresCPU:1905.703484 PostgresMiB:126.640625 Workers:2 Postgres:1}
+CHAOS BenchMatrix/sleep0/replicas2 seed=42 pass=true faults=map[] drain=74.39s duplicates=0 effects_violations=0 report=/Users/eliotboda/.paradev/worktrees/durableq/feat/k8s-chaos/bench/k8s/results/20261113T020847Z/report.json
+=== RUN   TestBenchMatrix/sleep0/replicas5
+BENCH replicas=5 sleep_ms=0 jobs=60000 jobs/s=1420.88 processing_ms=[6.4895 19.079049999999995 32.35480000000016] queue_wait_ms=[24803.6755 41010.010050000004 41972.82001] peak_connections=32 resources={WorkerCPU:367.564536 WorkerMiB:56.27734375 PostgresCPU:4778.013993 PostgresMiB:268.34765625 Workers:5 Postgres:1}
+CHAOS BenchMatrix/sleep0/replicas5 seed=42 pass=true faults=map[] drain=48.56s duplicates=0 effects_violations=0 report=/Users/eliotboda/.paradev/worktrees/durableq/feat/k8s-chaos/bench/k8s/results/20261113T020847Z/report.json
+=== RUN   TestBenchMatrix/sleep0/replicas10
+BENCH replicas=10 sleep_ms=0 jobs=60000 jobs/s=1997.32 processing_ms=[10.6725 30.709099999999992 43.63203000000001] queue_wait_ms=[16531.5185 29053.425049999998 29837.02101] peak_connections=62 resources={WorkerCPU:493.686378 WorkerMiB:101.42578125 PostgresCPU:6894.2307009999995 PostgresMiB:406.546875 Workers:10 Postgres:1}
+CHAOS BenchMatrix/sleep0/replicas10 seed=42 pass=true faults=map[] drain=33.46s duplicates=0 effects_violations=0 report=/Users/eliotboda/.paradev/worktrees/durableq/feat/k8s-chaos/bench/k8s/results/20261113T020847Z/report.json
+=== RUN   TestBenchMatrix/sleep50/replicas2
+BENCH replicas=2 sleep_ms=50 jobs=40000 jobs/s=304.96 processing_ms=[52.914500000000004 75.557 78.505] queue_wait_ms=[67247.208 124928.63139999994 129855.22344000002] peak_connections=14 resources={WorkerCPU:99.35054199999999 WorkerMiB:21.12109375 PostgresCPU:1674.3272539999998 PostgresMiB:138.43359375 Workers:2 Postgres:1}
+CHAOS BenchMatrix/sleep50/replicas2 seed=42 pass=true faults=map[] drain=134.74s duplicates=0 effects_violations=0 report=/Users/eliotboda/.paradev/worktrees/durableq/feat/k8s-chaos/bench/k8s/results/20261113T020847Z/report.json
+=== RUN   TestBenchMatrix/sleep50/replicas5
+BENCH replicas=5 sleep_ms=50 jobs=40000 jobs/s=730.90 processing_ms=[53.745 76.17209999999999 80.55404000000001] queue_wait_ms=[28109.688000000002 52021.188899999994 54177.755809999995] peak_connections=32 resources={WorkerCPU:254.703103 WorkerMiB:48.99609375 PostgresCPU:3486.899938 PostgresMiB:222.09375 Workers:5 Postgres:1}
+CHAOS BenchMatrix/sleep50/replicas5 seed=42 pass=true faults=map[] drain=58.42s duplicates=0 effects_violations=0 report=/Users/eliotboda/.paradev/worktrees/durableq/feat/k8s-chaos/bench/k8s/results/20261113T020847Z/report.json
+=== RUN   TestBenchMatrix/sleep50/replicas10
+BENCH replicas=10 sleep_ms=50 jobs=40000 jobs/s=1288.91 processing_ms=[54.6435 77.37205 81.38204000000002] queue_wait_ms=[16351.286 29463.998649999998 30666.99604] peak_connections=63 resources={WorkerCPU:446.6896479999999 WorkerMiB:93.79296875 PostgresCPU:5844.498595 PostgresMiB:355.28515625 Workers:10 Postgres:1}
+CHAOS BenchMatrix/sleep50/replicas10 seed=42 pass=true faults=map[] drain=35.13s duplicates=0 effects_violations=0 report=/Users/eliotboda/.paradev/worktrees/durableq/feat/k8s-chaos/bench/k8s/results/20261113T020847Z/report.json
+--- PASS: TestBenchMatrix (901.20s)
+    --- PASS: TestBenchMatrix/sleep0/replicas2 (163.43s)
+    --- PASS: TestBenchMatrix/sleep0/replicas5 (165.11s)
+    --- PASS: TestBenchMatrix/sleep0/replicas10 (120.84s)
+    --- PASS: TestBenchMatrix/sleep50/replicas2 (209.29s)
+    --- PASS: TestBenchMatrix/sleep50/replicas5 (135.10s)
+    --- PASS: TestBenchMatrix/sleep50/replicas10 (105.78s)
+=== RUN   TestBenchRecovery
+RECOVERY lease=30s heartbeat=10s jobs=10 seconds=[29.461497724 29.461630724 30.229349724 30.229457724 30.229463724 30.229467724 30.229470724 30.229473724 30.229476724 30.229478724]
+CHAOS BenchRecovery            seed=42 pass=true faults=map[sigkill:1] drain=38.62s duplicates=10 effects_violations=0 report=/Users/eliotboda/.paradev/worktrees/durableq/feat/k8s-chaos/bench/k8s/results/20261113T020847Z/report.json
+--- PASS: TestBenchRecovery (44.56s)
+=== RUN   TestBenchKEDA
+KEDA first_up=8.74s max_ready=26.15s drain_to_min=100.54s
+CHAOS BenchKEDA                seed=42 pass=true faults=map[] drain=74.33s duplicates=0 effects_violations=0 report=/Users/eliotboda/.paradev/worktrees/durableq/feat/k8s-chaos/bench/k8s/results/20261113T020847Z/report.json
+--- PASS: TestBenchKEDA (182.36s)
+PASS
+REPORT /Users/eliotboda/.paradev/worktrees/durableq/feat/k8s-chaos/bench/k8s/results/20261113T020847Z/report.json
+ok  	github.com/Eliot-2006/durableq/test/k8s	1128.301s

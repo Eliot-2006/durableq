@@ -1,0 +1,955 @@
+[
+  {
+    "scenario": "RandomPodKill",
+    "seed": 43,
+    "params": {
+      "enqueued": 1200,
+      "max_attempts": 10,
+      "payload": "{\"sleep_ms\":500,\"fail_rate\":0.0,\"permanent\":false}",
+      "worker_config": {
+        "API_MAX_CONNS": "5",
+        "WORKER_CONCURRENCY": "10",
+        "WORKER_GRACE": "10s",
+        "WORKER_HEARTBEAT": "10s",
+        "WORKER_LEASE": "30s",
+        "WORKER_MAX_CONNS": "6",
+        "WORKER_POLL": "1s"
+      }
+    },
+    "started": "2026-11-12T23:54:09.375588Z",
+    "duration_seconds": 53.836552,
+    "enqueue_seconds": 0.727734375,
+    "drain_seconds": 47.782286708,
+    "faults_applied": {
+      "sigkill": 3
+    },
+    "events": [
+      {
+        "seconds": 14.513111,
+        "type": "sigkill",
+        "target": "durableq-worker-64f7d48f76-t6h2n",
+        "detail": "node=durableq-worker container=96cc13b48879797f6bb3eedd149898777600859f5add9d669c234d9fedd0b83a pid=48842 exit=137 killed_at=2026-11-12T23:54:22.762888906Z"
+      },
+      {
+        "seconds": 17.191021,
+        "type": "sigkill",
+        "target": "durableq-worker-64f7d48f76-2prbf",
+        "detail": "node=durableq-worker2 container=6b3f48ac788cdbc7122633210781154fa884c65560361ee10f46071e0202622d pid=16927 exit=137 killed_at=2026-11-12T23:54:26.503548539Z"
+      },
+      {
+        "seconds": 20.971967,
+        "type": "sigkill",
+        "target": "durableq-worker-64f7d48f76-2prbf",
+        "detail": "node=durableq-worker2 container=96adc9da90dba24636c5832e89eb3e2374fde5a4c076791e4f7eed47dd5a572a pid=17135 exit=137 killed_at=2026-11-12T23:54:30.300925364Z"
+      }
+    ],
+    "invariant_violations": {
+      "I1": 0,
+      "I2": 0,
+      "I3": 0,
+      "I4": 0,
+      "I5": 0,
+      "I6": 0,
+      "I7": 0
+    },
+    "metrics": {
+      "abandoned_attempts": 30,
+      "attempts": 1230,
+      "dead": 0,
+      "duplicate_executions": 30,
+      "effects": 1200,
+      "failed_attempts": 0,
+      "released": 0,
+      "retried_attempts": 0,
+      "succeeded": 1200,
+      "total": 1200
+    },
+    "passed": true
+  },
+  {
+    "scenario": "GracefulTermination",
+    "seed": 43,
+    "params": {
+      "enqueued": 90,
+      "max_attempts": 1,
+      "payload": "{\"sleep_ms\":30000,\"fail_rate\":0.0,\"permanent\":false}",
+      "worker_config": {
+        "API_MAX_CONNS": "5",
+        "WORKER_CONCURRENCY": "10",
+        "WORKER_GRACE": "10s",
+        "WORKER_HEARTBEAT": "10s",
+        "WORKER_LEASE": "30s",
+        "WORKER_MAX_CONNS": "6",
+        "WORKER_POLL": "1s"
+      }
+    },
+    "started": "2026-11-12T23:55:03.212651Z",
+    "duration_seconds": 118.23124,
+    "enqueue_seconds": 0.141851542,
+    "drain_seconds": 112.861525125,
+    "faults_applied": {
+      "sigterm_delete": 1
+    },
+    "events": [
+      {
+        "seconds": 11.123097,
+        "type": "sigterm_delete",
+        "target": "durableq-worker-64f7d48f76-tlxm8"
+      }
+    ],
+    "invariant_violations": {
+      "I1": 0,
+      "I2": 0,
+      "I3": 0,
+      "I4": 0,
+      "I5": 0,
+      "I6": 0,
+      "I7": 0
+    },
+    "metrics": {
+      "abandoned_attempts": 0,
+      "attempts": 100,
+      "dead": 0,
+      "duplicate_executions": 0,
+      "effects": 90,
+      "failed_attempts": 0,
+      "released": 10,
+      "retried_attempts": 0,
+      "succeeded": 90,
+      "total": 90
+    },
+    "passed": true
+  },
+  {
+    "scenario": "RollingUpdate",
+    "seed": 43,
+    "params": {
+      "enqueued": 2400,
+      "max_attempts": 5,
+      "payload": "{\"sleep_ms\":1000,\"fail_rate\":0.0,\"permanent\":false}",
+      "worker_config": {
+        "API_MAX_CONNS": "5",
+        "WORKER_CONCURRENCY": "10",
+        "WORKER_GRACE": "10s",
+        "WORKER_HEARTBEAT": "10s",
+        "WORKER_LEASE": "30s",
+        "WORKER_MAX_CONNS": "6",
+        "WORKER_POLL": "1s"
+      }
+    },
+    "started": "2026-11-12T23:57:01.446258Z",
+    "duration_seconds": 86.714178,
+    "enqueue_seconds": 1.359706458,
+    "drain_seconds": 80.091091542,
+    "faults_applied": {
+      "rollout_restart": 3
+    },
+    "events": [
+      {
+        "seconds": 22.932352,
+        "type": "rollout_restart",
+        "target": "deploy/durableq-worker",
+        "detail": "1"
+      },
+      {
+        "seconds": 33.976473,
+        "type": "rollout_restart",
+        "target": "deploy/durableq-worker",
+        "detail": "2"
+      },
+      {
+        "seconds": 43.03129,
+        "type": "rollout_restart",
+        "target": "deploy/durableq-worker",
+        "detail": "3"
+      }
+    ],
+    "invariant_violations": {
+      "I1": 0,
+      "I2": 0,
+      "I3": 0,
+      "I4": 0,
+      "I5": 0,
+      "I6": 0,
+      "I7": 0
+    },
+    "metrics": {
+      "abandoned_attempts": 0,
+      "attempts": 2400,
+      "dead": 0,
+      "duplicate_executions": 0,
+      "effects": 2400,
+      "failed_attempts": 0,
+      "released": 0,
+      "retried_attempts": 0,
+      "succeeded": 2400,
+      "total": 2400
+    },
+    "passed": true
+  },
+  {
+    "scenario": "ScaleUpDown",
+    "seed": 43,
+    "params": {
+      "enqueued": 4000,
+      "max_attempts": 5,
+      "payload": "{\"sleep_ms\":1000,\"fail_rate\":0.0,\"permanent\":false}",
+      "worker_config": {
+        "API_MAX_CONNS": "5",
+        "WORKER_CONCURRENCY": "10",
+        "WORKER_GRACE": "10s",
+        "WORKER_HEARTBEAT": "10s",
+        "WORKER_LEASE": "30s",
+        "WORKER_MAX_CONNS": "6",
+        "WORKER_POLL": "1s"
+      }
+    },
+    "started": "2026-11-12T23:58:28.161044Z",
+    "duration_seconds": 339.761432,
+    "enqueue_seconds": 2.980715709,
+    "drain_seconds": 331.289159542,
+    "faults_applied": {
+      "scale": 4
+    },
+    "events": [
+      {
+        "seconds": 18.606657,
+        "type": "scale",
+        "target": "deploy/durableq-worker",
+        "detail": "10"
+      },
+      {
+        "seconds": 19.045816,
+        "type": "scale",
+        "target": "deploy/durableq-worker",
+        "detail": "2"
+      },
+      {
+        "seconds": 24.379743,
+        "type": "scale",
+        "target": "deploy/durableq-worker",
+        "detail": "8"
+      },
+      {
+        "seconds": 25.408845,
+        "type": "scale",
+        "target": "deploy/durableq-worker",
+        "detail": "1"
+      }
+    ],
+    "invariant_violations": {
+      "I1": 0,
+      "I2": 0,
+      "I3": 0,
+      "I4": 0,
+      "I5": 0,
+      "I6": 0,
+      "I7": 0
+    },
+    "metrics": {
+      "abandoned_attempts": 0,
+      "attempts": 4000,
+      "dead": 0,
+      "duplicate_executions": 0,
+      "effects": 4000,
+      "failed_attempts": 0,
+      "released": 0,
+      "retried_attempts": 0,
+      "succeeded": 4000,
+      "total": 4000
+    },
+    "passed": true
+  },
+  {
+    "scenario": "PostgresRestart",
+    "seed": 43,
+    "params": {
+      "enqueued": 900,
+      "jobs_after_restart": 900,
+      "jobs_before_restart": 900,
+      "max_attempts": 10,
+      "payload": "{\"sleep_ms\":500,\"fail_rate\":0.0,\"permanent\":false}",
+      "worker_config": {
+        "API_MAX_CONNS": "5",
+        "WORKER_CONCURRENCY": "10",
+        "WORKER_GRACE": "10s",
+        "WORKER_HEARTBEAT": "10s",
+        "WORKER_LEASE": "30s",
+        "WORKER_MAX_CONNS": "6",
+        "WORKER_POLL": "1s"
+      }
+    },
+    "started": "2026-11-13T00:04:07.924327Z",
+    "duration_seconds": 68.317834,
+    "enqueue_seconds": 0.587812334,
+    "drain_seconds": 61.415203333,
+    "faults_applied": {
+      "postgres_restart": 1
+    },
+    "events": [
+      {
+        "seconds": 16.208872,
+        "type": "postgres_restart",
+        "target": "durableq-postgres-0",
+        "detail": "2026-11-12 23:41:18.223289+00 -\u003e 2026-11-13 00:04:23.39648+00"
+      }
+    ],
+    "invariant_violations": {
+      "I1": 0,
+      "I2": 0,
+      "I3": 0,
+      "I4": 0,
+      "I5": 0,
+      "I6": 0,
+      "I7": 0
+    },
+    "metrics": {
+      "abandoned_attempts": 30,
+      "attempts": 930,
+      "dead": 0,
+      "duplicate_executions": 30,
+      "effects": 900,
+      "failed_attempts": 0,
+      "released": 0,
+      "retried_attempts": 0,
+      "succeeded": 900,
+      "total": 900
+    },
+    "passed": true
+  },
+  {
+    "scenario": "ConnectionKill",
+    "seed": 43,
+    "params": {
+      "enqueued": 900,
+      "max_attempts": 10,
+      "payload": "{\"sleep_ms\":500,\"fail_rate\":0.0,\"permanent\":false}",
+      "worker_config": {
+        "API_MAX_CONNS": "5",
+        "WORKER_CONCURRENCY": "10",
+        "WORKER_GRACE": "10s",
+        "WORKER_HEARTBEAT": "10s",
+        "WORKER_LEASE": "30s",
+        "WORKER_MAX_CONNS": "6",
+        "WORKER_POLL": "1s"
+      }
+    },
+    "started": "2026-11-13T00:05:16.24288Z",
+    "duration_seconds": 57.977518,
+    "enqueue_seconds": 0.569684042,
+    "drain_seconds": 45.515982166,
+    "faults_applied": {
+      "connection_kill_round": 3,
+      "connections_terminated": 19
+    },
+    "events": [
+      {
+        "seconds": 18.198252,
+        "type": "connection_kill_round",
+        "target": "durableq-worker-%",
+        "detail": "terminated=5"
+      },
+      {
+        "seconds": 21.74295,
+        "type": "connection_kill_round",
+        "target": "durableq-worker-%",
+        "detail": "terminated=8"
+      },
+      {
+        "seconds": 25.371358999999998,
+        "type": "connection_kill_round",
+        "target": "durableq-worker-%",
+        "detail": "terminated=6"
+      }
+    ],
+    "invariant_violations": {
+      "I1": 0,
+      "I2": 0,
+      "I3": 0,
+      "I4": 0,
+      "I5": 0,
+      "I6": 0,
+      "I7": 0
+    },
+    "metrics": {
+      "abandoned_attempts": 6,
+      "attempts": 909,
+      "dead": 0,
+      "duplicate_executions": 6,
+      "effects": 900,
+      "failed_attempts": 3,
+      "released": 0,
+      "retried_attempts": 3,
+      "succeeded": 900,
+      "total": 900
+    },
+    "passed": true
+  },
+  {
+    "scenario": "RetryExhaustionDLQ",
+    "seed": 43,
+    "params": {
+      "enqueued": 240,
+      "max_attempts": 3,
+      "payload": "{\"sleep_ms\":0,\"fail_rate\":0.0,\"permanent\":true}",
+      "worker_config": {
+        "API_MAX_CONNS": "5",
+        "WORKER_CONCURRENCY": "10",
+        "WORKER_GRACE": "10s",
+        "WORKER_HEARTBEAT": "10s",
+        "WORKER_LEASE": "30s",
+        "WORKER_MAX_CONNS": "6",
+        "WORKER_POLL": "1s"
+      },
+      "workloads": [
+        {
+          "count": 180,
+          "fail_rate": 1,
+          "max_attempts": 3,
+          "sleep_ms": 200
+        },
+        {
+          "count": 60,
+          "max_attempts": 3,
+          "permanent": true
+        }
+      ]
+    },
+    "started": "2026-11-13T00:06:14.220789Z",
+    "duration_seconds": 43.488356,
+    "enqueue_seconds": 0.386156083,
+    "drain_seconds": 37.899305666,
+    "faults_applied": {
+      "sigkill": 1
+    },
+    "events": [
+      {
+        "seconds": 13.001558,
+        "type": "sigkill",
+        "target": "durableq-worker-6588cc7fcd-ddmgb",
+        "detail": "node=durableq-worker2 container=453335d242370e523dab7e1f2fc545fe065d0da4586634175acf02b56064ee2e pid=24486 exit=137 killed_at=2026-11-13T00:06:27.166448763Z"
+      }
+    ],
+    "invariant_violations": {
+      "I1": 0,
+      "I2": 0,
+      "I3": 0,
+      "I4": 0,
+      "I5": 0,
+      "I6": 0,
+      "I7": 0
+    },
+    "metrics": {
+      "abandoned_attempts": 10,
+      "attempts": 601,
+      "dead": 240,
+      "duplicate_executions": 10,
+      "effects": 0,
+      "failed_attempts": 591,
+      "released": 0,
+      "retried_attempts": 351,
+      "succeeded": 0,
+      "total": 240
+    },
+    "passed": true
+  },
+  {
+    "scenario": "RepeatedCrashRecovery",
+    "seed": 43,
+    "params": {
+      "enqueued": 3600,
+      "max_attempts": 10,
+      "payload": "{\"sleep_ms\":1000,\"fail_rate\":0.0,\"permanent\":false}",
+      "worker_config": {
+        "API_MAX_CONNS": "5",
+        "WORKER_CONCURRENCY": "10",
+        "WORKER_GRACE": "10s",
+        "WORKER_HEARTBEAT": "10s",
+        "WORKER_LEASE": "30s",
+        "WORKER_MAX_CONNS": "6",
+        "WORKER_POLL": "1s"
+      }
+    },
+    "started": "2026-11-13T00:06:57.70989Z",
+    "duration_seconds": 11.004968,
+    "enqueue_seconds": 1.85002825,
+    "drain_seconds": 0,
+    "faults_applied": {},
+    "events": null,
+    "invariant_violations": null,
+    "metrics": null,
+    "passed": false,
+    "errors": [
+      "every killed worker must hold jobs"
+    ]
+  },
+  {
+    "scenario": "KEDAAutoscale",
+    "seed": 43,
+    "params": {
+      "autoscaling": {
+        "MinReplicaCount": 3,
+        "MaxReplicaCount": 10,
+        "PollingInterval": 15,
+        "CooldownPeriod": 60
+      },
+      "enqueued": 3000,
+      "max_attempts": 10,
+      "payload": "{\"sleep_ms\":2000,\"fail_rate\":0.0,\"permanent\":false}",
+      "worker_config": {
+        "API_MAX_CONNS": "5",
+        "WORKER_CONCURRENCY": "10",
+        "WORKER_GRACE": "10s",
+        "WORKER_HEARTBEAT": "10s",
+        "WORKER_LEASE": "30s",
+        "WORKER_MAX_CONNS": "6",
+        "WORKER_POLL": "1s"
+      }
+    },
+    "started": "2026-11-13T00:07:08.715298Z",
+    "duration_seconds": 189.927421,
+    "enqueue_seconds": 1.609516417,
+    "drain_seconds": 79.696399875,
+    "faults_applied": {},
+    "events": null,
+    "invariant_violations": {
+      "I1": 0,
+      "I2": 0,
+      "I3": 0,
+      "I4": 0,
+      "I5": 0,
+      "I6": 0,
+      "I7": 0
+    },
+    "metrics": {
+      "abandoned_attempts": 0,
+      "attempts": 3000,
+      "dead": 0,
+      "duplicate_executions": 0,
+      "effects": 3000,
+      "failed_attempts": 0,
+      "released": 0,
+      "retried_attempts": 0,
+      "succeeded": 3000,
+      "total": 3000
+    },
+    "samples": [
+      {
+        "at": "2026-11-13T00:07:16.83827Z",
+        "desired": 3,
+        "ready": 3
+      },
+      {
+        "at": "2026-11-13T00:07:18.998672Z",
+        "desired": 3,
+        "ready": 3
+      },
+      {
+        "at": "2026-11-13T00:07:21.227101Z",
+        "desired": 3,
+        "ready": 3
+      },
+      {
+        "at": "2026-11-13T00:07:23.445357Z",
+        "desired": 3,
+        "ready": 3
+      },
+      {
+        "at": "2026-11-13T00:07:25.641674Z",
+        "desired": 3,
+        "ready": 3
+      },
+      {
+        "at": "2026-11-13T00:07:27.851127Z",
+        "desired": 3,
+        "ready": 3
+      },
+      {
+        "at": "2026-11-13T00:07:30.065985Z",
+        "desired": 3,
+        "ready": 3
+      },
+      {
+        "at": "2026-11-13T00:07:32.265977Z",
+        "desired": 7,
+        "ready": 3
+      },
+      {
+        "at": "2026-11-13T00:07:34.435651Z",
+        "desired": 7,
+        "ready": 7
+      },
+      {
+        "at": "2026-11-13T00:07:36.698836Z",
+        "desired": 7,
+        "ready": 7
+      },
+      {
+        "at": "2026-11-13T00:07:38.874722Z",
+        "desired": 7,
+        "ready": 7
+      },
+      {
+        "at": "2026-11-13T00:07:41.094081Z",
+        "desired": 7,
+        "ready": 7
+      },
+      {
+        "at": "2026-11-13T00:07:43.29934Z",
+        "desired": 7,
+        "ready": 7
+      },
+      {
+        "at": "2026-11-13T00:07:45.65003Z",
+        "desired": 10,
+        "ready": 7
+      },
+      {
+        "at": "2026-11-13T00:07:47.874246Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:07:50.070154Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:07:52.213827Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:07:54.405444Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:07:56.59627Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:07:58.781968Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:08:00.958312Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:08:03.152212Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:08:05.321163Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:08:07.554507Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:08:09.874738Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:08:12.114482Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:08:14.308686Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:08:16.502682Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:08:18.661782Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:08:20.834759Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:08:23.050877Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:08:25.23487Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:08:27.453241Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:08:29.709691Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:08:31.917132Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:08:34.115798Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:08:36.362636Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:08:38.561826Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:08:40.803299Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:08:43.02738Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:08:45.202414Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:08:47.423409Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:08:49.664179Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:08:51.918537Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:08:54.17267Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:08:56.433187Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:08:58.674529Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:09:00.913911Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:09:03.099015Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:09:05.283261Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:09:07.479872Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:09:09.715432Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:09:11.939893Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:09:14.101991Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:09:16.312483Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:09:18.511566Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:09:20.721352Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:09:22.975658Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:09:25.226473Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:09:27.478086Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:09:29.720451Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:09:31.94111Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:09:34.121316Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:09:36.403611Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:09:38.650402Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:09:40.90409Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:09:43.110843Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:09:45.284005Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:09:47.514419Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:09:49.769461Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:09:51.94778Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:09:54.116702Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:09:56.371499Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:09:58.582092Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:10:00.780869Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:10:02.980088Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:10:05.154889Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:10:07.365112Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:10:09.592539Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:10:11.803391Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:10:14.033895Z",
+        "desired": 10,
+        "ready": 10
+      },
+      {
+        "at": "2026-11-13T00:10:16.452255Z",
+        "desired": 3,
+        "ready": 3
+      }
+    ],
+    "benchmark": {
+      "drain_to_min_seconds": 101.65141,
+      "first_scale_up_seconds": 15.494457,
+      "max_ready_seconds": 31.102726
+    },
+    "passed": true
+  }
+]

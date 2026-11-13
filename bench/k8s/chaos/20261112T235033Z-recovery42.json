@@ -1,0 +1,124 @@
+[
+  {
+    "scenario": "RepeatedCrashRecovery",
+    "seed": 42,
+    "params": {
+      "enqueued": 3600,
+      "max_attempts": 10,
+      "payload": "{\"sleep_ms\":1000,\"fail_rate\":0.0,\"permanent\":false}",
+      "worker_config": {
+        "API_MAX_CONNS": "5",
+        "WORKER_CONCURRENCY": "10",
+        "WORKER_GRACE": "10s",
+        "WORKER_HEARTBEAT": "10s",
+        "WORKER_LEASE": "30s",
+        "WORKER_MAX_CONNS": "6",
+        "WORKER_POLL": "1s"
+      }
+    },
+    "started": "2026-11-12T23:50:34.744167Z",
+    "duration_seconds": 169.359903,
+    "enqueue_seconds": 2.061834625,
+    "drain_seconds": 160.535513,
+    "faults_applied": {
+      "crash_recovery_cycle": 3,
+      "sigkill": 9
+    },
+    "events": [
+      {
+        "seconds": 15.038733,
+        "type": "sigkill",
+        "target": "durableq-worker-64f7d48f76-wvb2n",
+        "detail": "node=durableq-worker2 container=bbca74c65d68f054986dd5ff0a8a428f229e5515e83b4d73acacd2a8f7916ee9 pid=15829 exit=137 killed_at=2026-11-12T23:50:48.609059727Z"
+      },
+      {
+        "seconds": 15.404984,
+        "type": "sigkill",
+        "target": "durableq-worker-64f7d48f76-bwqpj",
+        "detail": "node=durableq-worker2 container=02af6dffbaf5c472df8c4a11254f370158b4c310dc9f23245815339d84c536f3 pid=15807 exit=137 killed_at=2026-11-12T23:50:49.958204693Z"
+      },
+      {
+        "seconds": 15.637009,
+        "type": "sigkill",
+        "target": "durableq-worker-64f7d48f76-4bhv8",
+        "detail": "node=durableq-worker container=2f7a7ec81dd04d80178442e85fcc5061a556c0f679cd4eb1dcc2606de1deccab pid=44272 exit=137 killed_at=2026-11-12T23:50:50.324552393Z"
+      },
+      {
+        "seconds": 46.549308,
+        "type": "crash_recovery_cycle",
+        "target": "all workers",
+        "detail": "cycle=1 recovered_jobs=24"
+      },
+      {
+        "seconds": 48.229012,
+        "type": "sigkill",
+        "target": "durableq-worker-64f7d48f76-bwqpj",
+        "detail": "node=durableq-worker2 container=c594dd4eb2ce2b117a88538f6add013f0ff0b9ebdea8cad9735f0c2d193fe1f9 pid=16024 exit=137 killed_at=2026-11-12T23:51:21.782333373Z"
+      },
+      {
+        "seconds": 48.492948,
+        "type": "sigkill",
+        "target": "durableq-worker-64f7d48f76-wvb2n",
+        "detail": "node=durableq-worker2 container=4e1c69458ce22e61106e3ae3af5cdbbf2bb2e2d164d3e0f342e6018a0f60ada0 pid=15929 exit=137 killed_at=2026-11-12T23:51:23.187569054Z"
+      },
+      {
+        "seconds": 48.716525,
+        "type": "sigkill",
+        "target": "durableq-worker-64f7d48f76-4bhv8",
+        "detail": "node=durableq-worker container=369c81ba65cd204e0f9b5bda6190a56c91d9527be9986525add739867eff440f pid=44597 exit=137 killed_at=2026-11-12T23:51:23.408230491Z"
+      },
+      {
+        "seconds": 79.383224,
+        "type": "crash_recovery_cycle",
+        "target": "all workers",
+        "detail": "cycle=2 recovered_jobs=22"
+      },
+      {
+        "seconds": 80.016283,
+        "type": "sigkill",
+        "target": "durableq-worker-64f7d48f76-wvb2n",
+        "detail": "node=durableq-worker2 container=87c0c9403f2f96cd2d8a44e9975e6f956a3f5116e776964b6c0220da262e8afa pid=16263 exit=137 killed_at=2026-11-12T23:51:54.680700774Z"
+      },
+      {
+        "seconds": 80.259065,
+        "type": "sigkill",
+        "target": "durableq-worker-64f7d48f76-4bhv8",
+        "detail": "node=durableq-worker container=63a3b48828af22e1095d2d76115ba7c3c188995ac1385933f3b34968f1f42ef1 pid=45849 exit=137 killed_at=2026-11-12T23:51:54.955155098Z"
+      },
+      {
+        "seconds": 80.499678,
+        "type": "sigkill",
+        "target": "durableq-worker-64f7d48f76-bwqpj",
+        "detail": "node=durableq-worker2 container=517233415bde7c1f5e713f2e1b5da37692b6792c421a0038b7e8f75eb3436fff pid=16224 exit=137 killed_at=2026-11-12T23:51:55.190831561Z"
+      },
+      {
+        "seconds": 111.455453,
+        "type": "crash_recovery_cycle",
+        "target": "all workers",
+        "detail": "cycle=3 recovered_jobs=27"
+      }
+    ],
+    "invariant_violations": {
+      "I1": 0,
+      "I2": 0,
+      "I3": 0,
+      "I4": 0,
+      "I5": 0,
+      "I6": 0,
+      "I7": 0
+    },
+    "metrics": {
+      "abandoned_attempts": 90,
+      "attempts": 3690,
+      "dead": 0,
+      "duplicate_executions": 90,
+      "effects": 3600,
+      "failed_attempts": 0,
+      "released": 0,
+      "retried_attempts": 0,
+      "succeeded": 3600,
+      "total": 3600
+    },
+    "passed": true
+  }
+]

@@ -1,0 +1,37 @@
+scripts/k8s-chaos.sh
+=== RUN   TestRandomPodKill
+CHAOS RandomPodKill            seed=44 pass=true faults=map[sigkill:3] drain=48.97s duplicates=30 effects_violations=0 report=/Users/eliotboda/.paradev/worktrees/durableq/feat/k8s-chaos/bench/k8s/chaos/20261113T001148Z.json
+--- PASS: TestRandomPodKill (54.97s)
+=== RUN   TestGracefulTermination
+CHAOS GracefulTermination      seed=44 pass=true faults=map[sigterm_delete:1] drain=121.01s duplicates=0 effects_violations=0 report=/Users/eliotboda/.paradev/worktrees/durableq/feat/k8s-chaos/bench/k8s/chaos/20261113T001148Z.json
+--- PASS: TestGracefulTermination (126.47s)
+=== RUN   TestRollingUpdate
+CHAOS RollingUpdate            seed=44 pass=true faults=map[rollout_restart:3] drain=79.91s duplicates=0 effects_violations=0 report=/Users/eliotboda/.paradev/worktrees/durableq/feat/k8s-chaos/bench/k8s/chaos/20261113T001148Z.json
+--- PASS: TestRollingUpdate (86.86s)
+=== RUN   TestScaleUpDown
+CHAOS ScaleUpDown              seed=44 pass=true faults=map[scale:4] drain=339.40s duplicates=0 effects_violations=0 report=/Users/eliotboda/.paradev/worktrees/durableq/feat/k8s-chaos/bench/k8s/chaos/20261113T001148Z.json
+--- PASS: TestScaleUpDown (347.70s)
+=== RUN   TestPostgresRestart
+    harness_test.go:386: status unavailable during recovery: kubectl --context kind-durableq -n durableq exec deploy/durableq-api -c api -- /durableq status: exit status 1: error: failed to connect to `user=durableq database=durableq`: 10.96.60.193:5432 (durableq-postgres.durableq.svc): dial error: dial tcp 10.96.60.193:5432: connect: connection refused
+        command terminated with exit code 1
+    harness_test.go:386: status unavailable during recovery: kubectl --context kind-durableq -n durableq exec deploy/durableq-api -c api -- /durableq status: exit status 1: error: failed to connect to `user=durableq database=durableq`: 10.96.60.193:5432 (durableq-postgres.durableq.svc): dial error: dial tcp 10.96.60.193:5432: connect: connection refused
+        command terminated with exit code 1
+CHAOS PostgresRestart          seed=44 pass=true faults=map[postgres_restart:1] drain=80.67s duplicates=30 effects_violations=0 report=/Users/eliotboda/.paradev/worktrees/durableq/feat/k8s-chaos/bench/k8s/chaos/20261113T001148Z.json
+--- PASS: TestPostgresRestart (86.66s)
+=== RUN   TestConnectionKill
+CHAOS ConnectionKill           seed=44 pass=true faults=map[connection_kill_round:3 connections_terminated:23] drain=42.85s duplicates=9 effects_violations=0 report=/Users/eliotboda/.paradev/worktrees/durableq/feat/k8s-chaos/bench/k8s/chaos/20261113T001148Z.json
+--- PASS: TestConnectionKill (69.49s)
+=== RUN   TestRetryExhaustionDLQ
+CHAOS RetryExhaustionDLQ       seed=44 pass=true faults=map[sigkill:1] drain=39.64s duplicates=10 effects_violations=0 report=/Users/eliotboda/.paradev/worktrees/durableq/feat/k8s-chaos/bench/k8s/chaos/20261113T001148Z.json
+--- PASS: TestRetryExhaustionDLQ (48.18s)
+=== RUN   TestRepeatedCrashRecovery
+CHAOS RepeatedCrashRecovery    seed=44 pass=true faults=map[crash_recovery_cycle:3 sigkill:9] drain=164.99s duplicates=88 effects_violations=0 report=/Users/eliotboda/.paradev/worktrees/durableq/feat/k8s-chaos/bench/k8s/chaos/20261113T001148Z.json
+--- PASS: TestRepeatedCrashRecovery (173.90s)
+=== RUN   TestKEDAAutoscale
+KEDA first_up=8.89s max_ready=26.61s drain_to_min=102.46s
+CHAOS KEDAAutoscale            seed=44 pass=true faults=map[] drain=73.48s duplicates=0 effects_violations=0 report=/Users/eliotboda/.paradev/worktrees/durableq/feat/k8s-chaos/bench/k8s/chaos/20261113T001148Z.json
+--- PASS: TestKEDAAutoscale (185.03s)
+PASS
+REPORT /Users/eliotboda/.paradev/worktrees/durableq/feat/k8s-chaos/bench/k8s/chaos/20261113T001148Z.json
+ok  	github.com/Eliot-2006/durableq/test/k8s	1179.604s
+report: bench/k8s/chaos/20261113T001148Z.json
