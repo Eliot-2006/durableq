@@ -66,14 +66,14 @@ These numbers are not comparable to the [bare-process benchmark](results.md) (ab
 
 ## Recovery and autoscaling
 
-| Measurement | Result |
-|---|---|
-| SIGKILL a worker holding 10 claims → each job claimed again | 29.46–30.23s (lease 30s, heartbeat 10s) |
-| Burst enqueued → KEDA's first scale-up decision | 8.74s |
-| Burst enqueued → 10 ready workers | 26.15s |
-| Queue drained → back to 3 ready workers | 100.54s |
+| Measurement | Benchmark run (`0ec3769`) | Final build (seed 45) |
+|---|---|---|
+| SIGKILL a worker holding 10 claims → each job claimed again | 29.46–30.23s (lease 30s, heartbeat 10s) | not rerun |
+| Burst enqueued → KEDA's first scale-up decision | 8.74s | 13.46s |
+| Burst enqueued → 10 ready workers | 26.15s | 33.11s |
+| Queue drained → back to 3 ready workers | 100.54s | 283.53s |
 
-The burst's jobs become due 5s after enqueue, and both scale-up times include that delay. Crash recovery takes one lease, as designed: a killed worker cannot release its jobs, so they wait for their lease to expire. A shorter lease recovers faster at the cost of more frequent heartbeats. The scale-up delay is KEDA's 15s polling plus pod start-up. The slow scale-down is deliberate: the 120s stabilization window and the 2-pods-per-minute limit stop the cluster from shedding workers that are still finishing jobs (see [kubernetes.md](kubernetes.md#autoscaling-keda)).
+The burst's jobs become due 5s after enqueue, and both scale-up times include that delay. Crash recovery takes one lease, as designed: a killed worker cannot release its jobs, so they wait for their lease to expire. A shorter lease recovers faster at the cost of more frequent heartbeats. The scale-up delay is KEDA's 15s polling plus pod start-up. Scale-up varies between runs by up to one 15s polling interval. Scale-down differs because the chart changed between the two runs: the benchmark's chart had only the 120s stabilization window, after which the HPA dropped from 10 to 3 replicas in one step. The final chart also sheds at most 2 pods per minute, so 10 → 3 takes the window plus about 3.5 minutes. The slower scale-down is deliberate: it keeps the cluster from shedding workers that are still finishing jobs (see [kubernetes.md](kubernetes.md#autoscaling-keda)).
 
 ## Reproduce
 
@@ -99,6 +99,7 @@ After all branches were merged (merge commit `23d96c1`), the image was rebuilt, 
 | RandomPodKill (3 SIGKILLs, 1,200 jobs) | pass, drain 49.97s, 30 jobs re-executed |
 | GracefulTermination (pod delete, 90 jobs) | pass, drain 113.92s, 0 re-executed |
 | PostgresRestart (900 jobs) | pass, drain 52.69s, 30 jobs re-executed |
+| KEDAAutoscale (3,000 jobs) | pass, drain 79.36s, KEDA 3 → 10 → 3 (timings above) |
 
 I1–I7 had zero violations in every run. Report: [`bench/k8s/chaos/final-build-seed45.json`](../bench/k8s/chaos/final-build-seed45.json).
 
