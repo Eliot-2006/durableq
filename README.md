@@ -66,9 +66,13 @@ These are single-laptop measurements, one run per cell, without confidence inter
 
 The chaos harness kills real worker processes, stalls them past their leases, interrupts database connections and restarts Postgres. After draining, it checks I1–I7 in SQL, including final ownership of each transactional effect. Re-executions are expected under at-least-once delivery. A stale attempt cannot commit its database transition or transactional effects; fencing cannot undo an external side effect the handler already performed. See the [demo transcript](docs/results.md#chaos-demo-transcript), [injected fencing-bug experiment](docs/results.md#the-checker-catches-a-fencing-bug), and [Kubernetes chaos chart](docs/results-k8s.md#chaos-nine-scenarios-i1i7-hold-in-every-run).
 
-<!-- media:terminal-demo -->
+<img src="site/public/media/terminal-demo.gif" alt="Terminal recording of a real durableq demo run: 3,000 jobs across 4 worker processes while the harness SIGKILLs workers, kills their database connections, stalls them past their leases and restarts them; the queue drains and all seven invariant checks print PASS." width="880">
 
-<!-- media:grafana -->
+*A real `durableq demo` run (3,000 jobs, 12 SIGKILLs, stalls and connection kills), ending with all seven invariant checks passing. [How it was recorded](docs/demo/README.md).*
+
+<img src="site/public/media/grafana-keda-summary.png" alt="The repository's Grafana dashboard on the kind cluster during a 30,000-job run: KEDA scales workers from 3 to 10, throughput holds near 95 jobs per second at full slot utilization, the 20,000-job backlog drains, and no jobs are dead-lettered." width="880">
+
+*The repository's Grafana dashboard on kind during a 30,000-job run with 5% injected failures: KEDA scales workers from 3 to 10, the backlog drains at about 95 jobs/s, and nothing is dead-lettered. [Full dashboard](site/public/media/grafana-keda.png) · [workload](docs/demo/README.md).*
 
 ## Quick start
 
