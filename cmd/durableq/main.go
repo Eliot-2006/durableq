@@ -6,6 +6,8 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"log/slog"
+	"net/http"
 	"os"
 	"os/signal"
 	"strconv"
@@ -17,16 +19,21 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/Eliot-2006/durableq"
+	"github.com/Eliot-2006/durableq/internal/api"
 	"github.com/Eliot-2006/durableq/internal/demo"
+	"github.com/Eliot-2006/durableq/internal/metrics"
 	"github.com/Eliot-2006/durableq/internal/migrate"
+	"github.com/prometheus/client_golang/prometheus"
 )
 
 const usage = `usage: durableq <command> [flags]
 
 commands:
+  serve      serve the HTTP API, health and metrics (--addr :8080)
+  healthcheck probe an HTTP endpoint (--url URL)
   migrate    apply embedded migrations
   enqueue    submit jobs
-  worker     run a worker with the demo handlers
+  worker     run demo handlers (--http-addr :9090 enables health and metrics)
   status     job counts by state, or one job with its attempts
   check      run invariant checks (exit 1 on violation)
   demo       chaos demo: kill workers and connections, then check invariants
@@ -42,6 +49,10 @@ func main() {
 
 	var err error
 	switch os.Args[1] {
+	case "serve":
+		err = runServe(ctx, os.Args[2:])
+	case "healthcheck":
+		err = runHealthcheck(ctx, os.Args[2:])
 	case "migrate":
 		err = runMigrate(ctx)
 	case "enqueue":
@@ -61,7 +72,11 @@ func main() {
 		os.Exit(2)
 	}
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "error:", err)
+		if os.Args[1] == "serve" || os.Args[1] == "worker" {
+			slog.Error("command failed", "err", err)
+		} else {
+			fmt.Fprintln(os.Stderr, "error:", err)
+		}
 		os.Exit(1)
 	}
 }
@@ -133,13 +148,15 @@ func runEnqueue(ctx context.Context, args []string) error {
 }
 
 func runWorker(ctx context.Context, args []string) error {
+	log := jsonLogger()
 	fs := flag.NewFlagSet("worker", flag.ExitOnError)
-	cfg := durableq.WorkerConfig{}
+	cfg := durableq.WorkerConfig{Logger: log}
 	fs.IntVar(&cfg.Concurrency, "concurrency", 10, "max concurrent jobs")
 	fs.DurationVar(&cfg.Lease, "lease", 30*time.Second, "lease duration")
 	fs.DurationVar(&cfg.Heartbeat, "heartbeat", 10*time.Second, "heartbeat interval (< lease/2)")
 	fs.DurationVar(&cfg.Poll, "poll", time.Second, "idle poll interval")
 	fs.DurationVar(&cfg.ShutdownGrace, "grace", 10*time.Second, "on SIGTERM, wait this long for in-flight jobs before releasing them")
+	httpAddr := fs.String("http-addr", "", "health and metrics listen address (empty disables)")
 	tag := fs.String("tag", "", "extra worker-id segment (durableq-worker-<tag>-…), so tools can target one group's connections")
 	maxConns := fs.Int("max-conns", 0, "connection pool size (default concurrency+2); jobs hold a connection only while claiming, heartbeating, or transitioning")
 	fs.Parse(args)
@@ -170,11 +187,51 @@ func runWorker(ctx context.Context, args []string) error {
 	}
 	defer pool.Close()
 
+	var onEvent func(durableq.Event)
+	if *httpAddr != "" {
+		cfg.OnEvent = func(e durableq.Event) { onEvent(e) }
+	}
 	w := durableq.NewWorker(pool, cfg)
 	demo.Register(w)
-	fmt.Fprintln(os.Stderr, "worker", w.ID(), "started")
-	err = w.Run(ctx)
-	fmt.Fprintf(os.Stderr, "worker %s stopped: %+v\n", w.ID(), w.Stats())
+	var server *http.Server
+	var serverDone <-chan error
+	var health *api.Handler
+	if *httpAddr != "" {
+		reg := prometheus.NewRegistry()
+		concurrency := cfg.Concurrency
+		if concurrency <= 0 {
+			concurrency = 10
+		}
+		onEvent = metrics.Worker(reg, w.Kinds(), w.Active, concurrency)
+		health = api.Health(pool, reg)
+	}
+	runCtx, cancelRun := context.WithCancel(ctx)
+	defer cancelRun()
+	if health != nil {
+		server, serverDone, err = startHTTP(*httpAddr, health)
+		if err != nil {
+			return err
+		}
+		stop := context.AfterFunc(ctx, health.BeginShutdown)
+		defer stop()
+	}
+	log.Info("worker started", "worker", w.ID())
+	workerDone := make(chan error, 1)
+	go func() { workerDone <- w.Run(runCtx) }()
+	select {
+	case err = <-workerDone:
+	case err = <-serverDone:
+		if health != nil {
+			health.BeginShutdown()
+		}
+		cancelRun()
+		err = errors.Join(err, <-workerDone)
+	}
+	if health != nil {
+		health.BeginShutdown()
+		err = errors.Join(err, shutdownHTTP(server, 10*time.Second))
+	}
+	log.Info("worker stopped", "worker", w.ID(), "stats", w.Stats())
 	return err
 }
 

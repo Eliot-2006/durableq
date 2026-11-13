@@ -1,0 +1,6 @@
+apiVersion: v2
+name: durableq
+description: DurableQ - Postgres-backed durable job queue (HTTP API + workers) with optional KEDA autoscaling
+type: application
+version: 0.1.0
+appVersion: "dev"

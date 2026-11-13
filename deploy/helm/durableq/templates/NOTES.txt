@@ -1,0 +1,15 @@
+DurableQ {{ .Release.Name }} installed in namespace {{ .Release.Namespace }}.
+
+API (ClusterIP only, no auth):
+  kubectl -n {{ .Release.Namespace }} port-forward svc/{{ include "durableq.fullname" . }}-api 8080:8080
+  curl -XPOST localhost:8080/v1/jobs -d '{"kind":"demo.effect"}'
+  curl localhost:8080/v1/stats
+{{- if .Values.autoscaling.enabled }}
+
+Workers autoscale {{ .Values.autoscaling.minReplicas }}-{{ .Values.autoscaling.maxReplicas }} on eligible backlog (target {{ .Values.autoscaling.backlogPerReplica }}/replica):
+  kubectl -n {{ .Release.Namespace }} get scaledobject,hpa
+{{- end }}
+{{- if .Values.postgresql.enabled }}
+
+Postgres is the dev-only in-chart StatefulSet ({{ include "durableq.fullname" . }}-postgres); use an external database for anything real.
+{{- end }}

@@ -18,7 +18,7 @@ const qByKey = `SELECT id FROM jobs WHERE idempotency_key = $1`
 // burns attempts on) a kind it cannot run.
 const qClaim = `
 WITH next AS (
-  SELECT id FROM jobs
+  SELECT id, state = 'running' AS reclaimed FROM jobs
   WHERE kind = ANY($4)
     AND ((state = 'queued'  AND run_at <= clock_timestamp())
       OR (state = 'running' AND lease_expires_at < clock_timestamp()))
@@ -31,12 +31,13 @@ WITH next AS (
       lease_expires_at = clock_timestamp() + $3 * interval '1 microsecond',
       updated_at = clock_timestamp()
   FROM next WHERE j.id = next.id
-  RETURNING j.id, j.kind, j.payload, j.attempt, j.max_attempts
+  RETURNING j.id, j.kind, j.payload, j.attempt, j.max_attempts,
+      extract(epoch FROM clock_timestamp() - j.run_at)::double precision AS queue_wait, next.reclaimed
 ), hist AS (
   INSERT INTO job_attempts (job_id, attempt, worker_id, claimed_at)
   SELECT id, attempt, $2, clock_timestamp() FROM claimed
 )
-SELECT id, kind, payload, attempt, max_attempts FROM claimed`
+SELECT id, kind, payload, attempt, max_attempts, queue_wait, reclaimed FROM claimed`
 
 const fenced = ` WHERE id = $1 AND attempt = $2 AND state = 'running' AND lease_expires_at > clock_timestamp()`
 
@@ -68,3 +69,21 @@ UPDATE jobs SET state = 'queued', run_at = clock_timestamp(), max_attempts = max
 const qFinishAttempt = `
 UPDATE job_attempts SET outcome = $3, error = $4, finished_at = clock_timestamp()
 WHERE job_id = $1 AND attempt = $2`
+
+// Sample the DB clock once so a job becoming due during the scan is counted once.
+const qStats = `WITH snapshot AS MATERIALIZED (SELECT clock_timestamp() AS at)
+ SELECT
+ (SELECT count(*) FROM jobs WHERE state='queued' AND run_at <= snapshot.at),
+ (SELECT count(*) FROM jobs WHERE state='queued' AND run_at > snapshot.at),
+ (SELECT count(*) FROM jobs WHERE state='running' AND lease_expires_at > snapshot.at),
+ (SELECT count(*) FROM jobs WHERE state='running' AND lease_expires_at <= snapshot.at),
+ (SELECT count(*) FROM jobs WHERE state='dead')
+ FROM snapshot`
+
+const qJob = `SELECT j.id, j.kind, j.state::text, j.attempt, j.max_attempts,
+ j.run_at, j.created_at, j.finished_at, j.last_error,
+ coalesce((SELECT jsonb_agg(jsonb_build_object(
+ 'attempt', a.attempt, 'worker_id', a.worker_id, 'claimed_at', a.claimed_at,
+ 'finished_at', a.finished_at, 'outcome', a.outcome, 'error', a.error) ORDER BY a.attempt)
+ FROM job_attempts a WHERE a.job_id=j.id), '[]'::jsonb)
+ FROM jobs j WHERE j.id=$1`

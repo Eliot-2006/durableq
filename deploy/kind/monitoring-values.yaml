@@ -1,0 +1,34 @@
+# Trimmed kube-prometheus-stack for a laptop kind cluster.
+alertmanager:
+  enabled: false
+nodeExporter:
+  enabled: false
+kubeStateMetrics:
+  enabled: true
+prometheus:
+  prometheusSpec:
+    retention: 2h
+    # Pick up PodMonitors/ServiceMonitors from any release, not just this one.
+    podMonitorSelectorNilUsesHelmValues: false
+    serviceMonitorSelectorNilUsesHelmValues: false
+    ruleSelectorNilUsesHelmValues: false
+    resources:
+      requests: {cpu: 100m, memory: 400Mi}
+      limits: {memory: 800Mi}
+prometheusOperator:
+  resources:
+    requests: {cpu: 20m, memory: 64Mi}
+    limits: {memory: 128Mi}
+grafana:
+  adminPassword: admin   # local kind only
+  resources:
+    requests: {cpu: 50m, memory: 256Mi}
+    limits: {memory: 768Mi}
+  sidecar:
+    dashboards:
+      enabled: true
+      label: grafana_dashboard
+      labelValue: "1"
+      searchNamespace: ALL
+defaultRules:
+  create: false

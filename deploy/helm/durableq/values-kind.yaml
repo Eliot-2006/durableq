@@ -1,0 +1,20 @@
+# Local kind cluster: image loaded with `kind load docker-image durableq:dev`,
+# KEDA + kube-prometheus-stack installed by scripts/kind-up.sh.
+api:
+  replicas: 1
+worker:
+  concurrency: 10
+autoscaling:
+  enabled: true
+  minReplicas: 3
+  maxReplicas: 10
+metrics:
+  podMonitor:
+    enabled: true
+grafana:
+  dashboards:
+    enabled: true
+postgresql:
+  resources:
+    requests: {cpu: 100m, memory: 128Mi}
+    limits: {memory: 512Mi}

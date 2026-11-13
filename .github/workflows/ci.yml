@@ -1,6 +1,13 @@
 name: ci
 on: [push, pull_request]
 
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -18,8 +25,8 @@ jobs:
     env:
       DATABASE_URL: postgres://durableq:durableq@localhost:5432/durableq?sslmode=disable
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
         with:
           go-version-file: go.mod
       - run: go vet ./...
@@ -30,3 +37,78 @@ jobs:
         run: go test -tags chaos -timeout 5m ./chaos/...
         env:
           DURABLEQ_PG_RESTART_CMD: docker restart -t 0 ${{ job.services.postgres.id }}
+
+  image:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
+      - uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
+        with:
+          context: .
+          push: false
+          load: true
+          tags: durableq:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1 # v0.35.0; earlier tags were hijacked (CVE-2026-33634), so pin by SHA
+        with:
+          image-ref: durableq:ci
+          version: v0.69.3   # last release before the compromised v0.69.4
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          exit-code: "1"
+
+  helm:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: azure/setup-helm@1a275c3b69536ee54be43f2070a358922e12c8d4 # v4
+        with:
+          version: v3.16.4
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
+        with:
+          go-version-file: go.mod
+      # kubeconform is required by `make helm-lint`
+      - run: go install github.com/yannh/kubeconform/cmd/kubeconform@v0.6.7
+      - run: make helm-lint
+      - run: deploy/helm/durableq/dashboards/check.sh
+
+  kind-e2e:
+    needs: [image, helm]
+    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
+      - uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
+        with:
+          context: .
+          push: false
+          load: true
+          tags: durableq:dev
+          cache-from: type=gha
+      - uses: helm/kind-action@a1b0e391336a6ee6713a0583f8c6240d70863de3 # v1.12.0
+        with:
+          cluster_name: durableq
+      - run: kind load docker-image durableq:dev --name durableq
+      - name: deploy
+        run: >-
+          helm upgrade --install durableq deploy/helm/durableq
+          --namespace durableq --create-namespace
+          -f deploy/helm/durableq/values-ci.yaml
+          --set image.repository=durableq --set image.tag=dev --set image.pullPolicy=Never
+          --wait --timeout 5m
+      - run: scripts/k8s-smoke.sh
+      - name: dump cluster state
+        if: failure()
+        run: |
+          kubectl get pods -A -o wide
+          kubectl -n durableq describe pods
+          kubectl -n durableq get events --sort-by=.lastTimestamp
+          for p in $(kubectl -n durableq get pods -o name); do
+            echo "::group::logs $p"
+            kubectl -n durableq logs "$p" --all-containers --tail=200 || true
+            echo "::endgroup::"
+          done
