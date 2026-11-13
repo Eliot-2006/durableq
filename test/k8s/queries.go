@@ -29,6 +29,7 @@ const qConnections = `SELECT count(*) FROM pg_stat_activity WHERE datname=curren
 const qKillConnections = `SELECT count(*) FROM (SELECT pg_terminate_backend(pid) AS killed FROM pg_stat_activity WHERE application_name LIKE 'durableq-worker-%' AND pid<>pg_backend_pid()) s WHERE killed`
 const qPostmaster = `SELECT pg_postmaster_start_time()::text`
 const qBench = `SELECT json_build_object(
+ 'started_at',(SELECT min(run_at) FROM jobs),
  'duration_seconds', (SELECT extract(epoch FROM max(finished_at)-min(run_at)) FROM jobs),
  'jobs_per_second', (SELECT count(*)/NULLIF(extract(epoch FROM max(finished_at)-min(run_at)),0) FROM jobs),
  'processing_ms', (SELECT percentile_cont(ARRAY[0.5,0.95,0.99]) WITHIN GROUP (ORDER BY extract(epoch FROM finished_at-claimed_at)*1000) FROM job_attempts WHERE finished_at IS NOT NULL),

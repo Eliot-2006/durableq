@@ -34,12 +34,13 @@ type event struct {
 	Detail  string  `json:"detail,omitempty"`
 }
 type sample struct {
-	At          time.Time `json:"at"`
-	Desired     int       `json:"desired"`
-	Ready       int       `json:"ready"`
-	Connections int       `json:"postgres_connections,omitempty"`
-	Top         string    `json:"top,omitempty"`
-	Error       string    `json:"error,omitempty"`
+	At          time.Time       `json:"at"`
+	Desired     int             `json:"desired"`
+	Ready       int             `json:"ready"`
+	Connections int             `json:"postgres_connections,omitempty"`
+	Top         string          `json:"top,omitempty"`
+	PodMetrics  json.RawMessage `json:"pod_metrics,omitempty"`
+	Error       string          `json:"error,omitempty"`
 }
 type report struct {
 	Scenario       string         `json:"scenario"`
@@ -477,6 +478,12 @@ func (h *harness) sample(resources bool) {
 			s.Top = out
 		} else {
 			s.Error += " top: " + err.Error()
+		}
+		raw, err := kube("get", "--raw", "/apis/metrics.k8s.io/v1beta1/namespaces/durableq/pods")
+		if err == nil && json.Valid([]byte(raw)) {
+			s.PodMetrics = json.RawMessage(raw)
+		} else {
+			s.Error += " pod metrics unavailable"
 		}
 	}
 	h.r.Samples = append(h.r.Samples, s)

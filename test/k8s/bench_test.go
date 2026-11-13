@@ -32,9 +32,9 @@ func TestBenchMatrix(t *testing.T) {
 					return err == nil && peaks.Workers == replicas && peaks.Postgres == 1
 				})
 				h.delay = "24h"
-				n := 20000
+				n := 40000
 				if sleep == 0 {
-					n = 40000
+					n = 60000
 				}
 				h.enqueue(n, sleep, 5, 0, false)
 				done, active := h.progress()
@@ -43,35 +43,36 @@ func TestBenchMatrix(t *testing.T) {
 				h.drain(true)
 				h.verify(false)
 				h.decode(h.must(sql(qBench)), &h.r.Benchmark)
-				peaks := resourceUsage{}
-				maxConns := 0
-				valid := 0
-				for _, s := range h.r.Samples {
-					if s.Connections > maxConns {
-						maxConns = s.Connections
-					}
-					if s.Error != "" {
-						continue
-					}
-					r, err := resources(s.Top)
-					if err != nil {
-						t.Fatal(err)
-					}
-					if r.Workers != replicas || r.Postgres != 1 {
-						continue
-					}
-					valid++
-					peaks.WorkerCPU = max(peaks.WorkerCPU, r.WorkerCPU)
-					peaks.WorkerMiB = max(peaks.WorkerMiB, r.WorkerMiB)
-					peaks.PostgresCPU = max(peaks.PostgresCPU, r.PostgresCPU)
-					peaks.PostgresMiB = max(peaks.PostgresMiB, r.PostgresMiB)
+				start, err := time.Parse(time.RFC3339Nano, h.r.Benchmark["started_at"].(string))
+				if err != nil {
+					t.Fatal(err)
 				}
-				h.check(valid >= 2, fmt.Sprintf("need >=2 complete resource samples, got %d", valid))
-				peaks.Workers = replicas
-				peaks.Postgres = 1
+				finish, err := time.Parse(time.RFC3339Nano, h.r.Benchmark["finished_at"].(string))
+				if err != nil {
+					t.Fatal(err)
+				}
+				h.wait(time.Minute, "metrics-server publishes the workload's final window", func() bool {
+					h.sample(true)
+					published := metricsPublished(h.r.Samples[len(h.r.Samples)-1].PodMetrics, finish, replicas)
+					if !published {
+						time.Sleep(time.Second)
+					}
+					return published
+				})
+				peaks, coverage, err := windowPeaks(h.r.Samples, start, finish, replicas)
+				if err != nil {
+					t.Fatal(err)
+				}
+				for kind, count := range coverage {
+					h.check(count > 0, "no workload resource window: "+kind)
+				}
+				maxConns := 0
+				for _, s := range h.r.Samples {
+					maxConns = max(maxConns, s.Connections)
+				}
 				h.r.Benchmark["peak_resources"] = peaks
 				h.r.Benchmark["peak_postgres_connections"] = maxConns
-				h.r.Benchmark["complete_resource_samples"] = valid
+				h.r.Benchmark["resource_window_coverage"] = coverage
 				h.r.Benchmark["retry_rate"] = float64(h.r.Metrics["retried_attempts"]) / float64(h.r.Metrics["attempts"])
 				h.r.Benchmark["failure_rate"] = float64(h.r.Metrics["failed_attempts"]) / float64(h.r.Metrics["attempts"])
 				h.check(h.r.Metrics["failed_attempts"] == 0 && h.r.Metrics["abandoned_attempts"] == 0 && h.r.Metrics["released"] == 0, "controlled benchmark must have zero failures, retries, abandoned attempts and releases")

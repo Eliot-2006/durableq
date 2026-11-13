@@ -65,11 +65,16 @@ Benchmark methodology:
 - Processing percentiles use finished attempts' finished_at − claimed_at.
   Queue wait uses first attempts' claimed_at − jobs.run_at (the initial due time;
   retries can change run_at, so clean throughput runs assert zero retries).
-- Every ~2s sample records pg_stat_activity connection count (all DB clients,
-  including observer, API and KEDA) and raw `kubectl top pods` output. CPU and
-  memory peaks are sampled sums for workers and separately postgres. Metrics
-  server has its own sampling window; these are observed peaks, not continuous
-  maxima. Short 0ms runs use enough jobs to capture multiple samples.
+- Every ~2s sample records pg_stat_activity connections, raw `kubectl top pods`,
+  and the underlying timestamped PodMetrics API. Sampling continues until all
+  worker/postgres metric timestamps pass the DB drain time. CPU peaks use only
+  averaging windows that start within this workload; memory peaks use points
+  timestamped during it. This excludes setup/previous-batch CPU carryover and
+  retains the final loaded window published after drain. Final CPU windows can
+  include idle time after drain; these remain observed averages, not instantaneous
+  maxima. Coverage counts and raw timestamps/windows are retained, and every
+  worker/postgres CPU/memory category must have a relevant sample. The matrix uses
+  60,000 jobs at 0ms and 40,000 at 50ms to outlast metrics-server windows.
 - Recovery snapshots an active claim to identify the killed process and uses
   the node's container finishedAt timestamp as kill time. Its attempt history
   selects every claim current at that time, including claims made after the
