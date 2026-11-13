@@ -166,16 +166,23 @@ import { blob, href } from '../lib/url';
     fillEl.classList.toggle('expired', left !== null && left <= 0);
     el('leasebar').setAttribute('aria-label', left === null ? 'No lease' : left > 0 ? `${num(left)} seconds of lease left` : 'Lease expired');
     el('leasetext').textContent =
-      left === null ? 'No lease: the job is not running.' : left > 0 ? `${num(left)} s of ${config.lease} s lease left.` : `Lease expired ${num(-left)} s ago; any claim may take the job.`;
+      left === null ? 'No lease: the job is not running.' : left > 0 ? `${num(left)} s of ${config.lease} s lease left.` : left === 0 ? 'Lease expired; a later poll may reclaim it.' : `Lease expired ${num(-left)} s ago; a worker’s next poll may reclaim it.`;
 
     for (const id of ['A', 'B'] as const) {
       const w = s.workers[id];
       fill(el(`${id}-status`), pill(w.status, w.status));
-      root.querySelector(`[data-worker="${id}"]`)!.classList.toggle('holds', job.leaseOwner === id);
+      // Ownership needs the row to name this worker's attempt AND an unexpired lease.
+      const owns = job.state === 'running' && job.leaseOwner === id && w.heldAttempt === job.attempt && job.leaseExpiresAt !== null && job.leaseExpiresAt > t;
+      root.querySelector(`[data-worker="${id}"]`)!.classList.toggle('holds', owns);
       el(`${id}-local`).textContent =
         w.heldAttempt === null
           ? 'Holds no job.'
-          : `Believes it holds attempt ${w.heldAttempt}.` + (job.leaseOwner === id ? ' Owns the lease.' : ` Postgres says attempt ${job.attempt} is ${job.leaseOwner ?? 'nobody'}’s.`);
+          : `Believes it holds attempt ${w.heldAttempt}.` +
+            (owns
+              ? ' Owns the lease.'
+              : job.leaseOwner === id
+                ? ` The row still names ${id}, but its lease has expired.`
+                : ` Postgres says attempt ${job.attempt} is ${job.leaseOwner ?? 'nobody'}’s.`);
     }
 
     fill(
