@@ -63,8 +63,17 @@ const qRecoveryFixture = `INSERT INTO jobs(kind,state,attempt,lease_owner,lease_
  ('demo.effect','running',2,'test',clock_timestamp()+interval '1 minute'),
  ('demo.effect','running',1,'test',clock_timestamp()+interval '1 minute');
  INSERT INTO job_attempts(job_id,attempt,worker_id,claimed_at,finished_at,outcome) VALUES
- (1,1,'test',clock_timestamp()-interval '1 second',clock_timestamp(),'succeeded'),
- (2,1,'test',clock_timestamp()-interval '31 seconds',NULL,NULL),
- (2,2,'test',clock_timestamp(),NULL,NULL),
- (3,1,'test',clock_timestamp()-interval '31 seconds',NULL,NULL)`
+ (1,1,'killed',clock_timestamp()-interval '1 second',clock_timestamp(),'succeeded'),
+ (2,1,'killed',clock_timestamp()-interval '31 seconds',NULL,NULL),
+ (2,2,'replacement',clock_timestamp(),NULL,NULL),
+ (3,1,'killed',clock_timestamp()-interval '31 seconds',NULL,NULL)`
 const qRecoveryFixtureNext = `INSERT INTO job_attempts(job_id,attempt,worker_id,claimed_at) VALUES (3,2,'next',clock_timestamp())`
+
+func killedClaimsQuery(reference claim, killedAt string) string {
+	return fmt.Sprintf(`WITH killed AS (
+ SELECT worker_id,%s::timestamptz AS at FROM job_attempts WHERE job_id=%d AND attempt=%d)
+ SELECT COALESCE(json_agg(json_build_object('id',a.job_id,'attempt',a.attempt)),'[]'::json)
+ FROM job_attempts a CROSS JOIN killed k
+ WHERE a.worker_id=k.worker_id AND a.outcome IS NULL AND a.claimed_at<=k.at
+ AND NOT EXISTS (SELECT 1 FROM job_attempts n WHERE n.job_id=a.job_id AND n.attempt>a.attempt AND n.claimed_at<=k.at)`, sqlQuote(killedAt), reference.ID, reference.Attempt)
+}

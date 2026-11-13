@@ -70,10 +70,12 @@ Benchmark methodology:
   memory peaks are sampled sums for workers and separately postgres. Metrics
   server has its own sampling window; these are observed peaks, not continuous
   maxima. Short 0ms runs use enough jobs to capture multiple samples.
-- Recovery snapshots active job IDs/attempts before SIGKILL and uses the node's
-  container finishedAt timestamp as kill time. Claims that committed between the snapshot and kill are excluded using
-  their closed original attempt. Every remaining abandoned claim must be
-  reclaimed; its next claimed_at gives recovery latency; the chart's lease and heartbeat are retained and recorded.
+- Recovery snapshots an active claim to identify the killed process and uses
+  the node's container finishedAt timestamp as kill time. Its attempt history
+  selects every claim current at that time, including claims made after the
+  snapshot. Closed attempts and attempts reclaimed before the kill are excluded.
+  Every remaining abandoned claim must be reclaimed; its next claimed_at gives
+  recovery latency. The chart's lease and heartbeat are retained and recorded.
 - KEDA samples desired/ready replicas every ~2s, measures first scale-up and
   max from enqueue completion, and scale-down from DB drain. Observed timings
   include polling and HPA stabilization, not only cooldownPeriod. Raw timestamped

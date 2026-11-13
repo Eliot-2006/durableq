@@ -84,8 +84,10 @@ func TestBenchRecovery(t *testing.T) {
 	h := newHarness(t)
 	h.enqueue(1200, 500, 10, 0, false)
 	h.at(.05)
-	p, jobs := h.activePod()
+	p, snapshot := h.activePod()
 	killed := h.kill(p)
+	var jobs []claim
+	h.decode(h.must(sql(killedClaimsQuery(snapshot[0], killed.Format(time.RFC3339Nano)))), &jobs)
 	recovery := h.nextClaims(jobs)
 	claims := recovery.Claims
 	latencies := make([]float64, 0, len(claims))
@@ -94,7 +96,7 @@ func TestBenchRecovery(t *testing.T) {
 		h.check(d >= 0, "next claim must be after SIGKILL")
 		latencies = append(latencies, d)
 	}
-	h.r.Benchmark = map[string]any{"killed_at": killed, "pre_kill_snapshot": jobs, "killed_jobs": recovery.Abandoned, "next_claims": claims, "recovery_seconds": latencies, "lease": h.config["WORKER_LEASE"], "heartbeat": h.config["WORKER_HEARTBEAT"]}
+	h.r.Benchmark = map[string]any{"killed_at": killed, "pre_kill_snapshot": snapshot, "killed_jobs": recovery.Abandoned, "next_claims": claims, "recovery_seconds": latencies, "lease": h.config["WORKER_LEASE"], "heartbeat": h.config["WORKER_HEARTBEAT"]}
 	h.drain(false)
 	h.verify(false)
 	fmt.Printf("RECOVERY lease=%s heartbeat=%s jobs=%d seconds=%v\n", h.config["WORKER_LEASE"], h.config["WORKER_HEARTBEAT"], len(recovery.Abandoned), latencies)

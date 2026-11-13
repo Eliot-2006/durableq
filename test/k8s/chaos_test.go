@@ -118,9 +118,13 @@ func TestRepeatedCrashRecovery(t *testing.T) {
 		for _, p := range ps {
 			var jobs []claim
 			h.decode(h.must(sql(activeQuery(p.Metadata.Name))), &jobs)
-			h.check(len(jobs) > 0, "every killed worker must hold jobs")
-			killed = append(killed, jobs...)
-			h.kill(p)
+			if len(jobs) == 0 {
+				t.Fatal("every killed worker must hold jobs")
+			}
+			killedAt := h.kill(p)
+			var affected []claim
+			h.decode(h.must(sql(killedClaimsQuery(jobs[0], killedAt.Format(time.RFC3339Nano)))), &affected)
+			killed = append(killed, affected...)
 		}
 		recovered := h.nextClaims(killed)
 		h.fault("crash_recovery_cycle", "all workers", fmt.Sprintf("cycle=%d recovered_jobs=%d", cycle+1, len(recovered.Claims)))

@@ -6,6 +6,7 @@ import (
 	"context"
 	"encoding/json"
 	"testing"
+	"time"
 
 	"github.com/Eliot-2006/durableq"
 	"github.com/Eliot-2006/durableq/internal/testdb"
@@ -43,5 +44,27 @@ func TestRecoveryExcludesCompletedSnapshot(t *testing.T) {
 				t.Fatal(err)
 			}
 		}
+	}
+}
+
+func TestKilledClaimsIncludesPostSnapshotClaims(t *testing.T) {
+	pool := testdb.New(t, durableq.Migrations)
+	ctx := context.Background()
+	if _, err := pool.Exec(ctx, qRecoveryFixture); err != nil {
+		t.Fatal(err)
+	}
+	// Job 1 closed after the snapshot; job 3 was claimed by that same process.
+	// Job 2's old abandoned attempt was already reclaimed before this kill.
+	query := killedClaimsQuery(claim{ID: 1, Attempt: 1}, time.Now().UTC().Format(time.RFC3339Nano))
+	var raw []byte
+	if err := pool.QueryRow(ctx, query).Scan(&raw); err != nil {
+		t.Fatal(err)
+	}
+	var got []claim
+	if err := json.Unmarshal(raw, &got); err != nil {
+		t.Fatal(err)
+	}
+	if len(got) != 1 || got[0].ID != 3 {
+		t.Fatalf("expected all current killed claims, not just snapshot or older abandoned attempts: %s", raw)
 	}
 }
