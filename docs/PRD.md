@@ -297,7 +297,7 @@ Reported metrics (not invariants): duplicate execution attempts (abandoned attem
 4. **Lease stalls.** A payload flag makes the handler stop heartbeating and sleep past the lease. This proves the stale worker's completion is rejected and the job is completed exactly once by the new owner.
 
 ### Harness
-- `chaos/` package, build tag `chaos`, run with `go test -tags chaos ./chaos/...`.
+- `test/chaos/` package, build tag `chaos`, run with `go test -tags chaos ./test/chaos/...`.
 - Seeded randomness. The seed is printed on failure so the run can be reproduced.
 - Flow: migrate a fresh schema → enqueue N `demo.effect` jobs with a fail rate → start K workers → inject faults until done → stop faults → wait for drain (with timeout) → run invariant checks → print report.
 

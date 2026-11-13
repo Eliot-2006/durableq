@@ -26,5 +26,5 @@ jobs:
           go-version-file: go.mod
       - name: long chaos run (10,000 jobs, 20 seeds)
         run: >-
-          go test -tags chaos -timeout 0 -v -run 'TestChaos$' ./chaos/
+          go test -tags chaos -timeout 0 -v -run 'TestChaos$' ./test/chaos/
           -args -jobs 10000 -kills 100 -conn-kills 20 -stalls 5 -sleep-ms 100 -seeds 20

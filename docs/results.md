@@ -86,7 +86,7 @@ Across the 20 post-audit acceptance runs:
 Reproduce with:
 
 ```sh
-go test -tags chaos ./chaos/ -run 'TestChaos$' -timeout 0 -v -args \
+go test -tags chaos ./test/chaos/ -run 'TestChaos$' -timeout 0 -v -args \
   -jobs 10000 -kills 100 -conn-kills 20 -stalls 5 -restarts 10 -sleep-ms 100 -seeds 20 -seed 1000
 ```
 
@@ -121,4 +121,4 @@ A self-review plus an independent Codex review (2026-11-05) found no critical is
   `TestGracefulRestartsKeepBudget` keeps this workload permanently.
 - **Workers claimed job kinds they had no handler for** and dead-lettered them. The claim now filters by registered kind (`TestWorkersClaimOnlyRegisteredKinds`).
 
-The other findings concerned the evidence itself: invariants checked before stalled workers stopped, fault counters that counted signals that didn't land, connection kills that reached other runs' workers, and a race test that could pass with completion broken. Each was fixed so the suite would catch the bugs it claims to catch. The full list is in PROGRESS.md.
+The other findings concerned the evidence itself: invariants checked before stalled workers stopped, fault counters that counted signals that didn't land, connection kills that reached other runs' workers, and a race test that could pass with completion broken. Each was fixed so the suite would catch the bugs it claims to catch. The full list is in [PROGRESS.md](PROGRESS.md#audit-2026-11-05-branch-audit-fixes).

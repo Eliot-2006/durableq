@@ -7,12 +7,6 @@ No product code or queue semantics are changed; no dependencies are added.
 Seeds reproduce harness progress thresholds and target choices, not handler
 jitter or Kubernetes scheduling.
 
-Implementation plan: share kubectl/psql helpers, reset with workers stopped,
-exercise each fault at seeded terminal-job progress thresholds, verify actual
-fault coverage, drain, then parse the existing CLI's I1–I7 checks. Add benchmark
-measurements to the same helpers, preserve raw samples and environment metadata,
-run both suites on kind, run local integration checks, and commit the evidence.
-
 ```sh
 make k8s-chaos
 # Every scenario is independently selectable; report paths are relative to repo root.

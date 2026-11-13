@@ -162,7 +162,7 @@ Rules: no workstream changes the queue's SQL semantics (fencing predicates, clai
 |---|---|
 | Laptop resources (Docker VM: 11 CPU, ~9 GB) with kube-prometheus-stack, KEDA, and 10 workers | Trimmed monitoring values, small requests, `values-kind.yaml`; benchmarks record the limits honestly |
 | Postgres connection exhaustion at max replicas | `worker.maxConns` default 6, `postgresql.maxConnections` 200, template guard, documented formula |
-| KEDA scale-down thrash while workers hold jobs | `cooldownPeriod` plus an HPA scale-down stabilization window; scale-down is a graceful release (no budget spent) |
+| KEDA scale-down thrash while workers hold jobs | HPA scale-down stabilization window plus a pods-per-minute limit (KEDA's `cooldownPeriod` only governs scaling to and from zero); scale-down is a graceful release (no budget spent) |
 | Metrics hook perturbs the hot path | Synchronous counter increments only; the bench compares against the bare-process results |
 | Worker/agent drift from the contract | The contract above is binding; the orchestrator reviews each branch against it before merging |
 | Chart and operator version drift | Pin exact chart versions in scripts; record them in the docs |

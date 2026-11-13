@@ -4,7 +4,9 @@
 
 A durable job queue in Go with PostgreSQL as its only dependency. Workers claim jobs with `FOR UPDATE SKIP LOCKED` and hold leases timed on the database clock, renewing them with heartbeats. When a worker crashes, its leases expire and other workers reclaim the jobs. Every state transition is fenced by an attempt number, so a stale or partitioned worker cannot complete a job it no longer owns. Correctness is demonstrated rather than asserted: chaos tests SIGKILL real worker processes, restart them gracefully mid-run, terminate their database connections and freeze them past their leases. Then seven invariants are checked directly in SQL.
 
-**Results** (laptop, [details](docs/results.md)): about 11,000 jobs/s at peak. A crashed worker's jobs are back in about 2s, one lease. 20 of 20 chaos runs over 200,000 jobs (100 SIGKILLs each, plus connection kills, stalls and restarts) passed with 0 lost jobs and 0 duplicate effects. Postgres crash-restarts mid-run pass too.
+It also runs on Kubernetes: an HTTP API and workers from one hardened image, a Helm chart, KEDA autoscaling on the eligible backlog, and Prometheus metrics with a Grafana dashboard. Postgres remains the only coordinator.
+
+**Results** (laptop, [details](docs/results.md)): about 11,000 jobs/s at peak. A crashed worker's jobs are back in about 2s, one lease. 20 of 20 chaos runs over 200,000 jobs (100 SIGKILLs each, plus connection kills, stalls and restarts) passed with 0 lost jobs and 0 duplicate effects. Postgres crash-restarts mid-run pass too. On a local kind cluster ([details](docs/results-k8s.md)), nine Kubernetes fault scenarios (pod SIGKILLs, rolling updates, scaling, a Postgres pod restart, KEDA scaling 3→10→3) all pass the same invariants, and throughput scales 8.1× from 1 to 10 worker replicas with 50ms of work per job.
 
 ## Guarantees
 
@@ -51,6 +53,21 @@ w.Handle("email.send", func(ctx context.Context, job durableq.Job) (durableq.Com
 w.Run(ctx) // until ctx is cancelled; then drains for ShutdownGrace and releases the rest
 ```
 
+## Kubernetes
+
+Requires Docker, kind, kubectl and Helm. No cloud account.
+
+```sh
+make kind-up        # kind cluster + metrics-server + KEDA + Prometheus/Grafana + image + Helm chart
+make k8s-smoke      # 200 jobs through the HTTP API, drain, invariants I1–I7 in-cluster
+kubectl -n durableq port-forward svc/durableq-api 8080:8080
+curl -XPOST localhost:8080/v1/jobs -d '{"kind":"demo.effect","payload":{"sleep_ms":100}}'
+curl localhost:8080/v1/stats
+make kind-down
+```
+
+Without Kubernetes, `docker compose up -d --build --wait --scale worker=3 api worker` runs the API and three workers. The chart, the KEDA scaler, the metrics, what happens to jobs when a pod is stopped, and the known limitations are covered in [docs/kubernetes.md](docs/kubernetes.md).
+
 ## Chaos demo
 
 ```sh
@@ -94,16 +111,41 @@ All 7 invariants PASSED
 
 ```sh
 go test -race ./...                       # unit + integration (real Postgres via DATABASE_URL)
-go test -tags chaos ./chaos/...           # chaos: SIGKILL, SIGTERM restarts, pg_terminate_backend, SIGSTOP, all failpoints
+go test -tags chaos ./test/chaos/...           # chaos: SIGKILL, SIGTERM restarts, pg_terminate_backend, SIGSTOP, all failpoints
 DURABLEQ_PG_RESTART_CMD='docker restart -t 0 <postgres-container>' \
-  go test -tags chaos ./chaos/ -run TestPostgresRestart   # also crash-restart Postgres mid-run
+  go test -tags chaos ./test/chaos/ -run TestPostgresRestart   # also crash-restart Postgres mid-run
+make helm-lint                            # chart lint + kubeconform for each values file
+make k8s-chaos                            # nine fault scenarios on the kind cluster (~20 min)
+make k8s-bench                            # replica matrix, recovery and KEDA timing on kind (~40 min)
 ```
+
+## Repository layout
+
+```
+*.go                 the durableq library (package durableq): client, worker, queries, backoff
+cmd/durableq/        CLI: migrate, enqueue, worker, serve, status, check, demo, bench
+internal/            api (HTTP), metrics (Prometheus), migrate, demo (handlers, chaos harness, checker), failpoint, testdb
+migrations/          SQL migrations, embedded in the binary
+test/chaos/          process-level chaos tests (build tag chaos)
+test/k8s/            Kubernetes chaos and benchmark suites (build tag k8s)
+deploy/helm/         Helm chart, Grafana dashboard
+deploy/kind/         kind cluster and monitoring config
+scripts/             kind setup, smoke, chaos and benchmark entry points
+bench/               raw benchmark and chaos evidence
+docs/                design, requirements, results, plans and progress notes
+```
+
+The library stays at the repository root so its import path is `github.com/Eliot-2006/durableq`.
 
 ## Docs
 
 - [docs/PRD.md](docs/PRD.md): requirements and decisions
 - [docs/design.md](docs/design.md): state machine, SQL contracts, lease and fencing reasoning, failure model, limitations
 - [docs/results.md](docs/results.md): benchmarks and chaos results, with hardware and reproduction commands
+- [docs/kubernetes.md](docs/kubernetes.md): running on Kubernetes: architecture, Helm values, autoscaling, metrics, limitations
+- [docs/results-k8s.md](docs/results-k8s.md): Kubernetes chaos scenarios, replica scaling, recovery and KEDA timing
+- [docs/kubernetes-plan.md](docs/kubernetes-plan.md): the Kubernetes extension's plan and interface contract
+- [docs/IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.md) and [docs/PROGRESS.md](docs/PROGRESS.md): milestone status and the engineering log
 
 ## License
 
