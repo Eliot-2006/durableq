@@ -1,40 +1,40 @@
 scripts/k8s-chaos.sh
 === RUN   TestRandomPodKill
-CHAOS RandomPodKill            seed=43 pass=true faults=map[sigkill:3] drain=47.78s duplicates=30 effects_violations=0 report=/Users/eliotboda/.paradev/worktrees/durableq/feat/k8s-chaos/bench/k8s/chaos/20261112T235407Z.json
+CHAOS RandomPodKill            seed=43 pass=true faults=map[sigkill:3] drain=47.78s duplicates=30 effects_violations=0 report=bench/k8s/chaos/20261112T235407Z.json
 --- PASS: TestRandomPodKill (53.84s)
 === RUN   TestGracefulTermination
-CHAOS GracefulTermination      seed=43 pass=true faults=map[sigterm_delete:1] drain=112.86s duplicates=0 effects_violations=0 report=/Users/eliotboda/.paradev/worktrees/durableq/feat/k8s-chaos/bench/k8s/chaos/20261112T235407Z.json
+CHAOS GracefulTermination      seed=43 pass=true faults=map[sigterm_delete:1] drain=112.86s duplicates=0 effects_violations=0 report=bench/k8s/chaos/20261112T235407Z.json
 --- PASS: TestGracefulTermination (118.23s)
 === RUN   TestRollingUpdate
-CHAOS RollingUpdate            seed=43 pass=true faults=map[rollout_restart:3] drain=80.09s duplicates=0 effects_violations=0 report=/Users/eliotboda/.paradev/worktrees/durableq/feat/k8s-chaos/bench/k8s/chaos/20261112T235407Z.json
+CHAOS RollingUpdate            seed=43 pass=true faults=map[rollout_restart:3] drain=80.09s duplicates=0 effects_violations=0 report=bench/k8s/chaos/20261112T235407Z.json
 --- PASS: TestRollingUpdate (86.71s)
 === RUN   TestScaleUpDown
-CHAOS ScaleUpDown              seed=43 pass=true faults=map[scale:4] drain=331.29s duplicates=0 effects_violations=0 report=/Users/eliotboda/.paradev/worktrees/durableq/feat/k8s-chaos/bench/k8s/chaos/20261112T235407Z.json
+CHAOS ScaleUpDown              seed=43 pass=true faults=map[scale:4] drain=331.29s duplicates=0 effects_violations=0 report=bench/k8s/chaos/20261112T235407Z.json
 --- PASS: TestScaleUpDown (339.76s)
 === RUN   TestPostgresRestart
     harness_test.go:386: status unavailable during recovery: kubectl --context kind-durableq -n durableq exec deploy/durableq-api -c api -- /durableq status: exit status 1: error: failed to connect to `user=durableq database=durableq`: 10.96.60.193:5432 (durableq-postgres.durableq.svc): dial error: dial tcp 10.96.60.193:5432: connect: connection refused
         command terminated with exit code 1
     harness_test.go:386: status unavailable during recovery: kubectl --context kind-durableq -n durableq exec deploy/durableq-api -c api -- /durableq status: exit status 1: error: failed to connect to `user=durableq database=durableq`: 10.96.60.193:5432 (durableq-postgres.durableq.svc): dial error: dial tcp 10.96.60.193:5432: connect: connection refused
         command terminated with exit code 1
-CHAOS PostgresRestart          seed=43 pass=true faults=map[postgres_restart:1] drain=61.42s duplicates=30 effects_violations=0 report=/Users/eliotboda/.paradev/worktrees/durableq/feat/k8s-chaos/bench/k8s/chaos/20261112T235407Z.json
+CHAOS PostgresRestart          seed=43 pass=true faults=map[postgres_restart:1] drain=61.42s duplicates=30 effects_violations=0 report=bench/k8s/chaos/20261112T235407Z.json
 --- PASS: TestPostgresRestart (68.32s)
 === RUN   TestConnectionKill
-CHAOS ConnectionKill           seed=43 pass=true faults=map[connection_kill_round:3 connections_terminated:19] drain=45.52s duplicates=6 effects_violations=0 report=/Users/eliotboda/.paradev/worktrees/durableq/feat/k8s-chaos/bench/k8s/chaos/20261112T235407Z.json
+CHAOS ConnectionKill           seed=43 pass=true faults=map[connection_kill_round:3 connections_terminated:19] drain=45.52s duplicates=6 effects_violations=0 report=bench/k8s/chaos/20261112T235407Z.json
 --- PASS: TestConnectionKill (57.98s)
 === RUN   TestRetryExhaustionDLQ
-CHAOS RetryExhaustionDLQ       seed=43 pass=true faults=map[sigkill:1] drain=37.90s duplicates=10 effects_violations=0 report=/Users/eliotboda/.paradev/worktrees/durableq/feat/k8s-chaos/bench/k8s/chaos/20261112T235407Z.json
+CHAOS RetryExhaustionDLQ       seed=43 pass=true faults=map[sigkill:1] drain=37.90s duplicates=10 effects_violations=0 report=bench/k8s/chaos/20261112T235407Z.json
 --- PASS: TestRetryExhaustionDLQ (43.49s)
 === RUN   TestRepeatedCrashRecovery
     chaos_test.go:121: every killed worker must hold jobs
     harness_test.go:333: refusing SIGKILL: invalid worker PID/args
-CHAOS RepeatedCrashRecovery    seed=43 pass=false faults=map[] drain=0.00s duplicates=0 effects_violations=0 report=/Users/eliotboda/.paradev/worktrees/durableq/feat/k8s-chaos/bench/k8s/chaos/20261112T235407Z.json
+CHAOS RepeatedCrashRecovery    seed=43 pass=false faults=map[] drain=0.00s duplicates=0 effects_violations=0 report=bench/k8s/chaos/20261112T235407Z.json
 --- FAIL: TestRepeatedCrashRecovery (11.01s)
 === RUN   TestKEDAAutoscale
 KEDA first_up=15.49s max_ready=31.10s drain_to_min=101.65s
-CHAOS KEDAAutoscale            seed=43 pass=true faults=map[] drain=79.70s duplicates=0 effects_violations=0 report=/Users/eliotboda/.paradev/worktrees/durableq/feat/k8s-chaos/bench/k8s/chaos/20261112T235407Z.json
+CHAOS KEDAAutoscale            seed=43 pass=true faults=map[] drain=79.70s duplicates=0 effects_violations=0 report=bench/k8s/chaos/20261112T235407Z.json
 --- PASS: TestKEDAAutoscale (189.93s)
 FAIL
-REPORT /Users/eliotboda/.paradev/worktrees/durableq/feat/k8s-chaos/bench/k8s/chaos/20261112T235407Z.json
+REPORT bench/k8s/chaos/20261112T235407Z.json
 FAIL	github.com/Eliot-2006/durableq/test/k8s	969.590s
 FAIL
 make: *** [k8s-chaos] Error 1

@@ -179,7 +179,7 @@ func captureEnv(t *testing.T) {
 	t.Helper()
 	var b strings.Builder
 	commands := [][]string{
-		{"date", "-u"}, {"uname", "-a"}, {"sysctl", "machdep.cpu.brand_string", "hw.model", "hw.ncpu", "hw.memsize"},
+		{"date", "-u"}, {"uname", "-srvm"}, {"sysctl", "machdep.cpu.brand_string", "hw.model", "hw.ncpu", "hw.memsize"},
 		{"docker", "info", "--format", "Docker VM CPUs={{.NCPU}} memory_bytes={{.MemTotal}} server={{.ServerVersion}}"},
 		{"kind", "version"}, {"kubectl", "--context", "kind-durableq", "version", "-o", "json"},
 		{"helm", "--kube-context", "kind-durableq", "-n", "durableq", "get", "values", "durableq", "--all", "-o", "yaml"},

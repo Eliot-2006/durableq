@@ -98,24 +98,24 @@ Graceful deletion released 10 attempts in each validated run, and every job succ
 Exact stdout summaries for two successful runs per scenario, with report paths:
 
 ```text
-CHAOS RandomPodKill            seed=42 pass=true faults=map[sigkill:3] drain=48.73s duplicates=30 effects_violations=0 report=/Users/eliotboda/.paradev/worktrees/durableq/feat/k8s-chaos/bench/k8s/chaos/20261112T233044Z.json
-CHAOS GracefulTermination      seed=42 pass=true faults=map[sigterm_delete:1] drain=121.17s duplicates=0 effects_violations=0 report=/Users/eliotboda/.paradev/worktrees/durableq/feat/k8s-chaos/bench/k8s/chaos/20261112T233044Z.json
-CHAOS RollingUpdate            seed=42 pass=true faults=map[rollout_restart:3] drain=80.64s duplicates=0 effects_violations=0 report=/Users/eliotboda/.paradev/worktrees/durableq/feat/k8s-chaos/bench/k8s/chaos/20261112T233044Z.json
-CHAOS ScaleUpDown              seed=42 pass=true faults=map[scale:4] drain=340.54s duplicates=0 effects_violations=0 report=/Users/eliotboda/.paradev/worktrees/durableq/feat/k8s-chaos/bench/k8s/chaos/20261112T233044Z.json
-CHAOS PostgresRestart          seed=42 pass=true faults=map[postgres_restart:1] drain=61.00s duplicates=29 effects_violations=0 report=/Users/eliotboda/.paradev/worktrees/durableq/feat/k8s-chaos/bench/k8s/chaos/20261112T233044Z.json
-CHAOS ConnectionKill           seed=42 pass=true faults=map[connection_kill_round:3 connections_terminated:25] drain=44.39s duplicates=9 effects_violations=0 report=/Users/eliotboda/.paradev/worktrees/durableq/feat/k8s-chaos/bench/k8s/chaos/20261112T233044Z.json
-CHAOS RetryExhaustionDLQ       seed=42 pass=true faults=map[sigkill:1] drain=39.28s duplicates=10 effects_violations=0 report=/Users/eliotboda/.paradev/worktrees/durableq/feat/k8s-chaos/bench/k8s/chaos/20261112T233044Z.json
-CHAOS RepeatedCrashRecovery    seed=42 pass=true faults=map[crash_recovery_cycle:3 sigkill:9] drain=160.54s duplicates=90 effects_violations=0 report=/Users/eliotboda/.paradev/worktrees/durableq/feat/k8s-chaos/bench/k8s/chaos/20261112T235033Z-recovery42.json
-CHAOS KEDAAutoscale            seed=43 pass=true faults=map[] drain=79.70s duplicates=0 effects_violations=0 report=/Users/eliotboda/.paradev/worktrees/durableq/feat/k8s-chaos/bench/k8s/chaos/20261112T235407Z.json
-CHAOS RandomPodKill            seed=44 pass=true faults=map[sigkill:3] drain=48.97s duplicates=30 effects_violations=0 report=/Users/eliotboda/.paradev/worktrees/durableq/feat/k8s-chaos/bench/k8s/chaos/20261113T001148Z.json
-CHAOS GracefulTermination      seed=44 pass=true faults=map[sigterm_delete:1] drain=121.01s duplicates=0 effects_violations=0 report=/Users/eliotboda/.paradev/worktrees/durableq/feat/k8s-chaos/bench/k8s/chaos/20261113T001148Z.json
-CHAOS RollingUpdate            seed=44 pass=true faults=map[rollout_restart:3] drain=79.91s duplicates=0 effects_violations=0 report=/Users/eliotboda/.paradev/worktrees/durableq/feat/k8s-chaos/bench/k8s/chaos/20261113T001148Z.json
-CHAOS ScaleUpDown              seed=44 pass=true faults=map[scale:4] drain=339.40s duplicates=0 effects_violations=0 report=/Users/eliotboda/.paradev/worktrees/durableq/feat/k8s-chaos/bench/k8s/chaos/20261113T001148Z.json
-CHAOS PostgresRestart          seed=44 pass=true faults=map[postgres_restart:1] drain=80.67s duplicates=30 effects_violations=0 report=/Users/eliotboda/.paradev/worktrees/durableq/feat/k8s-chaos/bench/k8s/chaos/20261113T001148Z.json
-CHAOS ConnectionKill           seed=44 pass=true faults=map[connection_kill_round:3 connections_terminated:23] drain=42.85s duplicates=9 effects_violations=0 report=/Users/eliotboda/.paradev/worktrees/durableq/feat/k8s-chaos/bench/k8s/chaos/20261113T001148Z.json
-CHAOS RetryExhaustionDLQ       seed=44 pass=true faults=map[sigkill:1] drain=39.64s duplicates=10 effects_violations=0 report=/Users/eliotboda/.paradev/worktrees/durableq/feat/k8s-chaos/bench/k8s/chaos/20261113T001148Z.json
-CHAOS RepeatedCrashRecovery    seed=44 pass=true faults=map[crash_recovery_cycle:3 sigkill:9] drain=164.99s duplicates=88 effects_violations=0 report=/Users/eliotboda/.paradev/worktrees/durableq/feat/k8s-chaos/bench/k8s/chaos/20261113T001148Z.json
-CHAOS KEDAAutoscale            seed=44 pass=true faults=map[] drain=73.48s duplicates=0 effects_violations=0 report=/Users/eliotboda/.paradev/worktrees/durableq/feat/k8s-chaos/bench/k8s/chaos/20261113T001148Z.json
+CHAOS RandomPodKill            seed=42 pass=true faults=map[sigkill:3] drain=48.73s duplicates=30 effects_violations=0 report=bench/k8s/chaos/20261112T233044Z.json
+CHAOS GracefulTermination      seed=42 pass=true faults=map[sigterm_delete:1] drain=121.17s duplicates=0 effects_violations=0 report=bench/k8s/chaos/20261112T233044Z.json
+CHAOS RollingUpdate            seed=42 pass=true faults=map[rollout_restart:3] drain=80.64s duplicates=0 effects_violations=0 report=bench/k8s/chaos/20261112T233044Z.json
+CHAOS ScaleUpDown              seed=42 pass=true faults=map[scale:4] drain=340.54s duplicates=0 effects_violations=0 report=bench/k8s/chaos/20261112T233044Z.json
+CHAOS PostgresRestart          seed=42 pass=true faults=map[postgres_restart:1] drain=61.00s duplicates=29 effects_violations=0 report=bench/k8s/chaos/20261112T233044Z.json
+CHAOS ConnectionKill           seed=42 pass=true faults=map[connection_kill_round:3 connections_terminated:25] drain=44.39s duplicates=9 effects_violations=0 report=bench/k8s/chaos/20261112T233044Z.json
+CHAOS RetryExhaustionDLQ       seed=42 pass=true faults=map[sigkill:1] drain=39.28s duplicates=10 effects_violations=0 report=bench/k8s/chaos/20261112T233044Z.json
+CHAOS RepeatedCrashRecovery    seed=42 pass=true faults=map[crash_recovery_cycle:3 sigkill:9] drain=160.54s duplicates=90 effects_violations=0 report=bench/k8s/chaos/20261112T235033Z-recovery42.json
+CHAOS KEDAAutoscale            seed=43 pass=true faults=map[] drain=79.70s duplicates=0 effects_violations=0 report=bench/k8s/chaos/20261112T235407Z.json
+CHAOS RandomPodKill            seed=44 pass=true faults=map[sigkill:3] drain=48.97s duplicates=30 effects_violations=0 report=bench/k8s/chaos/20261113T001148Z.json
+CHAOS GracefulTermination      seed=44 pass=true faults=map[sigterm_delete:1] drain=121.01s duplicates=0 effects_violations=0 report=bench/k8s/chaos/20261113T001148Z.json
+CHAOS RollingUpdate            seed=44 pass=true faults=map[rollout_restart:3] drain=79.91s duplicates=0 effects_violations=0 report=bench/k8s/chaos/20261113T001148Z.json
+CHAOS ScaleUpDown              seed=44 pass=true faults=map[scale:4] drain=339.40s duplicates=0 effects_violations=0 report=bench/k8s/chaos/20261113T001148Z.json
+CHAOS PostgresRestart          seed=44 pass=true faults=map[postgres_restart:1] drain=80.67s duplicates=30 effects_violations=0 report=bench/k8s/chaos/20261113T001148Z.json
+CHAOS ConnectionKill           seed=44 pass=true faults=map[connection_kill_round:3 connections_terminated:23] drain=42.85s duplicates=9 effects_violations=0 report=bench/k8s/chaos/20261113T001148Z.json
+CHAOS RetryExhaustionDLQ       seed=44 pass=true faults=map[sigkill:1] drain=39.64s duplicates=10 effects_violations=0 report=bench/k8s/chaos/20261113T001148Z.json
+CHAOS RepeatedCrashRecovery    seed=44 pass=true faults=map[crash_recovery_cycle:3 sigkill:9] drain=164.99s duplicates=88 effects_violations=0 report=bench/k8s/chaos/20261113T001148Z.json
+CHAOS KEDAAutoscale            seed=44 pass=true faults=map[] drain=73.48s duplicates=0 effects_violations=0 report=bench/k8s/chaos/20261113T001148Z.json
 ```
 
 ## Superseded resource-sampling trial
