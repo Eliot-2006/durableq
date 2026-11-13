@@ -1,0 +1,47 @@
+---
+import Base from '../layouts/Base.astro';
+import { blob, href, REPO } from '../lib/url';
+
+const docs: [string, string, string][] = [
+  ['docs/design.md', 'Design', 'State machine, every SQL contract, lease and fencing reasoning, the failure model, known limitations.'],
+  ['docs/results.md', 'Results', 'Bare-process benchmarks and chaos results, with hardware and reproduction commands.'],
+  ['docs/results-k8s.md', 'Kubernetes results', 'Nine fault scenarios, replica scaling, recovery and KEDA timing on a local kind cluster.'],
+  ['docs/kubernetes.md', 'Kubernetes', 'Architecture, Helm values, autoscaling, metrics, limitations and troubleshooting.'],
+  ['docs/PRD.md', 'Requirements', 'Product requirements and the numbered decisions the design refers to.'],
+  ['docs/kubernetes-plan.md', 'Kubernetes plan', 'The Kubernetes extension’s plan and interface contract.'],
+  ['docs/PROGRESS.md', 'Progress log', 'Milestone status and the engineering log, including the audit.'],
+  ['bench/', 'Raw evidence', 'Benchmark CSVs, chaos reports and environment captures that the results documents cite.'],
+];
+---
+
+<Base title="Docs" description="Links to the DurableQ design, results, Kubernetes and requirements documents and to the source repository.">
+  <div class="page">
+    <header>
+      <h1>Docs</h1>
+      <p class="lead">The documentation lives with the code, on GitHub. These pages summarise it and link back.</p>
+    </header>
+
+    <ul class="ledger">
+      {docs.map(([path, name, desc]) => (
+        <li>
+          <div>
+            <p class="claim"><a href={blob(path)}>{name}</a> <span class="muted small">{path}</span></p>
+            <p class="detail">{desc}</p>
+          </div>
+        </li>
+      ))}
+    </ul>
+
+    <h2>Source</h2>
+    <ul>
+      <li><a href={REPO}>github.com/Eliot-2006/durableq</a>: the Go library, the CLI, the Helm chart and the test suites (MIT licence).</li>
+      <li><a href={blob('README.md')}>README</a>: quickstart, library usage, the chaos demo and the repository layout.</li>
+      <li><a href={blob('site/README.md')}>site/README.md</a>: how this site is built and how its data is generated.</li>
+    </ul>
+
+    <h2>On this site</h2>
+    <ul>
+      <li><a href={href('architecture/')}>Architecture</a>, <a href={href('reliability/')}>Reliability</a>, <a href={href('performance/')}>Performance</a>, <a href={href('kubernetes/')}>Kubernetes</a>, <a href={href('engineering/')}>Engineering</a>.</li>
+    </ul>
+  </div>
+</Base>

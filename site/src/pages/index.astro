@@ -1,0 +1,141 @@
+---
+import Base from '../layouts/Base.astro';
+import Env from '../components/Env.astro';
+import Note from '../components/Note.astro';
+import Sources from '../components/Sources.astro';
+import ArchDiagram from '../components/ArchDiagram.astro';
+import { href, REPO, blob } from '../lib/url';
+import { bare, k8s, nf, row, speedup, peakProcess } from '../lib/data';
+
+const c = bare.chaos_acceptance;
+const k0 = row(0, 10);
+const k50one = row(50, 1);
+const k50ten = row(50, 10);
+const k0one = row(0, 1);
+---
+
+<Base title="DurableQ" description="DurableQ is a durable job queue in Go with PostgreSQL as its only coordinator, also running on Kubernetes with Helm and KEDA. Guarantees, mechanism and measured results, with the limits stated.">
+  <div class="page">
+    <header>
+      <h1>A job queue where PostgreSQL decides who owns each job</h1>
+    </header>
+
+    <div class="row">
+      <div>
+        <p class="lead">DurableQ is a durable job queue in Go with PostgreSQL as its only dependency. Workers claim jobs with <code>FOR UPDATE SKIP LOCKED</code> and hold leases timed on the database clock, renewing them with heartbeats; when a worker dies, its leases expire and other workers reclaim the jobs. Every state transition is fenced by an attempt number, so a stale or partitioned worker cannot complete a job it no longer owns. It also runs on Kubernetes: an HTTP API and workers from one image, a Helm chart, KEDA autoscaling on the eligible backlog, and Prometheus metrics with a Grafana dashboard.</p>
+        <p>
+          <a class="btn primary" href={href('reliability/')}>Break a worker in the simulation</a>
+          <a class="btn" href={REPO}>View the source</a>
+        </p>
+      </div>
+      <Note title="Scope" sources={['docs/results.md', 'docs/results-k8s.md']}>
+        <p>Every figure here was measured on one Apple M3 Pro laptop, with the environment named beside it. They show how the system behaves and scales, not production capacity.</p>
+      </Note>
+    </div>
+
+    <h2>What it guarantees, and what it does not</h2>
+    <div class="two">
+      <div>
+        <h3>Guaranteed</h3>
+        <ul>
+          <li><strong>At-least-once execution.</strong> A committed job runs until it succeeds or is dead-lettered.</li>
+          <li><strong>At most one terminal transition per job.</strong> <code>succeeded</code> or <code>dead</code> commits once.</li>
+          <li><strong>Fenced transitions.</strong> Heartbeat, complete, fail and release commit only for the current attempt with an unexpired lease on the database clock.</li>
+          <li><strong>Exactly-once transactional effects.</strong> Writes made in a handler’s <code>CommitFunc</code> commit if and only if that attempt’s completion commits.</li>
+          <li><strong>Bounded attempts.</strong> A handler runs at most <code>max_attempts</code> times, plus once per graceful release.</li>
+        </ul>
+      </div>
+      <div>
+        <h3>Not guaranteed</h3>
+        <ul>
+          <li><strong>Exactly-once external side effects.</strong> HTTP calls and emails can repeat, so handlers must be idempotent.</li>
+          <li><strong>Ordering.</strong> Jobs are claimed roughly by <code>run_at</code>; there is no FIFO under concurrency or retries.</li>
+          <li><strong>Progress while Postgres is down</strong>, or survival of permanent database loss: there is no replication.</li>
+          <li><strong>A healthy job surviving unbounded faults.</strong> Crashes count against the attempt budget, so a job whose workers die <code>max_attempts</code> times in a row ends <code>dead</code>.</li>
+        </ul>
+      </div>
+    </div>
+    <p class="muted small">Reasoning for each: <a href={blob('docs/design.md#1-guarantees')}>design.md, section 1</a>.</p>
+
+    <h2>Measured</h2>
+    <p class="muted">Two setups produce these numbers. They are different setups, so no row compares one with the other.</p>
+    <ul class="ledger">
+      <li>
+        <div>
+          <p class="claim">{c.passed} of {c.runs} acceptance chaos runs passed all seven invariants</p>
+          <p class="detail">Each run: {nf(c.jobs_per_run)} jobs and {c.sigkills_per_run} SIGKILLs, plus connection kills, stalls, graceful restarts and failpoint self-kills. Across the {c.runs} runs: 0 lost jobs, 0 duplicate effects, 0 duplicate terminal transitions. 41,131 attempts were abandoned and re-executed, which at-least-once allows.</p>
+        </div>
+        <div class="meta">
+          <Env env="process" />
+          <span>Source: <Sources paths={['docs/PROGRESS.md#m3-acceptance-2026-11-05-same-machine', 'docs/results.md']} /> (no raw data file)</span>
+        </div>
+      </li>
+      <li>
+        <div>
+          <p class="claim">A crashed worker’s jobs come back after one lease</p>
+          <p class="detail">
+            <Env env="process" /> 2 s lease: p50 {nf(bare.recovery.p50_ms)} ms, max {nf(bare.recovery.max_ms)} ms ({bare.recovery.jobs} jobs).<br />
+            <Env env="kind" /> 30 s lease: {nf(k8s.recovery.min_s, 2)} to {nf(k8s.recovery.max_s, 2)} s ({k8s.recovery.claims} claims).
+          </p>
+        </div>
+        <div class="meta">
+          <span>Source: <Sources paths={[bare.sources[2], k8s.recovery.source]} /></span>
+        </div>
+      </li>
+      <li>
+        <div>
+          <p class="claim">Peak claim throughput {nf(peakProcess.jobs_per_sec)} jobs/s</p>
+          <p class="detail"><code>demo.noop</code> on a pre-enqueued backlog of {nf(peakProcess.jobs)} jobs, {peakProcess.procs} worker processes × {peakProcess.concurrency} slots, {peakProcess.max_worker_conns} connections, PostgreSQL on the same host.</p>
+        </div>
+        <div class="meta">
+          <Env env="process" />
+          <span>Source: <Sources paths={[bare.sources[0]]} /></span>
+        </div>
+      </li>
+      <li>
+        <div>
+          <p class="claim">{nf(speedup(50), 1)}× throughput from 1 to 10 workers with 50 ms of work per job; {nf(speedup(0), 1)}× with none</p>
+          <p class="detail">{nf(k50one.jobs_per_second, 1)} to {nf(k50ten.jobs_per_second, 1)} jobs/s at 50 ms; {nf(k0one.jobs_per_second, 1)} to {nf(k0.jobs_per_second, 1)} jobs/s at 0 ms. With no work per job Postgres uses {nf(k0.postgres_cpu_millicores / 1000, 1)} of the VM’s 11 cores while all workers together use under half a core: the database is the limit.</p>
+        </div>
+        <div class="meta">
+          <Env env="kind" />
+          <span>Source: <Sources paths={[k8s.sources[0], k0.source]} /></span>
+        </div>
+      </li>
+      <li>
+        <div>
+          <p class="claim">Nine Kubernetes fault scenarios pass invariants I1–I7</p>
+          <p class="detail">Pod SIGKILLs, graceful termination, rolling updates, scaling, a Postgres pod restart, connection kills, a dead-letter run, repeated crash cycles, and KEDA scaling 3 → 10 → 3. Each passed in at least {k8s.chaos_runs_passed_per_scenario_min} full runs with zero violations.</p>
+        </div>
+        <div class="meta">
+          <Env env="kind" />
+          <span>Source: <Sources paths={[k8s.sources[1], k8s.sources[2]]} /></span>
+        </div>
+      </li>
+    </ul>
+    <p class="small muted">Setups. <Env env="process" /> {bare.environment}. <Env env="kind" /> {k8s.environment}.</p>
+
+    <h2>How it fits together</h2>
+    <div class="explorer">
+      <ArchDiagram compact />
+      <div>
+        <ol>
+          <li><strong>Submit.</strong> A client inserts a row into <code>jobs</code>, directly or through the HTTP API. An idempotency key makes retries safe.</li>
+          <li><strong>Claim.</strong> A worker claims due rows with <code>FOR UPDATE SKIP LOCKED</code>, setting a lease and incrementing <code>attempt</code>.</li>
+          <li><strong>Hold.</strong> Heartbeats extend the lease. If they stop, the lease expires on the database clock and another worker’s claim takes the job.</li>
+          <li><strong>Fence.</strong> Completion succeeds only for the current attempt with an unexpired lease. A stale worker’s transition is rejected.</li>
+        </ol>
+        <p><a href={href('architecture/')}>Explore each component →</a></p>
+      </div>
+    </div>
+
+    <h2>Where to go next</h2>
+    <ul>
+      <li><a href={href('reliability/')}>Reliability</a>: step through a worker stall, lease expiry, reclaim and a rejected stale completion.</li>
+      <li><a href={href('performance/')}>Performance</a>: interactive charts of the benchmarks, each linked to its raw file.</li>
+      <li><a href={href('kubernetes/')}>Kubernetes</a>: Helm, KEDA, Prometheus, Grafana and graceful termination.</li>
+      <li><a href={href('engineering/')}>Engineering</a>: the trade-offs behind the design.</li>
+      <li><a href={href('docs/')}>Docs</a>: the full design, results and requirements documents on GitHub.</li>
+    </ul>
+  </div>
+</Base>
